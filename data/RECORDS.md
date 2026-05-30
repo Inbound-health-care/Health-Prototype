@@ -78,6 +78,7 @@ flag an item appearing in **2+** entries of a record, matched **exactly**.
 | **R011** | The care-coordination payoff: a duplicated test (same lab ×3). | `lab: A1C` ×3 |
 | **R012** | Dense longitudinal record; one item recurs monthly across a year (12×) amid noise. | `blood pressure elevated` ×12 |
 | **R013** | Domain-agnostic proof: the item is an SDOH factor, not a symptom. | `housing instability` ×2 |
+| **R014** | v1 fuzzy/typo demo: one concept written 3 ways (typo + casing). v0 surfaces nothing; v1 merges it. | *(nothing in v0)* |
 
 ### Cross-record independence (no dedicated record needed)
 
@@ -88,35 +89,93 @@ never aggregates an item across different records. Asserted in
 
 ---
 
-## 4. v0 limitations demonstrated by this data
+## 4. v0 boundaries — and how v1 (opt-in) addresses them
 
-These are **known, documented limitations**, not defects. Each has a live
-example so the oracle can see exactly where the boundary is:
+The v0 default is **exact match**. These boundaries each have a live example,
+and v1's opt-in layers (see §5) now resolve the first three — without changing
+the v0 default:
 
 - **No synonym/semantic matching** (R006): "poor sleep" / "insomnia" /
-  "can't sleep" are three different items in v0. Deferred to v1 (fuzzy matching).
-- **No normalization** (R007): "Hypertension" ≠ "hypertension" ≠ "hypertension ".
-  Case-folding and trimming are v1 candidates.
+  "can't sleep" are three different items by default → resolved by the declared
+  `SYNONYMS` map in v1.
+- **No normalization** (R007): "Hypertension" ≠ "hypertension" ≠ "hypertension "
+  by default → resolved by `normalize=True` in v1.
+- **Typos / near-duplicates** (R014): "blood pressure" ≠ "blood presure" by
+  default → resolved by `fuzzy_cutoff` in v1.
 - **Provenance gaps surface, they don't vanish** (R009): an undated occurrence
   is counted and rendered `(undated)` — a data-quality flag, not interpretation.
+  (This is intended behavior at every version, not a limitation.)
 
 ---
 
-## 5. How to verify (you and the engine, independently)
+## 5. v1 opt-in matching (normalize + declared synonyms + fuzzy)
+
+v1 adds three matching layers to `detect_recurrence`. **All are opt-in** — the
+defaults are still exact v0 matching, so nothing in §3's v0 answer key changes.
+`SYNONYMS` and `ANSWER_KEY_V1` in `data/sample_records.py` demonstrate them on
+the *same* records, so the v0→v1 difference is visible on one dataset:
+
+```python
+detect_recurrence(SAMPLE_RECORDS, normalize=True, synonyms=SYNONYMS, fuzzy_cutoff=0.85)
+```
+```bash
+python recurrence.py --demo-v1
+```
+
+| Layer | Param | What it merges | Who decides equivalence |
+|---|---|---|---|
+| Normalize | `normalize=True` | case + whitespace ("Hypertension" = "hypertension ") | a fixed text rule, no judgment |
+| Synonyms | `synonyms={…}` | declared synonyms ("insomnia" = "poor sleep") | **you / the oracle**, as data |
+| Fuzzy | `fuzzy_cutoff=0.85` | lookalikes/typos ("blood presure" ≈ "blood pressure") | the engine, via stdlib difflib |
+
+**Why a declared map for synonyms, not just fuzzy?** The spec's own example —
+"insomnia" = "can't sleep" — shares no letters, so *no* string-similarity score
+can unite them (their difflib ratio is far below any usable cutoff). Only a
+declared dictionary can, and keeping it as *data you supply* means the engine is
+applying your rule, not inferring meaning. Fuzzy is the one layer where the
+engine groups on its own, so it is off by default.
+
+### The firewall holds: every merge is cited
+
+When v1 combines differently-spelled entries, the hit's `variants` lists every
+original surface string, and `format_hit` appends them:
+
+```
+Record R006: "poor sleep" recurred 3 times — 2026-01-09, 2026-02-11, 2026-03-14 [merged: "can't sleep", "insomnia", "poor sleep"]
+```
+
+The engine still only surfaces, counts, and cites — it now also **shows which
+spellings it treated as the same**, so a human can audit (and overrule) any
+merge. It never says what the recurrence *means*.
+
+### v1 answer key
+
+`ANSWER_KEY_V1` is the hand-written expected output under the call above. It
+differs from the v0 key (§3) in exactly three records — the three new merges:
+**R006** (synonyms), **R007** (normalize), **R014** (normalize + fuzzy typo).
+`tests/test_fuzzy.py` asserts the engine reproduces it exactly, and that the
+defaults still reproduce the v0 key (no regression).
+
+---
+
+## 6. How to verify (you and the engine, independently)
 
 ```bash
-python recurrence.py --demo                       # what the engine surfaces
-python -m unittest discover -s tests -t .          # answer key vs engine, exact
+python recurrence.py --demo                        # v0 exact match
+python recurrence.py --demo-v1                      # v1 opt-in matching
+python -m unittest discover -s tests -t .           # answer keys vs engine, exact
 ```
 
 `tests/test_sample_records.py` reshapes the engine output to
-`{record_id: {item: [dates]}}` and asserts it equals `ANSWER_KEY` (dropping the
-empty-dict records, which must emit nothing). Read the table in §3, eyeball the
-`--demo` output, and the unit test guarantees they can't silently disagree.
+`{record_id: {item: [dates]}}` and asserts it equals `ANSWER_KEY` (v0).
+`tests/test_fuzzy.py` does the same against `ANSWER_KEY_V1` for the opt-in call,
+and also asserts the defaults still reproduce the v0 key (no regression). Read
+the tables in §3 and §5, eyeball the two `--demo` outputs, and the unit tests
+guarantee they can't silently disagree.
 
 ---
 
-## 6. Sources (what 2026 records actually carry)
+## 7. Sources (what 2026 records actually carry)
 
 - USCDI **Problems** data class (incl. Onset Date) — ONC Interoperability Standards Platform: https://www.healthit.gov/isp/uscdi-data-class/problems
 - USCDI v5 (encounter elements: Encounter Type, Encounter Diagnosis, Encounter Time) — ONC: https://www.healthit.gov/isp/sites/isp/files/2024-07/USCDI-Version-5-July-2024-Final.pdf

@@ -51,7 +51,8 @@ Record R001: "poor sleep" recurred 2 times — 2026-01-10, 2026-02-02
 
 ```bash
 python recurrence.py --self-test                  # run the six required spec cases
-python recurrence.py --demo                        # surface recurrences in data/sample_records.py
+python recurrence.py --demo                        # v0 exact match over data/sample_records.py
+python recurrence.py --demo-v1                      # v1 opt-in matching over the same records
 python -m unittest discover -s tests -t .          # full test suite (from repo root)
 ```
 
@@ -63,8 +64,33 @@ dictionary (grounded in 2026 USCDI/FHIR/SDOH standards), per-record reasons, and
 the v0 limitations each record demonstrates are in
 [`data/RECORDS.md`](data/RECORDS.md).
 
-## v0 limitation
+## Matching: exact by default, fuzzy when asked
 
-**Exact-match only.** Same meaning in different words (e.g. "can't sleep" ==
-"insomnia") is *not* matched in v0 — that is a known, documented limitation, not
-a bug. Fuzzy / synonym matching is deferred to v1, so the core is proven first.
+**The default is exact match** — same meaning in different words is *not*
+combined, so v0 stays simple and provable.
+
+**v1 adds three opt-in matching layers** to `detect_recurrence` (defaults keep
+exact v0 behavior, so nothing regresses):
+
+```python
+detect_recurrence(records, normalize=True, synonyms={"insomnia": "poor sleep"}, fuzzy_cutoff=0.85)
+```
+
+- `normalize=True` — case-fold + trim + collapse whitespace.
+- `synonyms={variant: canonical}` — merge declared synonyms. The mapping is data
+  **you** supply; the engine never infers meaning. This is the only way to unite
+  truly dissimilar synonyms like "insomnia" = "can't sleep".
+- `fuzzy_cutoff=0.0–1.0` — also merge lookalikes/typos via stdlib `difflib`. This
+  is the one layer where the engine groups without a declared rule, so it is off
+  by default.
+
+**The firewall holds.** Whenever entries with different spellings are combined,
+the hit cites every original via `variants`, and the output shows them:
+
+```
+Record R006: "poor sleep" recurred 3 times — … [merged: "can't sleep", "insomnia", "poor sleep"]
+```
+
+The engine surfaces, counts, and cites — including *which spellings it merged* —
+and still never interprets what the recurrence means. See
+[`data/RECORDS.md`](data/RECORDS.md) §5 for the full v1 walkthrough.

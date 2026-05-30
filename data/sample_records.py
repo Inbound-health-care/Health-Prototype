@@ -187,6 +187,17 @@ SAMPLE_RECORDS: list[dict] = [
             {"date": "2026-03-30", "item": "food insecurity"},
         ],
     },
+    # R014 — REASON: v1 fuzzy/typo demo. One concept written three ways (a typo
+    # and a casing difference). v0 exact-match surfaces NOTHING; v1 with
+    # normalize + fuzzy merges all three. The data is the v0->v1 contrast.
+    {
+        "id": "R014",
+        "entries": [
+            {"date": "2026-01-05", "item": "blood pressure"},
+            {"date": "2026-02-05", "item": "blood presure"},   # typo
+            {"date": "2026-03-05", "item": "Blood Pressure"},  # casing
+        ],
+    },
 ]
 
 # The hand-written answer key (oracle): for each record, the items that SHOULD
@@ -216,4 +227,56 @@ ANSWER_KEY: dict = {
         ]
     },
     "R013": {"housing instability": ["2026-01-22", "2026-02-26"]},
+    "R014": {},  # v0 exact-match: typo + casing variants do not merge
+}
+
+
+# ---------------------------------------------------------------------------
+# v1 layer — opt-in matching (normalize + declared synonyms + fuzzy)
+# ---------------------------------------------------------------------------
+#
+# These are NOT used by default. They demonstrate v1's opt-in matching on the
+# SAME records, so the v0 -> v1 difference is visible on one dataset:
+#
+#   detect_recurrence(SAMPLE_RECORDS, normalize=True, synonyms=SYNONYMS,
+#                     fuzzy_cutoff=0.85)
+#
+# Run it with:  python recurrence.py --demo-v1
+
+# Declared synonyms (the oracle's data, never inferred by the engine). Maps a
+# variant to its canonical concept. Resolves R006's true synonyms — the case no
+# string-similarity could catch, because the words share no letters.
+SYNONYMS: dict = {
+    "insomnia": "poor sleep",
+    "can't sleep": "poor sleep",
+}
+
+# The v1 answer key: what SHOULD surface with normalize + SYNONYMS +
+# fuzzy_cutoff=0.85. Written by hand first; the engine must reproduce it.
+# Differences from ANSWER_KEY (v0) are exactly the three new merges:
+#   R006 (synonyms), R007 (normalize), R014 (normalize + fuzzy typo).
+ANSWER_KEY_V1: dict = {
+    "R001": {"poor sleep": ["2026-01-05", "2026-02-10", "2026-03-12"]},
+    "R002": {
+        "appetite change": ["2026-01-08", "2026-02-15"],
+        "fatigue": ["2026-02-02", "2026-03-01"],
+    },
+    "R003": {},
+    "R004": {"back pain": ["2026-01-15", "2026-02-20"]},
+    "R005": {"anxiety": ["2026-01-03", "2026-01-31", "2026-02-28", "2026-03-30"]},
+    "R006": {"poor sleep": ["2026-01-09", "2026-02-11", "2026-03-14"]},  # synonyms
+    "R007": {"Hypertension": ["2026-01-12", "2026-02-12", "2026-03-12"]},  # normalize
+    "R008": {"medication review": ["2026-01-18", "2026-02-22"]},
+    "R009": {"med refill: metformin": ["", "2026-01-07", "2026-03-09"]},
+    "R010": {"edema": ["2026-01-11", "2026-02-13"]},
+    "R011": {"lab: A1C": ["2026-01-06", "2026-02-09", "2026-03-20"]},
+    "R012": {
+        "blood pressure elevated": [
+            "2026-01-04", "2026-02-04", "2026-03-04", "2026-04-04",
+            "2026-05-04", "2026-06-04", "2026-07-04", "2026-08-04",
+            "2026-09-04", "2026-10-04", "2026-11-04", "2026-12-04",
+        ]
+    },
+    "R013": {"housing instability": ["2026-01-22", "2026-02-26"]},
+    "R014": {"blood pressure": ["2026-01-05", "2026-02-05", "2026-03-05"]},  # fuzzy
 }
