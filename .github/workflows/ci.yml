@@ -1,9 +1,17 @@
 name: CI
 
 # Gate every push and PR on the test suite. Pure stdlib — no install step.
+# push runs only on main (post-merge); PR branches are covered by pull_request,
+# so each PR push triggers exactly one run instead of two.
 on:
   push:
+    branches: [main]
   pull_request:
+
+# A newer push to the same ref cancels the in-progress run for it.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
