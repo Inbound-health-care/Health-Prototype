@@ -2,34 +2,45 @@
 sample_records.py — placeholder record set for the recurrence engine.
 =====================================================================
 
-ZERO real PHI. Every record here is invented. The author is the oracle:
-the answer key is written by hand FIRST (what *should* surface), then the
-engine runs and must match it — never patch the answer key toward whatever the
-code produces. tests/test_sample_records.py enforces that agreement.
+ZERO real PHI. Every record here is invented. The author is the oracle: the
+ANSWER_KEY is written by hand FIRST (what *should* surface), then the engine
+runs and must match it exactly — never patch the key toward the code.
+tests/test_sample_records.py enforces that agreement.
 
-Generic record shape (domain-agnostic — a record can be a patient, a pharmacy
-profile, a session log, ...):
+Full design rationale, field dictionary (grounded in 2026 interoperability
+standards), per-record reasons, and the limitations each record demonstrates
+live in data/RECORDS.md. This module is the data + the answer key; RECORDS.md
+is the prose. Read them together.
+
+Record shape (domain-agnostic):
 
     record = {
         "id": "R001",
         "entries": [
-            {"date": "2026-01-10", "item": "poor sleep"},     # ISO 8601 date
-            {"date": "2026-02-02", "item": "poor sleep"},
-            {"date": "2026-02-20", "item": "appetite change"},
+            {"date": "2026-01-10", "item": "poor sleep", "tag": "..."},
+            ...
         ],
     }
 
-Each entry needs a "date" (ISO 8601) and an "item" (the text the engine scans).
+  - "date" — ISO 8601, the entry's onset/observation date (USCDI Problems
+    "Onset Date"). The engine groups occurrences and cites these for provenance.
+  - "item" — the text the recurrence expert scans (a problem, a med, a test,
+    an SDOH factor — anything). Default scanned field.
+  - "tag" — OPTIONAL category/encounter type (USCDI "Encounter Type"). Carried
+    for future routing/config; the v0 recurrence expert ignores it.
 
-`python recurrence.py --demo` surfaces recurrences across SAMPLE_RECORDS.
-Default rule: an item flags when it appears in 2+ entries (min_count = 2).
+Default rule: an item flags when it appears in 2+ entries of one record
+(min_count = 2), matched EXACTLY (case-sensitive, no trimming, no synonyms).
+
+  python recurrence.py --demo   # surface recurrences across SAMPLE_RECORDS
 """
 
 from __future__ import annotations
 
-# Five invented records (zero real PHI), each with a deliberate, known pattern.
+# Each record below exists for exactly ONE reason, stated in its comment. No
+# record is filler; remove a record only if its reason is also removed.
 SAMPLE_RECORDS: list[dict] = [
-    # R001 — one item recurs 3x; a second item appears once (must NOT flag).
+    # R001 — REASON: baseline 3x recurrence; a one-off item must NOT flag.
     {
         "id": "R001",
         "entries": [
@@ -39,7 +50,7 @@ SAMPLE_RECORDS: list[dict] = [
             {"date": "2026-01-20", "item": "headache"},
         ],
     },
-    # R002 — two different items each recur 2x; both must flag independently.
+    # R002 — REASON: two distinct items each recur; both flag independently.
     {
         "id": "R002",
         "entries": [
@@ -49,7 +60,7 @@ SAMPLE_RECORDS: list[dict] = [
             {"date": "2026-03-01", "item": "fatigue"},
         ],
     },
-    # R003 — nothing recurs; all three items are distinct (clean, zero hits).
+    # R003 — REASON: nothing recurs; clean record proves zero false positives.
     {
         "id": "R003",
         "entries": [
@@ -58,7 +69,7 @@ SAMPLE_RECORDS: list[dict] = [
             {"date": "2026-03-09", "item": "dizziness"},
         ],
     },
-    # R004 — one item recurs 2x; a second appears once (must NOT flag).
+    # R004 — REASON: exactly-at-threshold (2x) recurrence; a one-off must NOT flag.
     {
         "id": "R004",
         "entries": [
@@ -67,7 +78,7 @@ SAMPLE_RECORDS: list[dict] = [
             {"date": "2026-03-25", "item": "nausea"},
         ],
     },
-    # R005 — one item recurs 4x; a second appears once (must NOT flag).
+    # R005 — REASON: higher count (4x) proves counting beyond the threshold.
     {
         "id": "R005",
         "entries": [
@@ -78,11 +89,110 @@ SAMPLE_RECORDS: list[dict] = [
             {"date": "2026-02-14", "item": "chest tightness"},
         ],
     },
+    # R006 — REASON: v0 EXACT-MATCH LIMITATION. Three synonyms for one concept,
+    # each once -> engine does NOT flag. This is the v1 fuzzy-match case, shown
+    # live as a known limitation, not a bug.
+    {
+        "id": "R006",
+        "entries": [
+            {"date": "2026-01-09", "item": "poor sleep"},
+            {"date": "2026-02-11", "item": "insomnia"},
+            {"date": "2026-03-14", "item": "can't sleep"},
+        ],
+    },
+    # R007 — REASON: matching is LITERAL. Case and trailing whitespace make
+    # distinct items -> each appears once -> no flag. Documents that v0 does no
+    # normalization (a v1 candidate).
+    {
+        "id": "R007",
+        "entries": [
+            {"date": "2026-01-12", "item": "Hypertension"},
+            {"date": "2026-02-12", "item": "hypertension"},
+            {"date": "2026-03-12", "item": "hypertension "},
+        ],
+    },
+    # R008 — REASON: optional "tag" (encounter type) is carried but IGNORED by
+    # the recurrence expert; the item still flags across differing tags.
+    {
+        "id": "R008",
+        "entries": [
+            {"date": "2026-01-18", "item": "medication review", "tag": "encounter:telehealth"},
+            {"date": "2026-02-22", "item": "medication review", "tag": "encounter:in-person"},
+            {"date": "2026-03-05", "item": "blood pressure check", "tag": "encounter:telehealth"},
+        ],
+    },
+    # R009 — REASON: an undated occurrence (missing onset date, common in real
+    # records) is handled gracefully; the hit still surfaces and the gap shows
+    # as "(undated)" in provenance rather than being hidden.
+    {
+        "id": "R009",
+        "entries": [
+            {"date": "2026-01-07", "item": "med refill: metformin"},
+            {"item": "med refill: metformin"},  # no date
+            {"date": "2026-03-09", "item": "med refill: metformin"},
+        ],
+    },
+    # R010 — REASON: dirty data. None items, missing-field entries, and a
+    # non-dict entry are all skipped without crashing, and the real 2x signal
+    # still surfaces from the noise.
+    {
+        "id": "R010",
+        "entries": [
+            {"date": "2026-01-11", "item": "edema"},
+            {"date": "2026-01-15"},                       # no item -> skipped
+            {"date": "2026-02-11", "item": None},          # null item -> skipped
+            {"date": "2026-02-13", "item": "edema"},
+            "ignore-me-not-a-dict",                        # wrong type -> skipped
+        ],
+    },
+    # R011 — REASON: the care-coordination payoff. The same lab ordered 3x is
+    # the duplicated-test / failure-to-follow-up signal recurrence surfacing is
+    # meant to expose.
+    {
+        "id": "R011",
+        "entries": [
+            {"date": "2026-01-06", "item": "lab: A1C"},
+            {"date": "2026-02-09", "item": "lab: A1C"},
+            {"date": "2026-03-20", "item": "lab: A1C"},
+        ],
+    },
+    # R012 — REASON: dense longitudinal record. One item recurs monthly across a
+    # full year (12x) amid one-off noise; proves counting and provenance scale.
+    {
+        "id": "R012",
+        "entries": [
+            {"date": "2026-01-04", "item": "blood pressure elevated"},
+            {"date": "2026-02-04", "item": "blood pressure elevated"},
+            {"date": "2026-03-04", "item": "blood pressure elevated"},
+            {"date": "2026-04-04", "item": "blood pressure elevated"},
+            {"date": "2026-05-04", "item": "blood pressure elevated"},
+            {"date": "2026-06-04", "item": "blood pressure elevated"},
+            {"date": "2026-06-20", "item": "knee pain"},
+            {"date": "2026-07-04", "item": "blood pressure elevated"},
+            {"date": "2026-08-04", "item": "blood pressure elevated"},
+            {"date": "2026-09-04", "item": "blood pressure elevated"},
+            {"date": "2026-10-04", "item": "blood pressure elevated"},
+            {"date": "2026-10-15", "item": "flu shot"},
+            {"date": "2026-11-04", "item": "blood pressure elevated"},
+            {"date": "2026-12-04", "item": "blood pressure elevated"},
+        ],
+    },
+    # R013 — REASON: domain-agnostic proof. The item is a social determinant of
+    # health (not a symptom); recurrence detection works identically.
+    {
+        "id": "R013",
+        "entries": [
+            {"date": "2026-01-22", "item": "housing instability"},
+            {"date": "2026-02-26", "item": "housing instability"},
+            {"date": "2026-03-30", "item": "food insecurity"},
+        ],
+    },
 ]
 
 # The hand-written answer key (oracle): for each record, the items that SHOULD
-# surface at min_count = 2, mapped to the exact dates (chronological).
-# Records with no expected hit are listed with an empty dict for completeness.
+# surface at min_count = 2, mapped to the exact dates the engine cites
+# (chronological; an undated occurrence is "" and sorts first). Records with no
+# expected hit are listed with an empty dict for completeness.
 ANSWER_KEY: dict = {
     "R001": {"poor sleep": ["2026-01-05", "2026-02-10", "2026-03-12"]},
     "R002": {
@@ -92,4 +202,18 @@ ANSWER_KEY: dict = {
     "R003": {},
     "R004": {"back pain": ["2026-01-15", "2026-02-20"]},
     "R005": {"anxiety": ["2026-01-03", "2026-01-31", "2026-02-28", "2026-03-30"]},
+    "R006": {},  # exact-match limitation: synonyms do not merge
+    "R007": {},  # literal matching: case/whitespace variants do not merge
+    "R008": {"medication review": ["2026-01-18", "2026-02-22"]},
+    "R009": {"med refill: metformin": ["", "2026-01-07", "2026-03-09"]},
+    "R010": {"edema": ["2026-01-11", "2026-02-13"]},
+    "R011": {"lab: A1C": ["2026-01-06", "2026-02-09", "2026-03-20"]},
+    "R012": {
+        "blood pressure elevated": [
+            "2026-01-04", "2026-02-04", "2026-03-04", "2026-04-04",
+            "2026-05-04", "2026-06-04", "2026-07-04", "2026-08-04",
+            "2026-09-04", "2026-10-04", "2026-11-04", "2026-12-04",
+        ]
+    },
+    "R013": {"housing instability": ["2026-01-22", "2026-02-26"]},
 }

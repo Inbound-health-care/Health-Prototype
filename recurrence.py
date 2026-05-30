@@ -116,8 +116,12 @@ def format_hit(hit: RecurrenceHit) -> str:
 
     Example:
       Record R001: "poor sleep" recurred 2 times — 2026-01-10, 2026-02-02
+
+    An occurrence whose entry carried no date is stored as "" in ``hit.dates``
+    and rendered here as "(undated)" — a visible data-quality marker, not an
+    interpretation. It flags incomplete provenance rather than hiding it.
     """
-    dates = ", ".join(hit.dates)
+    dates = ", ".join(d if d else "(undated)" for d in hit.dates)
     return (
         f'Record {hit.record_id}: "{hit.item}" recurred {hit.count} times — {dates}'
     )

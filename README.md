@@ -55,9 +55,13 @@ python recurrence.py --demo                        # surface recurrences in data
 python -m unittest discover -s tests -t .          # full test suite (from repo root)
 ```
 
-The placeholder record set lives in `data/sample_records.py` — invent 5–10
-records with known recurrence patterns, write the answer key first, then run
-`--demo` to confirm the engine surfaces exactly those patterns.
+The placeholder record set lives in `data/sample_records.py` (records +
+hand-written `ANSWER_KEY`, side by side). Each record exists for one documented
+reason and the answer key is written first; `--demo` and the test suite confirm
+the engine surfaces exactly those patterns. The full design rationale, field
+dictionary (grounded in 2026 USCDI/FHIR/SDOH standards), per-record reasons, and
+the v0 limitations each record demonstrates are in
+[`data/RECORDS.md`](data/RECORDS.md).
 
 ## v0 limitation
 
