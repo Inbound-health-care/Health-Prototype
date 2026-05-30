@@ -142,7 +142,7 @@ engine groups on its own, so it is off by default.
 When v1 combines differently-spelled entries, the hit's `variants` lists every
 original surface string, and `format_hit` appends them:
 
-```
+```text
 Record R006: "poor sleep" recurred 3 times — 2026-01-09, 2026-02-11, 2026-03-14 [merged: "can't sleep", "insomnia", "poor sleep"]
 ```
 

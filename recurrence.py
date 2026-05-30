@@ -96,6 +96,14 @@ class FrequencyHit:
 # ---------------------------------------------------------------------------
 
 
+def _check_fuzzy_cutoff(fuzzy_cutoff: float | None) -> None:
+    """Validate the fuzzy cutoff. difflib ratios live in [0, 1]; reject anything
+    outside that so a typo'd argument fails loudly instead of silently meaning
+    'always merge' or 'never merge'."""
+    if fuzzy_cutoff is not None and not 0.0 <= fuzzy_cutoff <= 1.0:
+        raise ValueError(f"fuzzy_cutoff must be between 0.0 and 1.0, got {fuzzy_cutoff}")
+
+
 def _normalize(text: str) -> str:
     """Canonicalize trivial spelling variation: trim, collapse internal
     whitespace, and case-fold. This is text canonicalization, not interpretation
@@ -256,6 +264,10 @@ def detect_recurrence(
     and dates within a hit are sorted (an undated occurrence is "" and sorts
     first).
     """
+    if min_count < 1:
+        raise ValueError(f"min_count must be >= 1, got {min_count}")
+    _check_fuzzy_cutoff(fuzzy_cutoff)
+
     hits: list[RecurrenceHit] = []
     if not records:
         return hits
@@ -333,6 +345,10 @@ def detect_gap(
     reports that the item came back, never what that means. Shares the same
     opt-in matching (normalize/synonyms/fuzzy) as recurrence.
     """
+    if gap_days < 0:
+        raise ValueError(f"gap_days must be >= 0, got {gap_days}")
+    _check_fuzzy_cutoff(fuzzy_cutoff)
+
     hits: list[GapHit] = []
     if not records:
         return hits
@@ -395,6 +411,12 @@ def detect_frequency(
     Undated occurrences are skipped. Surfaces only — it reports density in time,
     never severity. Shares the same opt-in matching as the other rules.
     """
+    if window_days < 0:
+        raise ValueError(f"window_days must be >= 0, got {window_days}")
+    if min_count < 1:
+        raise ValueError(f"min_count must be >= 1, got {min_count}")
+    _check_fuzzy_cutoff(fuzzy_cutoff)
+
     hits: list[FrequencyHit] = []
     if not records:
         return hits
@@ -539,7 +561,7 @@ def _self_test_scenarios() -> list[tuple[str, bool]]:
             ]
         )
         ok = hits == []
-    except Exception:
+    except ImportError:
         ok = False
     results.append(("malformed_handled_gracefully", ok))
 
@@ -583,7 +605,7 @@ def _run_demo() -> int:
     """Surface recurrences in the placeholder record set, if one is present."""
     try:
         from data.sample_records import SAMPLE_RECORDS
-    except Exception:
+    except ImportError:
         SAMPLE_RECORDS = []
 
     if not SAMPLE_RECORDS:
@@ -609,7 +631,7 @@ def _run_demo_v1() -> int:
     is visible. Merged spellings are cited in each line."""
     try:
         from data.sample_records import SAMPLE_RECORDS, SYNONYMS
-    except Exception:
+    except ImportError:
         print("No records / synonyms in data/sample_records.py.")
         return 0
 
@@ -625,7 +647,7 @@ def _run_demo_gap() -> int:
     """Surface re-emergences (gap rule) across the placeholder records."""
     try:
         from data.sample_records import SAMPLE_RECORDS
-    except Exception:
+    except ImportError:
         SAMPLE_RECORDS = []
     hits = detect_gap(SAMPLE_RECORDS)
     if not hits:
@@ -640,7 +662,7 @@ def _run_demo_frequency() -> int:
     """Surface bursts (frequency rule) across the placeholder records."""
     try:
         from data.sample_records import SAMPLE_RECORDS
-    except Exception:
+    except ImportError:
         SAMPLE_RECORDS = []
     hits = detect_frequency(SAMPLE_RECORDS)
     if not hits:

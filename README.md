@@ -43,7 +43,7 @@ def detect_recurrence(records: list, field: str = "item", min_count: int = 2) ->
 Each hit reports the **record ID**, the **recurring item**, the **count**, and
 the **exact dates** it appeared on (provenance). Rendered output line:
 
-```
+```text
 Record R001: "poor sleep" recurred 2 times — 2026-01-10, 2026-02-02
 ```
 
@@ -104,7 +104,7 @@ detect_recurrence(records, normalize=True, synonyms={"insomnia": "poor sleep"}, 
 **The firewall holds.** Whenever entries with different spellings are combined,
 the hit cites every original via `variants`, and the output shows them:
 
-```
+```text
 Record R006: "poor sleep" recurred 3 times — … [merged: "can't sleep", "insomnia", "poor sleep"]
 ```
 

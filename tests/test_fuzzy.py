@@ -27,7 +27,10 @@ from recurrence import detect_recurrence, format_hit  # noqa: E402
 
 
 def _record(rid: str) -> dict:
-    return next(r for r in SAMPLE_RECORDS if r["id"] == rid)
+    for r in SAMPLE_RECORDS:
+        if r["id"] == rid:
+            return r
+    raise AssertionError(f"Record {rid} not found in SAMPLE_RECORDS")
 
 
 def _v1(records):
@@ -92,15 +95,20 @@ class TestLayersIndividually(unittest.TestCase):
         hits = detect_recurrence(
             [_record("R014"), _record("R013")], normalize=True, fuzzy_cutoff=0.85
         )
-        by_record = {h.record_id: h for h in hits}
-        self.assertEqual(by_record["R014"].count, 3)
+        # Validate every emitted hit, not just the last per record: assert each
+        # record produces exactly one group, then check it.
+        r014 = [h for h in hits if h.record_id == "R014"]
+        self.assertEqual(len(r014), 1, "expected exactly one merged group for R014")
+        self.assertEqual(r014[0].count, 3)
         self.assertEqual(
-            by_record["R014"].variants,
+            r014[0].variants,
             ["Blood Pressure", "blood pressure", "blood presure"],
         )
         # R013 still surfaces only the genuinely repeated item, count 2.
-        self.assertEqual(by_record["R013"].item, "housing instability")
-        self.assertEqual(by_record["R013"].count, 2)
+        r013 = [h for h in hits if h.record_id == "R013"]
+        self.assertEqual(len(r013), 1, "expected exactly one recurring item for R013")
+        self.assertEqual(r013[0].item, "housing instability")
+        self.assertEqual(r013[0].count, 2)
 
 
 class TestProvenanceAudit(unittest.TestCase):

@@ -22,7 +22,10 @@ from recurrence import detect_gap, format_gap_hit  # noqa: E402
 
 
 def _record(rid: str) -> dict:
-    return next(r for r in SAMPLE_RECORDS if r["id"] == rid)
+    for r in SAMPLE_RECORDS:
+        if r["id"] == rid:
+            return r
+    raise AssertionError(f"Record {rid} not found in SAMPLE_RECORDS")
 
 
 def _reshape(hits) -> dict:

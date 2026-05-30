@@ -122,6 +122,18 @@ class TestDetectRecurrence(unittest.TestCase):
         self.assertEqual(len(detect_recurrence(records)), 1)
 
 
+class TestInputValidation(unittest.TestCase):
+    """Invalid arguments raise ValueError (library code fails loudly)."""
+
+    def test_min_count_below_one_raises(self):
+        with self.assertRaises(ValueError):
+            detect_recurrence([], min_count=0)
+
+    def test_fuzzy_cutoff_out_of_range_raises(self):
+        with self.assertRaises(ValueError):
+            detect_recurrence([], fuzzy_cutoff=2.0)
+
+
 class TestSurfacingFirewall(unittest.TestCase):
     """Output cites provenance and carries no interpretation."""
 

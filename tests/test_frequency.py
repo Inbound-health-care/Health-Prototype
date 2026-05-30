@@ -23,7 +23,10 @@ from recurrence import detect_frequency, format_frequency_hit  # noqa: E402
 
 
 def _record(rid: str) -> dict:
-    return next(r for r in SAMPLE_RECORDS if r["id"] == rid)
+    for r in SAMPLE_RECORDS:
+        if r["id"] == rid:
+            return r
+    raise AssertionError(f"Record {rid} not found in SAMPLE_RECORDS")
 
 
 def _reshape(hits) -> dict:
@@ -40,6 +43,22 @@ class TestFrequencyMatchesAnswerKey(unittest.TestCase):
         self.assertEqual(
             _reshape(detect_frequency(SAMPLE_RECORDS)), FREQUENCY_ANSWER_KEY
         )
+
+
+class TestFrequencyInputValidation(unittest.TestCase):
+    """Invalid parameters fail loudly (library code raises, never silently misbehaves)."""
+
+    def test_negative_window_days_raises(self):
+        with self.assertRaises(ValueError):
+            detect_frequency(SAMPLE_RECORDS, window_days=-1)
+
+    def test_min_count_below_one_raises(self):
+        with self.assertRaises(ValueError):
+            detect_frequency(SAMPLE_RECORDS, min_count=0)
+
+    def test_fuzzy_cutoff_out_of_range_raises(self):
+        with self.assertRaises(ValueError):
+            detect_frequency(SAMPLE_RECORDS, fuzzy_cutoff=1.5)
 
 
 class TestFrequencyBehavior(unittest.TestCase):
