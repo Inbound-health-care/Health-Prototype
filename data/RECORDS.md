@@ -79,6 +79,8 @@ flag an item appearing in **2+** entries of a record, matched **exactly**.
 | **R012** | Dense longitudinal record; one item recurs monthly across a year (12×) amid noise. | `blood pressure elevated` ×12 |
 | **R013** | Domain-agnostic proof: the item is an SDOH factor, not a symptom. | `housing instability` ×2 |
 | **R014** | v1 fuzzy/typo demo: one concept written 3 ways (typo + casing). v0 surfaces nothing; v1 merges it. | *(nothing in v0)* |
+| **R015** | Gap/re-emergence demo: returns after a 243-day absence (also recurs ×3). | `depression` ×3 |
+| **R016** | Frequency/burst demo: 3× within 19 days, then isolated (also recurs ×4). | `chest pain` ×4 |
 
 ### Cross-record independence (no dedicated record needed)
 
@@ -161,21 +163,50 @@ defaults still reproduce the v0 key (no regression).
 ## 6. How to verify (you and the engine, independently)
 
 ```bash
-python recurrence.py --demo                        # v0 exact match
-python recurrence.py --demo-v1                      # v1 opt-in matching
-python -m unittest discover -s tests -t .           # answer keys vs engine, exact
+python recurrence.py --demo                        # recurrence, v0 exact match
+python recurrence.py --demo-v1                      # recurrence, v1 opt-in matching
+python recurrence.py --demo-gap                     # gap / re-emergence rule
+python recurrence.py --demo-frequency               # frequency / burst rule
+python -m unittest discover -s tests -t .           # all answer keys vs engine, exact
 ```
 
-`tests/test_sample_records.py` reshapes the engine output to
-`{record_id: {item: [dates]}}` and asserts it equals `ANSWER_KEY` (v0).
-`tests/test_fuzzy.py` does the same against `ANSWER_KEY_V1` for the opt-in call,
-and also asserts the defaults still reproduce the v0 key (no regression). Read
-the tables in §3 and §5, eyeball the two `--demo` outputs, and the unit tests
-guarantee they can't silently disagree.
+Each rule has a hand-written answer key and a test that asserts the engine
+reproduces it exactly: `test_sample_records.py` → `ANSWER_KEY` (recurrence v0);
+`test_fuzzy.py` → `ANSWER_KEY_V1` (and no regression of the v0 key);
+`test_gap.py` → `GAP_ANSWER_KEY`; `test_frequency.py` → `FREQUENCY_ANSWER_KEY`.
+Read the tables in §3, §5, and §7, eyeball the `--demo*` outputs, and the unit
+tests guarantee they can't silently disagree.
 
 ---
 
-## 7. Sources (what 2026 records actually carry)
+## 7. Additional surfacing rules — gap and frequency
+
+Recurrence answers "has this come up repeatedly?" Two more rules read the *same*
+grouped occurrences (so they inherit the same exact/normalize/synonym/fuzzy
+matching) and ask different questions. One dataset, several lenses — the same
+record can surface under more than one rule.
+
+| Rule | Function | Surfaces | Default params | Answer key |
+|---|---|---|---|---|
+| Gap / re-emergence | `detect_gap` | an item that **returns after a long absence** (> `gap_days`), citing the bracketing dates and gap length | `gap_days=90` | `GAP_ANSWER_KEY` |
+| Frequency / burst | `detect_frequency` | an item appearing **`min_count`+ times within any `window_days` span**, citing the window's dates | `window_days=30, min_count=3` | `FREQUENCY_ANSWER_KEY` |
+
+At the default parameters, across these records:
+
+- **Gap** surfaces only **R015**: `depression` went quiet for 243 days, then
+  returned (`2026-01-10` → `2026-09-10`). R016's largest gap is 79 days, below
+  the 90-day threshold, so it does not surface.
+- **Frequency** surfaces only **R016**: `chest pain` appeared 3× within 19 days
+  (`2026-02-01` … `2026-02-20`). R015's occurrences never cluster 3× in 30 days.
+
+Both rules stay strictly descriptive — they report *that* an item returned or
+clustered, with dates, and never why or whether it matters. Undated occurrences
+are skipped (a date-based rule never guesses a date), and merged spellings are
+cited in `variants` exactly as in recurrence.
+
+---
+
+## 8. Sources (what 2026 records actually carry)
 
 - USCDI **Problems** data class (incl. Onset Date) — ONC Interoperability Standards Platform: https://www.healthit.gov/isp/uscdi-data-class/problems
 - USCDI v5 (encounter elements: Encounter Type, Encounter Diagnosis, Encounter Time) — ONC: https://www.healthit.gov/isp/sites/isp/files/2024-07/USCDI-Version-5-July-2024-Final.pdf

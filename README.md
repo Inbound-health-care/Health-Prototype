@@ -51,8 +51,10 @@ Record R001: "poor sleep" recurred 2 times — 2026-01-10, 2026-02-02
 
 ```bash
 python recurrence.py --self-test                  # run the six required spec cases
-python recurrence.py --demo                        # v0 exact match over data/sample_records.py
-python recurrence.py --demo-v1                      # v1 opt-in matching over the same records
+python recurrence.py --demo                        # recurrence, v0 exact match
+python recurrence.py --demo-v1                      # recurrence, v1 opt-in matching
+python recurrence.py --demo-gap                     # gap / re-emergence rule
+python recurrence.py --demo-frequency               # frequency / burst rule
 python -m unittest discover -s tests -t .          # full test suite (from repo root)
 ```
 
@@ -63,6 +65,21 @@ the engine surfaces exactly those patterns. The full design rationale, field
 dictionary (grounded in 2026 USCDI/FHIR/SDOH standards), per-record reasons, and
 the v0 limitations each record demonstrates are in
 [`data/RECORDS.md`](data/RECORDS.md).
+
+## Surfacing rules
+
+The engine surfaces patterns through independent rules that all read the same
+grouped occurrences (so they share the matching behavior below). Each surfaces,
+counts, and cites — none interprets.
+
+| Rule | Function | Question it answers |
+|---|---|---|
+| Recurrence | `detect_recurrence` | Has the same item come up repeatedly (≥ `min_count`)? |
+| Gap / re-emergence | `detect_gap` | Did an item return after a long absence (> `gap_days`)? |
+| Frequency / burst | `detect_frequency` | Did an item cluster (`min_count`+ within `window_days`)? |
+
+One record can surface under several rules — see [`data/RECORDS.md`](data/RECORDS.md)
+§7 for the gap/frequency walkthrough and their hand-written answer keys.
 
 ## Matching: exact by default, fuzzy when asked
 

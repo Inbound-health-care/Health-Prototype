@@ -198,6 +198,30 @@ SAMPLE_RECORDS: list[dict] = [
             {"date": "2026-03-05", "item": "Blood Pressure"},  # casing
         ],
     },
+    # R015 — REASON: GAP / re-emergence demo. "depression" appears, goes quiet
+    # for 243 days, then returns. The recurrence rule sees 3 occurrences; the gap
+    # rule additionally surfaces the long absence-then-return. Same record, two
+    # lenses.
+    {
+        "id": "R015",
+        "entries": [
+            {"date": "2026-01-10", "item": "depression"},
+            {"date": "2026-09-10", "item": "depression"},
+            {"date": "2026-10-05", "item": "depression"},
+        ],
+    },
+    # R016 — REASON: FREQUENCY / burst demo. "chest pain" clusters 3x within 19
+    # days, then an isolated visit 79 days later. The frequency rule surfaces the
+    # burst; recurrence sees 4 total; no gap (79 < 90).
+    {
+        "id": "R016",
+        "entries": [
+            {"date": "2026-02-01", "item": "chest pain"},
+            {"date": "2026-02-10", "item": "chest pain"},
+            {"date": "2026-02-20", "item": "chest pain"},
+            {"date": "2026-05-10", "item": "chest pain"},
+        ],
+    },
 ]
 
 # The hand-written answer key (oracle): for each record, the items that SHOULD
@@ -228,6 +252,10 @@ ANSWER_KEY: dict = {
     },
     "R013": {"housing instability": ["2026-01-22", "2026-02-26"]},
     "R014": {},  # v0 exact-match: typo + casing variants do not merge
+    "R015": {"depression": ["2026-01-10", "2026-09-10", "2026-10-05"]},
+    "R016": {
+        "chest pain": ["2026-02-01", "2026-02-10", "2026-02-20", "2026-05-10"]
+    },
 }
 
 
@@ -279,4 +307,46 @@ ANSWER_KEY_V1: dict = {
     },
     "R013": {"housing instability": ["2026-01-22", "2026-02-26"]},
     "R014": {"blood pressure": ["2026-01-05", "2026-02-05", "2026-03-05"]},  # fuzzy
+    "R015": {"depression": ["2026-01-10", "2026-09-10", "2026-10-05"]},
+    "R016": {
+        "chest pain": ["2026-02-01", "2026-02-10", "2026-02-20", "2026-05-10"]
+    },
+}
+
+
+# ---------------------------------------------------------------------------
+# Second/third rules — gap (re-emergence) and frequency (burst)
+# ---------------------------------------------------------------------------
+#
+# Additional surfacing rules over the SAME records. detect_gap and
+# detect_frequency read the same grouped occurrences as recurrence, so one
+# dataset is viewed through several lenses. The answer keys below are the
+# hand-written expected output at the documented default parameters:
+#
+#   detect_gap(SAMPLE_RECORDS, gap_days=90)
+#   detect_frequency(SAMPLE_RECORDS, window_days=30, min_count=3)
+#
+#   python recurrence.py --demo-gap
+#   python recurrence.py --demo-frequency
+
+# GAP: an item returns after an absence of MORE than gap_days. Across these
+# records only R015 qualifies (depression: 243-day quiet stretch). Format:
+#   {record_id: [(item, gap_days, before_date, after_date), ...]}
+GAP_ANSWER_KEY: dict = {
+    "R015": [("depression", 243, "2026-01-10", "2026-09-10")],
+}
+
+# FREQUENCY: an item appears min_count+ times within any window_days span. Across
+# these records only R016 qualifies (chest pain: 3x within 19 days). Format:
+#   {record_id: [(item, count, window_start, window_end, [dates]), ...]}
+FREQUENCY_ANSWER_KEY: dict = {
+    "R016": [
+        (
+            "chest pain",
+            3,
+            "2026-02-01",
+            "2026-02-20",
+            ["2026-02-01", "2026-02-10", "2026-02-20"],
+        )
+    ],
 }
