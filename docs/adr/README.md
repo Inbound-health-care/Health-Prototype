@@ -31,3 +31,5 @@ it — history is the point.
 
 - [0001 — Tool-call discipline: one decisive call, trust exit codes over prose](0001-tool-call-discipline.md)
 - [0002 — Combined report: expert registry, omit clean records, additive formatter kwarg](0002-combined-report-architecture.md)
+- [0003 — Co-occurrence: the fourth surfacing rule (two items, same dates)](0003-cooccurrence-rule.md)
+- [0004 — `--report-v1`: the combined report with v1 opt-in matching](0004-report-v1.md)

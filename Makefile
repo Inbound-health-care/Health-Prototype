@@ -13,6 +13,7 @@ demo:          ## Run every surfacing-rule demo
 	python recurrence.py --demo-v1
 	python recurrence.py --demo-gap
 	python recurrence.py --demo-frequency
+	python recurrence.py --demo-cooccurrence
 
 lint:          ## Byte-compile sanity check (+ ruff if installed)
 	python -m compileall -q recurrence.py tests data

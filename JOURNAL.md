@@ -12,6 +12,42 @@ is made visible. The struggle and the reasoning ARE the deliverable._
 
 ---
 
+## 2026-05-31 (later) — Rule #4 (co-occurrence) + closing the `--report-v1` loop
+**Where:** computer (Claude Code web session). **What I set out to do:** pick the
+next build increment off STATUS.md and plan it properly before touching code.
+Chose co-occurrence (two items that recur *together*) and bundled the small
+deferred `--report-v1`.
+
+**How it went / what I learned:**
+- **Planned before building.** Read-only Explore agents → a Plan agent → the real
+  design forks surfaced → a plan I approved, *then* code. The drop-in promise from
+  ADR 0002 held: the 4th rule needed zero router/formatter change — just
+  `detect_cooccurrence` + `CooccurrenceHit` + one `Expert`.
+- **The entanglement to watch:** any co-occurrence positive also recurs (a
+  shared-date item appears ≥2×), so new records R017–R020 cascaded into the
+  recurrence and report answer keys. Re-derived every key BY HAND first (oracle
+  method), and chose tight dates so gap/frequency stayed untouched.
+- **Two-item provenance** was the one genuinely new wrinkle: a pair has two audit
+  trails (`variants_a`/`variants_b`), and a read-only `item` property keeps the
+  report generic. The firewall extended to ban relationship words
+  (associated/correlated/linked) — co-occurrence is a count, never a claim.
+- **Found drift:** STATUS.md still said PR #1 was "open" on the old branch; it was
+  actually merged to `main`. Fixed it.
+
+**What got hard:** keeping seven hand-written answer keys honest under the
+cascade — solved by one decisive cross-check that diffs all seven against the
+engine at once (per ADR 0001).
+
+**Built this session (CONFIRMED, 68 tests green + `ruff` clean locally):**
+co-occurrence rule + `--demo-cooccurrence`, `--report-v1`, records R017–R020,
+`CO_OCCURRENCE_ANSWER_KEY` + `REPORT_ANSWER_KEY_V1`, `tests/test_cooccurrence.py`,
+ADRs 0003 + 0004, and refreshed docs (RECORDS / CLAUDE / STATUS / Makefile).
+
+**Next:** push to `claude/amazing-fermi-PKUNM` → draft PR → watch CI. Then maybe
+the co-occurrence *window* variant, or cadence-change.
+
+---
+
 ## 2026-05-31 (late) — The org-access wall, learned the hard way
 **Where:** computer + phone. **What happened:** authorized the Claude GitHub app
 on the Inbound-health-care org (worked — API search now sees the repo). Tried to
