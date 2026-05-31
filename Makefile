@@ -1,4 +1,4 @@
-.PHONY: test selftest demo lint clean
+.PHONY: test selftest demo lint check clean
 
 # Pure stdlib; no dependencies to install.
 
@@ -18,6 +18,11 @@ demo:          ## Run every surfacing-rule demo
 lint:          ## Byte-compile sanity check (+ ruff if installed)
 	python -m compileall -q recurrence.py tests data
 	-ruff check .
+
+check:         ## Run the standard local verification suite
+	$(MAKE) test
+	$(MAKE) selftest
+	$(MAKE) lint
 
 clean:         ## Remove caches
 	rm -rf __pycache__ */__pycache__ */*/__pycache__ .ruff_cache

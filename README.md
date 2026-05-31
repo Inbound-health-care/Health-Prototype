@@ -56,6 +56,8 @@ python recurrence.py --demo-v1                      # recurrence, v1 opt-in matc
 python recurrence.py --demo-gap                     # gap / re-emergence rule
 python recurrence.py --demo-frequency               # frequency / burst rule
 python recurrence.py --report                        # combined per-record report (all rules)
+python recurrence.py --version                       # print prototype version
+make check                                           # full local verification suite
 python -m unittest discover -s tests -t .          # full test suite (from repo root)
 ```
 

@@ -6,7 +6,7 @@ Last updated: 2026-05-31
 ## Current state
 - v0 recurrence engine + v1 opt-in matching (normalize / synonyms / fuzzy) +
   rules gap, frequency & **co-occurrence** + router/registry combined report
-  (`--report` v0 and `--report-v1`) — all built. **4 surfacing rules, 68 tests
+  (`--report` v0 and `--report-v1`) — all built. **4 surfacing rules, 69 tests
   green**, `ruff` clean.
 - **PR #1 merged** to `main` (the full v0 build + Claude harness `.claude/`,
   hooks, slash commands, `docs/`, `JOURNAL.md`); stale auto-generated test PR #2
@@ -25,6 +25,8 @@ Last updated: 2026-05-31
       `CO_OCCURRENCE_ANSWER_KEY`, records R017–R020, joins `--report`.
 - [x] **`--report-v1`** — v1-matched combined report wired (`REPORT_ANSWER_KEY_V1`).
 - [~] CODEOWNERS — not needed (solo developer; required-approvals stays 0).
+- [x] Low-risk repo hygiene added: contributing guide, publish checklist, safer `.gitignore`,
+      `make check`, and `--version`.
 - [ ] Pick the next build increment (below).
 
 ## Next step — pick one
@@ -40,5 +42,5 @@ to `EXPERTS` and it joins `--report` automatically.
 ## Key facts
 - Branch: `claude/amazing-fermi-PKUNM`  (base `main`, post-merge)
 - Spec (contract): Drive `BUILD_SPEC_RecurrenceDetection_v0_2026-05-30.md`
-- Quick check: `make test` · `python recurrence.py --self-test`
+- Quick check: `make check`
 - Design firewall, commands, and hard rules: see **`CLAUDE.md`**.
