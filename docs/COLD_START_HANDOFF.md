@@ -28,11 +28,12 @@ naming later. Values brutal honesty over hype. Reads everything.
 
 ## Project state (trust STATUS.md over this if they differ — STATUS is canonical)
 - **health-prototype**: recurrence engine. v0 exact-match + v1 opt-in matching
-  (normalize/synonyms/fuzzy) + rules gap & frequency + router/expert registry with
-  `--report`. ~53 tests green, CI on Py 3.10-3.13. Firewall: surface/count/cite,
-  NEVER interpret. Branch `claude/recurrence-detection-spec-jm3Ck`, PR #1 open,
-  branch protection active on main.
-- Rule #4 is a drop-in: append one `Expert(name, detect_x, format_x)` to `EXPERTS`.
+  (normalize/synonyms/fuzzy) + **4 rules** (recurrence / gap / frequency /
+  co-occurrence) + router/expert registry with `--report` (v0 and `--report-v1`).
+  **68 tests green**, `ruff` clean, CI on Py 3.10-3.13. Firewall: surface/count/cite,
+  NEVER interpret. PRs #1/#3/#4/#7 merged to `main`; branch protection active.
+- A **5th** rule is a drop-in: append one `Expert(name, detect_x, format_x)` to
+  `EXPERTS` and it joins `--report` automatically.
 - A SECOND project exists (separate): **Sovereign Scribe / PACT** — local clinical
   SOAP scribe. Salvaged into `SOVEREIGN_SCRIBE_SALVAGE.md`. Not active in this repo.
 
@@ -46,8 +47,6 @@ naming later. Values brutal honesty over hype. Reads everything.
    review too: brief -> run -> review HOW -> tighten brief -> repeat).
 
 ## Open loops (reconcile with STATUS.md)
-- [ ] /drift-check: reconcile docs (some say 37 tests at an earlier point; STATUS
-      says 53 — both true at different times; don't let a reader trip on it).
 - [ ] m2m corpus audit: ~89/200 April files done (~85% sound, concepts hold).
       Finish (version-chains as thinking-evolution) OR synthesize one "Capability
       Reference" (local-LLM / health-AI / reference). Resume detail in SESSION_LOG.
