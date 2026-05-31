@@ -350,3 +350,38 @@ FREQUENCY_ANSWER_KEY: dict = {
         )
     ],
 }
+
+
+# ---------------------------------------------------------------------------
+# Combined report — all rules, one per-record view
+# ---------------------------------------------------------------------------
+#
+# run_report() routes the three rules over the SAME records and groups every
+# hit by record. The answer key below is the hand-written oracle for that
+# combined view: for each record that surfaces anything, the (expert, item)
+# findings in EXACT render order — records by id, experts in registry order
+# (recurrence, then gap, then frequency), hits within a rule in that rule's
+# own order. Dates/counts are already oracled by the three keys above; this key
+# states only WHICH lens surfaced WHICH item, so the views can never silently
+# diverge. Composed by hand from the keys above; run_report must reproduce it.
+#
+#   python recurrence.py --report
+#
+# Records that surface nothing at v0 defaults (R003, R006, R007, R014) are
+# ABSENT by design: the report lists what is present, never asserts "clean".
+# Two records prove the combined view's worth — one dataset, two lenses each:
+#   R015 = recurrence + gap        R016 = recurrence + frequency
+REPORT_ANSWER_KEY: dict = {
+    "R001": [("recurrence", "poor sleep")],
+    "R002": [("recurrence", "appetite change"), ("recurrence", "fatigue")],
+    "R004": [("recurrence", "back pain")],
+    "R005": [("recurrence", "anxiety")],
+    "R008": [("recurrence", "medication review")],
+    "R009": [("recurrence", "med refill: metformin")],
+    "R010": [("recurrence", "edema")],
+    "R011": [("recurrence", "lab: A1C")],
+    "R012": [("recurrence", "blood pressure elevated")],
+    "R013": [("recurrence", "housing instability")],
+    "R015": [("recurrence", "depression"), ("gap", "depression")],
+    "R016": [("recurrence", "chest pain"), ("frequency", "chest pain")],
+}

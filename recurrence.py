@@ -27,6 +27,7 @@ import datetime
 import difflib
 import sys
 from collections import Counter
+from collections.abc import Callable
 from dataclasses import dataclass, field
 
 
@@ -294,7 +295,7 @@ def detect_recurrence(
     return hits
 
 
-def format_hit(hit: RecurrenceHit) -> str:
+def format_hit(hit: RecurrenceHit, with_record: bool = True) -> str:
     """Render a hit as a single provenance-cited line.
 
     Example:
@@ -305,9 +306,8 @@ def format_hit(hit: RecurrenceHit) -> str:
     interpretation. It flags incomplete provenance rather than hiding it.
     """
     dates = ", ".join(d if d else "(undated)" for d in hit.dates)
-    line = (
-        f'Record {hit.record_id}: "{hit.item}" recurred {hit.count} times — {dates}'
-    )
+    prefix = f"Record {hit.record_id}: " if with_record else ""
+    line = f'{prefix}"{hit.item}" recurred {hit.count} times — {dates}'
     # When more than one original spelling was combined, cite them all so the
     # merge is auditable — the librarian shows its work.
     if len(hit.variants) > 1:
@@ -379,10 +379,11 @@ def detect_gap(
     return hits
 
 
-def format_gap_hit(hit: GapHit) -> str:
+def format_gap_hit(hit: GapHit, with_record: bool = True) -> str:
     """Render a gap hit as a single provenance-cited line."""
+    prefix = f"Record {hit.record_id}: " if with_record else ""
     line = (
-        f'Record {hit.record_id}: "{hit.item}" returned after {hit.gap_days} days '
+        f'{prefix}"{hit.item}" returned after {hit.gap_days} days '
         f"— last seen {hit.before_date}, then {hit.after_date}"
     )
     return line + _merge_clause(hit.variants)
@@ -458,17 +459,130 @@ def detect_frequency(
     return hits
 
 
-def format_frequency_hit(hit: FrequencyHit) -> str:
+def format_frequency_hit(hit: FrequencyHit, with_record: bool = True) -> str:
     """Render a frequency hit as a single provenance-cited line."""
     span = (
         _parse_date(hit.window_end) - _parse_date(hit.window_start)
     ).days
     dates = ", ".join(hit.dates)
+    prefix = f"Record {hit.record_id}: " if with_record else ""
     line = (
-        f'Record {hit.record_id}: "{hit.item}" appeared {hit.count} times '
+        f'{prefix}"{hit.item}" appeared {hit.count} times '
         f"within {span} days — {dates}"
     )
     return line + _merge_clause(hit.variants)
+
+
+# ---------------------------------------------------------------------------
+# Router — one dispatch over an expert registry into a per-record report
+# ---------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class Expert:
+    """One surfacing rule, bound to its name and its detect + format callables.
+
+    ``name`` is a neutral lens label — provenance for which rule surfaced a
+    line, never a judgment or a ranking. The router invokes ``detect`` with ONLY
+    the shared matching knobs (field/normalize/synonyms/fuzzy_cutoff); each
+    rule's own thresholds (min_count/gap_days/window_days) fall through to their
+    documented defaults, so the registry stays a single source of truth.
+    """
+
+    name: str
+    detect: Callable[..., list]
+    formatter: Callable[..., str]
+
+
+# Registry order IS the report's expert order: recurrence (the base lens), then
+# gap, then frequency — the order the rules were built and documented in. Adding
+# a fourth rule later is appending one Expert here; nothing else changes.
+EXPERTS: tuple[Expert, ...] = (
+    Expert("recurrence", detect_recurrence, format_hit),
+    Expert("gap", detect_gap, format_gap_hit),
+    Expert("frequency", detect_frequency, format_frequency_hit),
+)
+
+
+@dataclass
+class Finding:
+    """One surfaced line from one expert, kept with its source.
+
+    ``expert`` is the lens name (provenance); ``hit`` is the original
+    RecurrenceHit / GapHit / FrequencyHit; ``line`` is its rendered text with
+    the redundant record prefix dropped (the report header carries the id).
+    """
+
+    expert: str
+    hit: object
+    line: str
+
+
+@dataclass
+class RecordReport:
+    """Everything the experts surfaced for one record, in registry order.
+
+    A record with zero findings is never constructed: the report surfaces only
+    what is present — it does not assert that a record is clean.
+    """
+
+    record_id: str
+    findings: list[Finding] = field(default_factory=list)
+
+
+def run_report(
+    records: list,
+    *,
+    experts: tuple[Expert, ...] = EXPERTS,
+    field: str = "item",
+    normalize: bool = False,
+    synonyms: dict | None = None,
+    fuzzy_cutoff: float | None = None,
+) -> list[RecordReport]:
+    """Run every expert over the records and assemble a per-record listing.
+
+    Each expert is invoked once over the full record set with only the shared
+    matching knobs; rule-specific thresholds keep their defaults. All hits are
+    grouped by ``record_id`` and ordered deterministically: records by id,
+    experts in registry order, hits within an expert in that rule's own order.
+
+    Records with no findings are OMITTED. Input validation is delegated to each
+    ``detect_*`` (which already raises ValueError on bad thresholds), so there
+    is no duplicated checking here. Surfaces, counts, cites — never ranks,
+    scores, totals, or interprets.
+    """
+    reports: dict[str, RecordReport] = {}
+    for expert in experts:
+        hits = expert.detect(
+            records,
+            field=field,
+            normalize=normalize,
+            synonyms=synonyms,
+            fuzzy_cutoff=fuzzy_cutoff,
+        )
+        for hit in hits:
+            report = reports.setdefault(
+                hit.record_id, RecordReport(record_id=hit.record_id)
+            )
+            report.findings.append(
+                Finding(expert.name, hit, expert.formatter(hit, with_record=False))
+            )
+    return [reports[rid] for rid in sorted(reports)]
+
+
+def format_report(reports: list[RecordReport]) -> str:
+    """Render the combined per-record report as text.
+
+    Per record: a header line, then one line per finding prefixed with its
+    expert (lens) name — provenance for which rule surfaced it, never a
+    judgment. Records are blank-line separated; an empty report renders as "".
+    """
+    blocks: list[str] = []
+    for report in reports:
+        lines = [f"Record {report.record_id}:"]
+        lines.extend(f"  [{f.expert}] {f.line}" for f in report.findings)
+        blocks.append("\n".join(lines))
+    return "\n\n".join(blocks)
 
 
 # ---------------------------------------------------------------------------
@@ -673,6 +787,20 @@ def _run_demo_frequency() -> int:
     return 0
 
 
+def _run_report() -> int:
+    """Surface the combined per-record report (all rules, v0 exact match)."""
+    try:
+        from data.sample_records import SAMPLE_RECORDS
+    except ImportError:
+        SAMPLE_RECORDS = []
+    reports = run_report(SAMPLE_RECORDS)
+    if not reports:
+        print("No findings surfaced across the records.")
+        return 0
+    print(format_report(reports))
+    return 0
+
+
 # ---------------------------------------------------------------------------
 # CLI — local-only, no server, no network
 # ---------------------------------------------------------------------------
@@ -707,6 +835,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Surface bursts (frequency rule) in data/sample_records.py",
     )
+    p.add_argument(
+        "--report",
+        action="store_true",
+        help="Combined per-record report across all rules (v0 exact match)",
+    )
     return p
 
 
@@ -722,6 +855,8 @@ def main() -> int:
         return _run_demo_gap()
     if args.demo_frequency:
         return _run_demo_frequency()
+    if args.report:
+        return _run_report()
     build_parser().print_help()
     return 0
 

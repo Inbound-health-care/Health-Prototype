@@ -14,6 +14,7 @@ supplies all judgment. Tests enforce this — keep it that way.
 - Tests:     `python -m unittest discover -s tests -t .`  (or `make test`)
 - Self-test: `python recurrence.py --self-test`  (the six spec cases)
 - Demos:     `python recurrence.py --demo | --demo-v1 | --demo-gap | --demo-frequency`
+- Report:    `python recurrence.py --report`  (all rules, one per-record view)
 - Lint:      `make lint`   ·   Clean: `make clean`
 
 ## Architecture map
@@ -24,10 +25,14 @@ supplies all judgment. Tests enforce this — keep it that way.
 - Matching is layered and **opt-in** (defaults = exact v0): `normalize`
   (case/space), `synonyms` (human-declared map), `fuzzy_cutoff` (difflib typos).
   Every merge cites originals in `variants`; `format_*` appends `[merged: ...]`.
-- `data/sample_records.py` — invented records + FOUR hand-written answer keys
-  (`ANSWER_KEY`, `ANSWER_KEY_V1`, `GAP_ANSWER_KEY`, `FREQUENCY_ANSWER_KEY`) + `SYNONYMS`.
+- Router: an `EXPERTS` registry (one `Expert` per rule) + `run_report` route the
+  3 rules into a per-record `RecordReport`; `format_report` renders it. Adding a
+  4th rule = appending one `Expert`. The report lists only — it never ranks.
+- `data/sample_records.py` — invented records + FIVE hand-written answer keys
+  (`ANSWER_KEY`, `ANSWER_KEY_V1`, `GAP_ANSWER_KEY`, `FREQUENCY_ANSWER_KEY`,
+  `REPORT_ANSWER_KEY`) + `SYNONYMS`.
 - `data/RECORDS.md` — data dictionary (field rationale, per-record reasons).
-- `tests/` — 5 files, 37 tests. CI: `.github/workflows/ci.yml` (Py 3.10–3.13).
+- `tests/` — 6 files, 49 tests. CI: `.github/workflows/ci.yml` (Py 3.10–3.13).
 
 ## Hard rules
 - Pure Python **stdlib only** at runtime. No network egress. Zero real PHI, ever.
