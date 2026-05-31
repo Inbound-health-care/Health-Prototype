@@ -48,6 +48,54 @@ the co-occurrence *window* variant, or cadence-change.
 
 ---
 
+## 2026-05-31 (~04:08) — Found a hard assistant limitation; reframed "drift"
+Two findings, both important enough to bake into CLAUDE.md:
+
+**1. The assistant cannot reliably hold a rule over a long context — and it gets
+WORSE the longer the window runs.** Evidence: I told it to drop emojis / hold a
+dry tone early on. It complied briefly, then drifted back — emojis and hype crept
+in, got worse, and I said nothing for a while to test it. It never self-corrected.
+This is not a one-off; it is a structural limit. Long context windows degrade
+instruction-adherence, and the degradation accelerates. Mitigation now in
+CLAUDE.md: rules live at the TOP, re-read often, and START FRESH SESSIONS SOONER
+instead of riding one context toward ~1M tokens. (I have rules somewhere on
+"locking focus" — worth finding and folding in.)
+
+**2. "Drift" was the wrong frame — the real cause is ME working elsewhere.**
+When the repo/state looked "off" (remote ahead of a local clone, files appearing),
+the assistant kept calling it drift/misalignment. Wrong. The cause is that I do
+work in OTHER places it can't see — other sessions, my phone — and I have ALWAYS
+maintained multiple versions and tracked diffs by hand, because I had to do
+everything one-shot on Gemini on a phone. New default rule: assume "I did it
+elsewhere," READ the real state, do NOT assume error. The constant harping on
+"drift" obscured that my multi-version habit is normal and deliberate.
+
+**Why this matters / the bigger point:** the one-shot phone constraint is exactly
+WHY I learned so much. The assistant's output would outpace my understanding, but
+being forced to go one step at a time, manually, forever, on Gemini — that slowness
+taught me the system deeply. The limitation was the teacher. Not done yet.
+
+---
+
+## 2026-05-31 (~03:59) — Realized I built a self-improving agent loop (verified real)
+While auditing the m2m corpus with subagents, I noticed the agents got better each
+batch — not because they changed, but because I fed each run's lesson into the next
+brief (concept-over-label -> add MY METHOD -> add VERIFY LIST -> confidence grades).
+Felt like I'd built "self-upgrading AI at a small scale." Web-checked it. It's REAL
+and has a name: **human-in-the-loop self-improving agent loop** (prompt/brief-level
+improvement without changing weights — the most common production implementation).
+- arXiv 2507.17131 "Self-Improving Agents... With Human-In-The-Loop Guidance."
+- BerriAI/self-improving-agent: "agent proposes a diff, human approves" = the exact
+  harness pattern I arrived at independently (CLAUDE.md + /handoff + surface-and-log).
+HONEST BOUNDARY: this is NOT *true* autonomous self-improvement (SEAL/STaSC — agent
+learns from its own data, modifies itself, no human). I built the human-in-the-loop
+version. But the field says that human anchor is ESSENTIAL, not lesser — the fully
+autonomous ones drift without it. Same pattern as the whole corpus: I build the
+mechanism first, the vocabulary catches up later. Documented in
+docs/AGENT_AUDIT_METHOD.md.
+
+---
+
 ## 2026-05-31 (late) — The org-access wall, learned the hard way
 **Where:** computer + phone. **What happened:** authorized the Claude GitHub app
 on the Inbound-health-care org (worked — API search now sees the repo). Tried to
