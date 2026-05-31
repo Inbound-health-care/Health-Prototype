@@ -10,7 +10,7 @@ Last updated: 2026-05-31
   report (`--report` v0 and `--report-v1`). All merged — PRs #1, #3, #4, and #7
   (doc/harness salvage + Tier-1/Tier-3 split).
 - **This branch (`claude/quirky-brahmagupta-P0H4b`) — back-end / workflow hardening
-  (draft PR #8). ENGINE CODE FROZEN this phase** (Scott: fix all back-end/workflow
+  (PR #8, ready for review). ENGINE CODE FROZEN this phase** (Scott: fix all back-end/workflow
   things before changing any code). Done so far: toolchain audit, handoff-loss
   guard (live), a drift sweep correcting STATUS + the cold-start handoff, a new
   **CI lint gate** (ruff, pinned 0.15.8) + `make check`, and the back-end hygiene
