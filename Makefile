@@ -1,4 +1,4 @@
-.PHONY: test selftest demo lint clean
+.PHONY: test selftest demo lint branch-audit clean
 
 # Pure stdlib; no dependencies to install.
 
@@ -16,8 +16,11 @@ demo:          ## Run every surfacing-rule demo
 	python recurrence.py --demo-cooccurrence
 
 lint:          ## Byte-compile sanity check (+ ruff if installed)
-	python -m compileall -q recurrence.py tests data
+	python -m compileall -q recurrence.py tests data scripts
 	-ruff check .
+
+branch-audit:  ## Read-only audit of local/remote branch cleanup candidates
+	python scripts/branch_audit.py
 
 clean:         ## Remove caches
 	rm -rf __pycache__ */__pycache__ */*/__pycache__ .ruff_cache
