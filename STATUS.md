@@ -38,11 +38,12 @@ Last updated: 2026-05-31
       coverage/bandit/ty are `uvx`-on-demand. Added optional Makefile targets
       (`tools`/`typecheck`/`fmt-check`/`fmt`/`cov`/`security`) + a hook tool line.
       Engine stays pure-stdlib — all dev-only, additive.
-- [ ] **Two SURFACED capability flags (NOT fixed — Scott decides):** mypy reports 2
-      type errors at `recurrence.py:501` (`None` operand); `ruff format` would
-      rewrite 10/12 files (project was never formatted). `make fmt-check` to see it.
-- [ ] **pygame** requested but **out-of-scope for this stdlib repo** — confirm
-      whether it's for a different/future project before adding anything.
+- [x] **Two SURFACED capability flags — DECIDED leave-as-is (Scott, 2026-05-31):**
+      mypy's unguarded-Optional at `recurrence.py:501` stays a noted flag (no runtime
+      bug; tests green); `ruff format` (would rewrite 10/12 files) NOT applied — keep
+      hand-formatting. `make typecheck` / `make fmt-check` preview either anytime.
+- [x] **pygame — dropped** (Scott, 2026-05-31): out-of-scope for this stdlib repo;
+      not added. Nothing in the repo references it.
 
 ## Next step — pick one
 A 5th rule is still a **drop-in**: append one `Expert(name, detect_x, format_x)`

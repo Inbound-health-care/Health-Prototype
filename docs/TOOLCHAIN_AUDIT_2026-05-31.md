@@ -39,7 +39,7 @@ call (librarian rule applies to our own code too)._
 | pre-commit | git hook runner | `uvx pre-commit ...` (no `.pre-commit-config.yaml` yet — workflow change, ask first) |
 
 `pygame` is **not** installed and is **out of scope for this repo** (a stdlib
-health-records engine). Not added — see the open question in the session report.
+health-records engine). Not added — Scott confirmed dropping it (2026-05-31).
 
 ## 2026 landscape (web-checked 2026-05-31)
 - The consolidating default stack is **uv + Ruff + ty**, all from Astral, sharing
@@ -49,6 +49,10 @@ health-records engine). Not added — see the open question in the session repor
 - **mypy 2.0** shipped (May 2026) with parallel checking (`--num-workers`); we have
   1.19.1, which is stable and sufficient.
 - **Ruff** introduced a "2026" formatting style (v0.15.x); we run 0.15.8.
+
+> **Decisions (Scott, 2026-05-31):** both flags below — **leave as-is** (mypy stays
+> a noted flag; `ruff format` not applied, keep hand-formatting). **pygame — dropped**
+> (out-of-scope; not added).
 
 ## Capability flags — SURFACED, not changed (Scott decides)
 1. **mypy: 2 errors on `recurrence.py:501`** — `Unsupported left operand type for -
