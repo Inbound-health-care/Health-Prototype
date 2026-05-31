@@ -17,7 +17,8 @@ Last updated: 2026-05-31
 ## Open loops
 - [x] Claude tool access restored on the new org (sessions run against the repo).
 - [x] `JOURNAL.md` + `.claude/` harness + `docs/` landed on the branch.
-- [ ] (optional) Add `docs/adr/` to complete the doc system.
+- [x] `docs/adr/` started — running decision log incl. the assistant's own
+      process changes (ADR 0001 tool-call discipline, 0002 report architecture).
 - [ ] (optional) Add `CODEOWNERS` if you later move to required-approvals = 1.
 - [ ] (deferred) `--report-v1` — v1-matched combined report (run_report already
       accepts the matching knobs; only `--demo-v1` is wired today).

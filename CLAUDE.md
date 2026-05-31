@@ -42,6 +42,15 @@ supplies all judgment. Tests enforce this — keep it that way.
   code is made to match — never patch the key toward the code.
 
 ## Workflow preferences
+- **Log decisions as you go** → `docs/adr/` (see its README for format). Write an
+  ADR *when the decision is made*, not at session end — and this includes your
+  OWN process/behavior changes (what you started doing differently, and why), not
+  just code. Each ADR carries a Confirmation (how it's checked) + evidence level.
+  An improvement left only in chat dies at the session reset.
+- **Tool calls (ADR 0001):** verify with ONE decisive call — capture to a file,
+  trust the exit code + a printed sentinel (`rc=0 :: OK`) over rendered prose,
+  prefer ASCII summaries, batch checks, and don't re-run a strong signal. Re-run
+  only on genuine self-contradiction.
 - Spec-driven: the Drive `BUILD_SPEC` is the contract. Small, verified increments.
 - Oracle method: write the expected answer first; cross-check tests catch drift.
 - Web-search current best practices when hitting a real issue; cite sources.
