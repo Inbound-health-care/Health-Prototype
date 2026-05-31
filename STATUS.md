@@ -25,6 +25,7 @@ Last updated: 2026-05-31
       `CO_OCCURRENCE_ANSWER_KEY`, records R017–R020, joins `--report`.
 - [x] **`--report-v1`** — v1-matched combined report wired (`REPORT_ANSWER_KEY_V1`).
 - [~] CODEOWNERS — not needed (solo developer; required-approvals stays 0).
+- [x] Low-risk branch cleanup helper added: `make branch-audit` is read-only by default.
 - [ ] Pick the next build increment (below).
 
 ## Next step — pick one
