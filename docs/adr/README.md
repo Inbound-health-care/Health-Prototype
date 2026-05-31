@@ -33,3 +33,4 @@ it — history is the point.
 - [0002 — Combined report: expert registry, omit clean records, additive formatter kwarg](0002-combined-report-architecture.md)
 - [0003 — Co-occurrence: the fourth surfacing rule (two items, same dates)](0003-cooccurrence-rule.md)
 - [0004 — `--report-v1`: the combined report with v1 opt-in matching](0004-report-v1.md)
+- [0005 — Reconcile the stranded doc/harness stack; adopt Tier-1/Tier-3 split](0005-doc-harness-reconciliation.md)

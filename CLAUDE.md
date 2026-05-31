@@ -4,64 +4,53 @@ Recurrence Detection Engine: a domain-agnostic surfacing engine for health
 records. Repo: `Inbound-health-care/health-prototype`. Pure stdlib, local-only,
 **zero real PHI**.
 
-## The one rule that governs everything
+_Tier 1 (always-loaded): operator rules + limits + engine firewall + pointers.
+Engine detail lives in linked files, loaded on demand (progressive disclosure).
+Keep this file lean — it must not restate counts that can go stale._
+
+## Operator rules (Scott's rules — override default behavior)
+- **Tone: dry, plain, NO hype, NO emojis.** Scott controls tone, not the model.
+  Do not mirror his casual tone. (Known failure: the model drifts back to
+  emojis/exclamations over a long session even after being told — see
+  Limitations. Re-read this often.)
+- **Personal life is walled off.** Ignore non-tech/personal content unless Scott
+  explicitly raises it. Keep only the minimal life context needed for the work.
+- **Surface AND log when you change approach.** No silent improvements; say what
+  changed and why, and write the durable lesson to an ADR (`docs/adr/`).
+- **If state looks "off," assume Scott worked ELSEWHERE you can't see** (other
+  sessions, phone, manual versioning). READ the real remote/state before acting.
+  Do NOT call it "drift" or assume misalignment — multi-version-by-hand is normal.
+- **Judge research by CONCEPT, not literal words.** Invented term-names often map
+  to real techniques; re-findable is fine.
+- **Token frugality:** copy/move files server-side; read+write only to synthesize
+  genuinely new content.
+
+## Known assistant limitations (design around these)
+- **Cannot reliably hold a rule across a long context; worsens as it grows.**
+  Mitigation: keep rules at the TOP; re-read often; start FRESH sessions sooner —
+  don't ride one context toward ~1M tokens.
+- **No memory across sessions.** These repo files are the only persistence.
+- **`git push` may be blocked** by the session repo allowlist even with the
+  GitHub app authorized — the GitHub **API write tool** (`create_or_update_file`)
+  may still work. Use it to persist when push fails.
+- **"done / pushed" claims are not proof.** Verify against the remote.
+
+## Engine firewall (the one rule that governs the engine)
 **Librarian, not interpreter.** Surface, count, and cite provenance — NEVER
 score, rank, diagnose, or say what a pattern *means*. No "caution / concern /
 worsening / risk / severe" in output. The human (or a human-declared policy)
 supplies all judgment. Tests enforce this — keep it that way.
 
-## Commands
-- Tests:     `python -m unittest discover -s tests -t .`  (or `make test`)
-- Self-test: `python recurrence.py --self-test`  (the six spec cases)
-- Demos:     `python recurrence.py --demo | --demo-v1 | --demo-gap | --demo-frequency | --demo-cooccurrence`
-- Report:    `python recurrence.py --report | --report-v1`  (all rules, one per-record view; v0 / v1 matching)
-- Lint:      `make lint`   ·   Clean: `make clean`
+## Where to find things (load on demand — don't front-load)
+- **Onboarding (auto):** the `repo-onboard` skill (`.claude/skills/repo-onboard/`)
+  loads when relevant; or say "load repo settings". Front door: `LOAD.md`.
+- **Read first:** `STATUS.md` — canonical "where am I / what's next."
+- **Engine detail — commands, architecture map, hard rules, workflow:**
+  `docs/agent-guides/architecture.md` (Tier 3; the source of truth for engine facts).
+- **Decisions / why:** `docs/adr/`   ·   **Narrative / lessons:** `JOURNAL.md`
+- **Cold start:** `docs/COLD_START_HANDOFF.md`
+- **Subagent-audit + code-review method:** `docs/AGENT_AUDIT_METHOD.md`
+- **Other project (clinical scribe):** `SOVEREIGN_SCRIBE_SALVAGE.md`
 
-## Architecture map
-- `recurrence.py` — the engine. Shared core `_record_groups` feeds 4 rules:
-  `detect_recurrence` (same item ≥N), `detect_gap` (returns after absence),
-  `detect_frequency` (clusters in a window), `detect_cooccurrence` (two items on
-  the same dates ≥N). Hits: `RecurrenceHit` / `GapHit` / `FrequencyHit` /
-  `CooccurrenceHit`, each carrying `variants` (the audit trail of merged
-  spellings; co-occurrence carries one per item: `variants_a` / `variants_b`).
-- Matching is layered and **opt-in** (defaults = exact v0): `normalize`
-  (case/space), `synonyms` (human-declared map), `fuzzy_cutoff` (difflib typos).
-  Every merge cites originals in `variants`; `format_*` appends `[merged: ...]`.
-- Router: an `EXPERTS` registry (one `Expert` per rule) + `run_report` route the
-  4 rules into a per-record `RecordReport`; `format_report` renders it. Adding a
-  5th rule = appending one `Expert`. The report lists only — it never ranks.
-- `data/sample_records.py` — invented records + SEVEN hand-written answer keys
-  (`ANSWER_KEY`, `ANSWER_KEY_V1`, `GAP_ANSWER_KEY`, `FREQUENCY_ANSWER_KEY`,
-  `CO_OCCURRENCE_ANSWER_KEY`, `REPORT_ANSWER_KEY`, `REPORT_ANSWER_KEY_V1`) +
-  `SYNONYMS`.
-- `data/RECORDS.md` — data dictionary (field rationale, per-record reasons).
-- `tests/` — 7 files, 68 tests. CI: `.github/workflows/ci.yml` (Py 3.10–3.13).
-
-## Hard rules
-- Pure Python **stdlib only** at runtime. No network egress. Zero real PHI, ever.
-- Defaults stay **exact-match** (v0). New matching is opt-in, never a default.
-- Validate args — raise `ValueError` on bad input (library code fails loudly).
-- Determinism: stable ordering; **answer keys are written by hand first**, the
-  code is made to match — never patch the key toward the code.
-
-## Workflow preferences
-- **Log decisions as you go** → `docs/adr/` (see its README for format). Write an
-  ADR *when the decision is made*, not at session end — and this includes your
-  OWN process/behavior changes (what you started doing differently, and why), not
-  just code. Each ADR carries a Confirmation (how it's checked) + evidence level.
-  An improvement left only in chat dies at the session reset.
-- **Tool calls (ADR 0001):** verify with ONE decisive call — capture to a file,
-  trust the exit code + a printed sentinel (`rc=0 :: OK`) over rendered prose,
-  prefer ASCII summaries, batch checks, and don't re-run a strong signal. Re-run
-  only on genuine self-contradiction.
-- Spec-driven: the Drive `BUILD_SPEC` is the contract. Small, verified increments.
-- Oracle method: write the expected answer first; cross-check tests catch drift.
-- Web-search current best practices when hitting a real issue; cite sources.
-- Commit + push to the feature branch; keep PRs draft until asked. Branch
-  protection on `main` is active (require the 4 `test` checks + conversation
-  resolution). Be frugal with GitHub comments.
-- Triage CodeRabbit: apply the good, skip noise, ask if ambiguous.
-
-## Scope boundaries
-- This repo only. Don't rebuild the old `pharmacy_tool_v13` (reference lumber).
-- **Read `STATUS.md` first** for "where am I / what's next."
+## Scope
+This repo only. Don't rebuild the old `pharmacy_tool_v13` (reference lumber).
