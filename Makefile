@@ -1,4 +1,4 @@
-.PHONY: test selftest demo lint typecheck fmt-check fmt cov security tools branch-audit clean
+.PHONY: test selftest demo lint check typecheck fmt-check fmt cov security tools branch-audit clean
 
 # Engine is pure stdlib; no runtime dependencies to install.
 # The targets below test/lint/type-check are OPTIONAL dev tooling: each is a
@@ -21,6 +21,11 @@ demo:          ## Run every surfacing-rule demo
 lint:          ## Byte-compile sanity check (+ ruff if installed)
 	python -m compileall -q recurrence.py tests data scripts
 	-ruff check .
+
+check:         ## Standard local verification gate: tests + self-test + lint
+	$(MAKE) test
+	$(MAKE) selftest
+	$(MAKE) lint
 
 typecheck:     ## Static type check (mypy if installed) — report-only, won't fail the run
 	-mypy recurrence.py

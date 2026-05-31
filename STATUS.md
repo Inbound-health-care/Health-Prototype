@@ -12,11 +12,15 @@ Last updated: 2026-05-31
 - **This branch (`claude/quirky-brahmagupta-P0H4b`) — back-end / workflow hardening
   (draft PR #8). ENGINE CODE FROZEN this phase** (Scott: fix all back-end/workflow
   things before changing any code). Done so far: toolchain audit, handoff-loss
-  guard (live), and a drift sweep correcting STATUS + the cold-start handoff.
+  guard (live), a drift sweep correcting STATUS + the cold-start handoff, a new
+  **CI lint gate** (ruff, pinned 0.15.8) + `make check`, and the back-end hygiene
+  extracted from PR #6 (CONTRIBUTING / PUBLISH_CHECKLIST / `.gitignore`).
   CI green on PR #8 (3.10–3.13).
 - Repo on **`Inbound-health-care/health-prototype`** (org on Team).
   **Branch protection ACTIVE** on `main` (4 `test` checks + up-to-date +
   conversation resolution + linear history + no-bypass; required approvals 0).
+  **FOLLOW-UP for Scott:** the new `lint` CI check is not yet a *required* check —
+  add it to branch protection (GitHub Settings → Branches) to gate merges on it.
 
 ## Open loops
 - [x] All 4 rules + v1 matching + combined report merged to `main`.
@@ -25,12 +29,15 @@ Last updated: 2026-05-31
 - [x] Doc/harness stack salvaged off `spec-jm3Ck` and merged to `main` via PR #7.
 - [x] Stale branches retired: only `main` + the active working branch remain on
       origin (`spec-jm3Ck` and `coderabbitai/utg/379a87a` are gone).
-- [ ] **PR #6** (Codex, draft) — `--version` + `VERSION` + CLI test + `make check`
-      + hygiene docs (`CONTRIBUTING.md` / `PUBLISH_CHECKLIST.md` / `.gitignore`).
-      **2 commits behind `main`; BUNDLES engine code** (`--version` in
-      `recurrence.py`) with back-end hygiene — so it can't merge as-is during the
-      engine-frozen phase. Disposition pending Scott (extract back-end bits / defer
-      code / leave). **PR #5 closed** as its duplicate.
+- [x] **PR #6 resolved** (Scott: extract back-end bits, defer code): brought
+      `CONTRIBUTING.md`, `docs/PUBLISH_CHECKLIST.md`, `make check`, and the
+      `.gitignore` secret/output hygiene into PR #8; **closed PR #6** to avoid a
+      stale, duplicated draft. **PR #5 closed earlier** as its duplicate.
+- [ ] **DEFERRED to the code phase** (the engine bit of PR #6, fully specified):
+      `VERSION = "0.4.0"` + a `--version` flag printing
+      `Health-Prototype recurrence engine 0.4.0` + `tests/test_cli.py`. Re-add
+      cleanly when engine code unfreezes (README already lists `make check`; add
+      the `--version` line then).
 - [ ] Pick the next build increment (below) — AFTER the back-end pass is signed off.
 - [x] **Toolchain audit** (`docs/TOOLCHAIN_AUDIT_2026-05-31.md`): the managed web
       env pre-installs the 2026 stack (pytest 9 / ruff 0.15.8 / mypy 1.19 / uv 0.8);

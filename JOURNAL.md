@@ -12,7 +12,43 @@ is made visible. The struggle and the reasoning ARE the deliverable._
 
 ---
 
-## 2026-05-31 (latest) — Handoff-loss guard (so the AuditAndBuild vanish can't recur)
+## 2026-05-31 (latest) — Back-end / workflow hardening pass (engine frozen)
+**Where:** computer (Claude Code web session). **What I set out to do:** Scott
+scoped it plainly — "fix all back-end things before changing any of the code; make
+sure the workflow is up to snuff." So: audit the infrastructure (CI, hooks, docs
+consistency, branches, PRs, hygiene) and fix it, engine code OFF-LIMITS.
+
+**How it went / what I learned:**
+- **The front door was lying.** A drift sweep (METHOD-003) found STATUS.md still
+  called the current branch `nifty-fermat`, described PR #7's merged doc work as an
+  in-progress draft, and listed stale branches for retirement that were already
+  gone. COLD_START_HANDOFF still said "53 tests / PR #1 open / spec-jm3Ck" and
+  omitted co-occurrence. Fixed both to reality (68 tests, 4 rules, current branch).
+  **Left the ADRs alone** — their "53 tests / nifty-fermat" lines are correct
+  point-in-time history; rewriting decision records would be the wrong kind of tidy.
+- **CI had a real gap:** it gated tests on Py 3.10–3.13 but never ran ruff, so a PR
+  could go green with lint errors. Added a separate `lint` job (ruff pinned to the
+  local 0.15.8 — pinned so CI can't drift from local on a ruff release). Lint only,
+  NOT `ruff format` (Scott kept hand-formatting). Branch protection still needs the
+  new check marked *required* — flagged that as a manual step for Scott (no tool to
+  edit protection from here).
+- **PR #6 was a bundling problem.** It mixed engine code (`--version`) with back-end
+  hygiene (CONTRIBUTING, PUBLISH_CHECKLIST, `make check`, `.gitignore`). During an
+  engine-freeze you can't merge it whole. Scott's call: extract the back-end bits,
+  defer the code. Pulled the four hygiene pieces into this branch verbatim from the
+  PR diff (token-frugal — no re-invention), recorded the deferred `--version` spec
+  in STATUS so it isn't lost, and closed PR #6 so a stale duplicated draft doesn't
+  linger (the cruft this pass exists to kill).
+- **Hit the self-mod guardrail again earlier** (registering the Stop hook) — same
+  lesson holds: agent-config changes need explicit sign-off, and that's correct.
+
+**What got hard:** keeping the librarian discipline pointed at our OWN process —
+surface drift, fix the genuinely-wrong, but don't "improve" history or silently
+restructure someone's PR. **What's next:** Scott signs off the back-end pass (and
+marks the `lint` check required); then the engine unfreezes and we pick a build
+increment (or land the deferred `--version`).
+
+## 2026-05-31 (evening) — Handoff-loss guard (so the AuditAndBuild vanish can't recur)
 **Where:** computer (Claude Code web session). **What I set out to do:** the whole
 reason this session started blind was a handoff file that was written locally and
 never committed, so the fresh-container clone didn't have it. Close that hole.
