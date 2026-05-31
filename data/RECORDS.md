@@ -81,6 +81,10 @@ flag an item appearing in **2+** entries of a record, matched **exactly**.
 | **R014** | v1 fuzzy/typo demo: one concept written 3 ways (typo + casing). v0 surfaces nothing; v1 merges it. | *(nothing in v0)* |
 | **R015** | Gap/re-emergence demo: returns after a 243-day absence (also recurs ×3). | `depression` ×3 |
 | **R016** | Frequency/burst demo: 3× within 19 days, then isolated (also recurs ×4). | `chest pain` ×4 |
+| **R017** | **Co-occurrence baseline**: two items share the same date on 2 dates (each also recurs ×2). | `knee pain` + `poor sleep` co-occur ×2 |
+| **R018** | Co-occurrence combinatorics: three items co-occur on 2 dates → all 3 pairs surface. | 3 pairs of `dizziness`/`fatigue`/`nausea` |
+| **R019** | **Negative control**: both items recur but on different dates → no co-occurrence. | recurrence only (`cough` ×2, `rash` ×2) |
+| **R020** | **Threshold control**: items share exactly 1 date (< 2) → no co-occurrence. | recurrence only (`edema` ×2, `back pain` ×2) |
 
 ### Cross-record independence (no dedicated record needed)
 
@@ -167,15 +171,20 @@ python recurrence.py --demo                        # recurrence, v0 exact match
 python recurrence.py --demo-v1                      # recurrence, v1 opt-in matching
 python recurrence.py --demo-gap                     # gap / re-emergence rule
 python recurrence.py --demo-frequency               # frequency / burst rule
+python recurrence.py --demo-cooccurrence            # co-occurrence (two items, same dates)
+python recurrence.py --report                       # all rules, one per-record view (v0)
+python recurrence.py --report-v1                    # combined report with v1 matching
 python -m unittest discover -s tests -t .           # all answer keys vs engine, exact
 ```
 
 Each rule has a hand-written answer key and a test that asserts the engine
 reproduces it exactly: `test_sample_records.py` → `ANSWER_KEY` (recurrence v0);
 `test_fuzzy.py` → `ANSWER_KEY_V1` (and no regression of the v0 key);
-`test_gap.py` → `GAP_ANSWER_KEY`; `test_frequency.py` → `FREQUENCY_ANSWER_KEY`.
-Read the tables in §3, §5, and §7, eyeball the `--demo*` outputs, and the unit
-tests guarantee they can't silently disagree.
+`test_gap.py` → `GAP_ANSWER_KEY`; `test_frequency.py` → `FREQUENCY_ANSWER_KEY`;
+`test_cooccurrence.py` → `CO_OCCURRENCE_ANSWER_KEY`; `test_report.py` →
+`REPORT_ANSWER_KEY` and `REPORT_ANSWER_KEY_V1`. Read the tables in §3, §5, and §7,
+eyeball the `--demo*`/`--report*` outputs, and the unit tests guarantee they
+can't silently disagree.
 
 ---
 
@@ -190,6 +199,7 @@ record can surface under more than one rule.
 |---|---|---|---|---|
 | Gap / re-emergence | `detect_gap` | an item that **returns after a long absence** (> `gap_days`), citing the bracketing dates and gap length | `gap_days=90` | `GAP_ANSWER_KEY` |
 | Frequency / burst | `detect_frequency` | an item appearing **`min_count`+ times within any `window_days` span**, citing the window's dates | `window_days=30, min_count=3` | `FREQUENCY_ANSWER_KEY` |
+| Co-occurrence | `detect_cooccurrence` | **two distinct items that share the same date** on `min_count`+ distinct dates (the pairing itself recurs), citing the shared dates | `min_count=2` | `CO_OCCURRENCE_ANSWER_KEY` |
 
 At the default parameters, across these records:
 
@@ -198,29 +208,46 @@ At the default parameters, across these records:
   the 90-day threshold, so it does not surface.
 - **Frequency** surfaces only **R016**: `chest pain` appeared 3× within 19 days
   (`2026-02-01` … `2026-02-20`). R015's occurrences never cluster 3× in 30 days.
+- **Co-occurrence** surfaces **R017** (`knee pain` + `poor sleep` on 2 shared
+  dates) and **R018** (three items on 2 shared dates → all three pairs). The two
+  controls prove it is more than "both items recur": **R019** has both items
+  recurring on *different* dates (no shared date → nothing), and **R020** shares
+  exactly one date (below the min_count=2 the pairing must reach). Undated
+  entries are excluded — a date that does not exist cannot be shared.
 
-Both rules stay strictly descriptive — they report *that* an item returned or
-clustered, with dates, and never why or whether it matters. Undated occurrences
-are skipped (a date-based rule never guesses a date), and merged spellings are
-cited in `variants` exactly as in recurrence.
+All rules stay strictly descriptive — they report *that* an item returned,
+clustered, or co-occurred, with dates, and never why or whether it matters.
+Co-occurrence is a count of shared dates, never a claim that the two items are
+associated, linked, or correlated. Undated occurrences are skipped (a date-based
+rule never guesses a date), and merged spellings are cited in `variants` (and,
+for a pair, attributed per item) exactly as in recurrence.
 
 ---
 
 ## 7b. One dataset, all lenses at once (the combined report)
 
-`run_report` (CLI `--report`) runs all three rules over this same set and groups
-every finding under its record. Two records carry more than one lens — the whole
-point of the combined view:
+`run_report` (CLI `--report`) runs all four rules over this same set and groups
+every finding under its record. Several records carry more than one lens — the
+whole point of the combined view:
 
 - **R015** — `depression` surfaces under **recurrence** (3 occurrences) *and*
   **gap** (the 243-day quiet stretch). One record, two lenses.
 - **R016** — `chest pain` surfaces under **recurrence** (4 occurrences) *and*
   **frequency** (3x within 19 days).
+- **R017 / R018** — each item surfaces under **recurrence**, *and* the pair(s)
+  surface under **co-occurrence** (a co-occurrence finding's item is the pair
+  label `"item_a + item_b"`).
 
 Records that surface nothing at v0 defaults (R003, R006, R007, R014) are
 **omitted** — the report lists what is present, never asserts a record is
 "clean", and never ranks or totals across records. The hand-written oracle is
 `REPORT_ANSWER_KEY` in `data/sample_records.py`.
+
+**v1 combined report** (`--report-v1`) runs the same router with the opt-in
+matching of `--demo-v1` (normalize + `SYNONYMS` + fuzzy). Its only differences
+from the v0 report are the three records that merge solely under v1 — **R006**
+(synonyms), **R007** (normalize), **R014** (fuzzy) — which now surface a
+recurrence line. The hand-written oracle is `REPORT_ANSWER_KEY_V1`.
 
 ## 8. Sources (what 2026 records actually carry)
 

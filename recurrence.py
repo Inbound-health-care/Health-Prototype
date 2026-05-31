@@ -25,6 +25,7 @@ from __future__ import annotations
 import argparse
 import datetime
 import difflib
+import itertools
 import sys
 from collections import Counter
 from collections.abc import Callable
@@ -90,6 +91,41 @@ class FrequencyHit:
     window_end: str
     dates: list[str] = field(default_factory=list)
     variants: list[str] = field(default_factory=list)
+
+
+@dataclass
+class CooccurrenceHit:
+    """One surfaced co-occurrence: two items that appeared on the same dates.
+
+    Provenance only: the record, the two item labels, how many distinct dates
+    they shared, and exactly which dates. It reports that two items showed up
+    together on N dates — NEVER that one is associated with, linked to, or
+    explains the other. Pure counting.
+
+    Two items means two audit trails: ``variants_a`` and ``variants_b`` list the
+    distinct original spellings merged into ``item_a`` / ``item_b`` respectively
+    (length 1 under v0 exact match, longer when normalize/synonyms/fuzzy merged).
+    The pair is ordered so ``item_a`` precedes ``item_b`` by canonical key, making
+    both the pair and the hit list deterministic.
+    """
+
+    record_id: str
+    item_a: str
+    item_b: str
+    count: int
+    dates: list[str] = field(default_factory=list)
+    variants_a: list[str] = field(default_factory=list)
+    variants_b: list[str] = field(default_factory=list)
+
+    @property
+    def item(self) -> str:
+        """Pair label for the combined report (``"item_a + item_b"``).
+
+        The router shapes each finding by ``hit.item``; co-occurrence is the one
+        rule whose subject is a pair, so it presents the two labels joined. The
+        ``+`` is provenance ("these two co-occurred"), never "these two relate".
+        """
+        return f"{self.item_a} + {self.item_b}"
 
 
 # ---------------------------------------------------------------------------
@@ -474,6 +510,105 @@ def format_frequency_hit(hit: FrequencyHit, with_record: bool = True) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Fourth rule — co-occurrence (two items on the same dates)
+# ---------------------------------------------------------------------------
+
+
+def detect_cooccurrence(
+    records: list,
+    field: str = "item",
+    min_count: int = 2,
+    normalize: bool = False,
+    synonyms: dict | None = None,
+    fuzzy_cutoff: float | None = None,
+) -> list[CooccurrenceHit]:
+    """Surface co-occurrences: two distinct items in one record that BOTH appear
+    on the same date, on ``min_count`` or more distinct shared dates.
+
+    For each record the engine groups occurrences (sharing the same opt-in
+    matching as the other rules), collects each item's set of dated days, and for
+    every pair intersects those sets; a pair whose shared-date count reaches
+    ``min_count`` emits one :class:`CooccurrenceHit` citing the shared dates.
+    Undated occurrences are excluded — there is no date to share. Surfaces only:
+    it reports that two items co-occurred N times, never that they are related.
+    """
+    if min_count < 1:
+        raise ValueError(f"min_count must be >= 1, got {min_count}")
+    _check_fuzzy_cutoff(fuzzy_cutoff)
+
+    hits: list[CooccurrenceHit] = []
+    if not records:
+        return hits
+
+    synonym_map = _build_synonym_map(synonyms, normalize)
+    for record in records:
+        record_id, groups = _record_groups(
+            record, field, synonym_map, normalize, fuzzy_cutoff
+        )
+        # Per item: its set of distinct dated days (undated "" excluded — a date
+        # that does not exist cannot be shared), plus the display label and the
+        # audit trail of merged spellings.
+        dates_by_key: dict[str, set] = {}
+        label_by_key: dict[str, str] = {}
+        variants_by_key: dict[str, list] = {}
+        for key, occ in groups.items():
+            dated = {o[0] for o in occ if o[0]}
+            if dated:
+                dates_by_key[key] = dated
+                label_by_key[key] = _pick_label(occ)
+                variants_by_key[key] = sorted({o[1] for o in occ})
+        # Deterministic: pairs in sorted-key order, each unordered pair once.
+        for key_a, key_b in itertools.combinations(sorted(dates_by_key), 2):
+            shared = dates_by_key[key_a] & dates_by_key[key_b]
+            if len(shared) >= min_count:
+                hits.append(
+                    CooccurrenceHit(
+                        record_id=record_id,
+                        item_a=label_by_key[key_a],
+                        item_b=label_by_key[key_b],
+                        count=len(shared),
+                        dates=sorted(shared),
+                        variants_a=variants_by_key[key_a],
+                        variants_b=variants_by_key[key_b],
+                    )
+                )
+    return hits
+
+
+def _pair_merge_clause(hit: CooccurrenceHit) -> str:
+    """Cite merged spellings for a PAIR, attributed to each item.
+
+    Reuses the single-item ``_merge_clause`` token per side and labels it with the
+    item, so a two-item hit's audit trail stays unambiguous. Empty when neither
+    side merged (the v0 exact-match case), so v0 lines stay clean.
+    """
+    clause = ""
+    if len(hit.variants_a) > 1:
+        clause += f' "{hit.item_a}"{_merge_clause(hit.variants_a)}'
+    if len(hit.variants_b) > 1:
+        clause += f' "{hit.item_b}"{_merge_clause(hit.variants_b)}'
+    return clause
+
+
+def format_cooccurrence_hit(hit: CooccurrenceHit, with_record: bool = True) -> str:
+    """Render a co-occurrence as a single provenance-cited, pure-count line.
+
+    Example:
+      Record R017: "knee pain" + "poor sleep" co-occurred 2 times — 2026-01-10, 2026-02-14
+
+    Strictly a count of shared dates; it never says the two items are associated,
+    linked, correlated, or that one explains the other.
+    """
+    dates = ", ".join(hit.dates)
+    prefix = f"Record {hit.record_id}: " if with_record else ""
+    line = (
+        f'{prefix}"{hit.item_a}" + "{hit.item_b}" co-occurred '
+        f"{hit.count} times — {dates}"
+    )
+    return line + _pair_merge_clause(hit)
+
+
+# ---------------------------------------------------------------------------
 # Router — one dispatch over an expert registry into a per-record report
 # ---------------------------------------------------------------------------
 
@@ -495,12 +630,14 @@ class Expert:
 
 
 # Registry order IS the report's expert order: recurrence (the base lens), then
-# gap, then frequency — the order the rules were built and documented in. Adding
-# a fourth rule later is appending one Expert here; nothing else changes.
+# gap, then frequency, then co-occurrence — the order the rules were built and
+# documented in. Adding a further rule is appending one Expert here; the router
+# and the formatter need no other change.
 EXPERTS: tuple[Expert, ...] = (
     Expert("recurrence", detect_recurrence, format_hit),
     Expert("gap", detect_gap, format_gap_hit),
     Expert("frequency", detect_frequency, format_frequency_hit),
+    Expert("cooccurrence", detect_cooccurrence, format_cooccurrence_hit),
 )
 
 
@@ -787,6 +924,21 @@ def _run_demo_frequency() -> int:
     return 0
 
 
+def _run_demo_cooccurrence() -> int:
+    """Surface co-occurrences (two items on the same dates) across the records."""
+    try:
+        from data.sample_records import SAMPLE_RECORDS
+    except ImportError:
+        SAMPLE_RECORDS = []
+    hits = detect_cooccurrence(SAMPLE_RECORDS)
+    if not hits:
+        print("No co-occurrences surfaced.")
+        return 0
+    for hit in hits:
+        print(format_cooccurrence_hit(hit))
+    return 0
+
+
 def _run_report() -> int:
     """Surface the combined per-record report (all rules, v0 exact match)."""
     try:
@@ -794,6 +946,25 @@ def _run_report() -> int:
     except ImportError:
         SAMPLE_RECORDS = []
     reports = run_report(SAMPLE_RECORDS)
+    if not reports:
+        print("No findings surfaced across the records.")
+        return 0
+    print(format_report(reports))
+    return 0
+
+
+def _run_report_v1() -> int:
+    """Combined per-record report with the v1 opt-in layers (normalize + declared
+    synonyms + fuzzy) on the same records, so the v0->v1 difference is visible
+    across every rule. Merged spellings are cited in each line."""
+    try:
+        from data.sample_records import SAMPLE_RECORDS, SYNONYMS
+    except ImportError:
+        print("No records / synonyms in data/sample_records.py.")
+        return 0
+    reports = run_report(
+        SAMPLE_RECORDS, normalize=True, synonyms=SYNONYMS, fuzzy_cutoff=0.85
+    )
     if not reports:
         print("No findings surfaced across the records.")
         return 0
@@ -836,9 +1007,19 @@ def build_parser() -> argparse.ArgumentParser:
         help="Surface bursts (frequency rule) in data/sample_records.py",
     )
     p.add_argument(
+        "--demo-cooccurrence",
+        action="store_true",
+        help="Surface co-occurrences (two items on the same dates) in data/sample_records.py",
+    )
+    p.add_argument(
         "--report",
         action="store_true",
         help="Combined per-record report across all rules (v0 exact match)",
+    )
+    p.add_argument(
+        "--report-v1",
+        action="store_true",
+        help="Combined report with v1 opt-in matching (normalize + synonyms + fuzzy)",
     )
     return p
 
@@ -855,8 +1036,12 @@ def main() -> int:
         return _run_demo_gap()
     if args.demo_frequency:
         return _run_demo_frequency()
+    if args.demo_cooccurrence:
+        return _run_demo_cooccurrence()
     if args.report:
         return _run_report()
+    if args.report_v1:
+        return _run_report_v1()
     build_parser().print_help()
     return 0
 

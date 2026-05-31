@@ -222,6 +222,56 @@ SAMPLE_RECORDS: list[dict] = [
             {"date": "2026-05-10", "item": "chest pain"},
         ],
     },
+    # R017 — REASON: CO-OCCURRENCE baseline. Two items share the SAME date on two
+    # distinct dates -> the pairing itself recurs -> co-occurrence flags (count 2).
+    # Each item also recurs 2x, so recurrence surfaces both (one record, two
+    # lenses); 35-day gaps and no 3-in-30 burst keep gap/frequency silent.
+    {
+        "id": "R017",
+        "entries": [
+            {"date": "2026-01-10", "item": "knee pain"},
+            {"date": "2026-01-10", "item": "poor sleep"},
+            {"date": "2026-02-14", "item": "knee pain"},
+            {"date": "2026-02-14", "item": "poor sleep"},
+        ],
+    },
+    # R018 — REASON: pair combinatorics. THREE items co-occur on two shared dates;
+    # exercises all three pairs (A-B, A-C, B-C) and deterministic pair ordering.
+    {
+        "id": "R018",
+        "entries": [
+            {"date": "2026-03-01", "item": "dizziness"},
+            {"date": "2026-03-01", "item": "fatigue"},
+            {"date": "2026-03-01", "item": "nausea"},
+            {"date": "2026-04-01", "item": "dizziness"},
+            {"date": "2026-04-01", "item": "fatigue"},
+            {"date": "2026-04-01", "item": "nausea"},
+        ],
+    },
+    # R019 — REASON: negative control. Both items recur, but on DIFFERENT dates --
+    # they never share one. Proves co-occurrence is NOT just "both items recur".
+    {
+        "id": "R019",
+        "entries": [
+            {"date": "2026-01-05", "item": "cough"},
+            {"date": "2026-02-05", "item": "cough"},
+            {"date": "2026-01-20", "item": "rash"},
+            {"date": "2026-02-20", "item": "rash"},
+        ],
+    },
+    # R020 — REASON: threshold control. Two items share exactly ONE date -> the
+    # pairing does NOT recur -> below min_count=2 -> co-occurrence does NOT flag.
+    # Dates kept tight (max 69-day gap) so this isolates the co-occurrence
+    # threshold without also tripping the gap rule.
+    {
+        "id": "R020",
+        "entries": [
+            {"date": "2026-01-12", "item": "edema"},
+            {"date": "2026-01-12", "item": "back pain"},
+            {"date": "2026-03-18", "item": "edema"},
+            {"date": "2026-03-22", "item": "back pain"},
+        ],
+    },
 ]
 
 # The hand-written answer key (oracle): for each record, the items that SHOULD
@@ -255,6 +305,25 @@ ANSWER_KEY: dict = {
     "R015": {"depression": ["2026-01-10", "2026-09-10", "2026-10-05"]},
     "R016": {
         "chest pain": ["2026-02-01", "2026-02-10", "2026-02-20", "2026-05-10"]
+    },
+    # R017-R020 are the co-occurrence records; each shared-date item also recurs
+    # 2x, so recurrence surfaces them here (the co-occurrence oracle is below).
+    "R017": {
+        "knee pain": ["2026-01-10", "2026-02-14"],
+        "poor sleep": ["2026-01-10", "2026-02-14"],
+    },
+    "R018": {
+        "dizziness": ["2026-03-01", "2026-04-01"],
+        "fatigue": ["2026-03-01", "2026-04-01"],
+        "nausea": ["2026-03-01", "2026-04-01"],
+    },
+    "R019": {
+        "cough": ["2026-01-05", "2026-02-05"],
+        "rash": ["2026-01-20", "2026-02-20"],
+    },
+    "R020": {
+        "back pain": ["2026-01-12", "2026-03-22"],
+        "edema": ["2026-01-12", "2026-03-18"],
     },
 }
 
@@ -311,6 +380,24 @@ ANSWER_KEY_V1: dict = {
     "R016": {
         "chest pain": ["2026-02-01", "2026-02-10", "2026-02-20", "2026-05-10"]
     },
+    # R017-R020 carry no synonym/case/typo variants, so v1 grouping == v0 here.
+    "R017": {
+        "knee pain": ["2026-01-10", "2026-02-14"],
+        "poor sleep": ["2026-01-10", "2026-02-14"],
+    },
+    "R018": {
+        "dizziness": ["2026-03-01", "2026-04-01"],
+        "fatigue": ["2026-03-01", "2026-04-01"],
+        "nausea": ["2026-03-01", "2026-04-01"],
+    },
+    "R019": {
+        "cough": ["2026-01-05", "2026-02-05"],
+        "rash": ["2026-01-20", "2026-02-20"],
+    },
+    "R020": {
+        "back pain": ["2026-01-12", "2026-03-22"],
+        "edema": ["2026-01-12", "2026-03-18"],
+    },
 }
 
 
@@ -351,26 +438,51 @@ FREQUENCY_ANSWER_KEY: dict = {
     ],
 }
 
+# CO-OCCURRENCE: two distinct items sharing the SAME date on >= min_count (2)
+# distinct dates; the pairing itself must recur. Undated entries are excluded
+# (no date to share). Pairs are listed in sorted-item order, dates sorted.
+# Across these records: R017 (one pair) and R018 (three pairs). R019 (items
+# recur but never share a date) and R020 (share exactly one date) deliberately
+# surface NOTHING — the two negative controls that prove co-occurrence is more
+# than "both items recur". Format:
+#   {record_id: [(item_a, item_b, count, [shared_dates]), ...]}
+#
+#   python recurrence.py --demo-cooccurrence
+CO_OCCURRENCE_ANSWER_KEY: dict = {
+    "R017": [
+        ("knee pain", "poor sleep", 2, ["2026-01-10", "2026-02-14"]),
+    ],
+    "R018": [
+        ("dizziness", "fatigue", 2, ["2026-03-01", "2026-04-01"]),
+        ("dizziness", "nausea", 2, ["2026-03-01", "2026-04-01"]),
+        ("fatigue", "nausea", 2, ["2026-03-01", "2026-04-01"]),
+    ],
+    # R019: both items recur but never share a date -> empty (no entry).
+    # R020: items share exactly one date (< min_count 2) -> empty (no entry).
+}
+
 
 # ---------------------------------------------------------------------------
 # Combined report — all rules, one per-record view
 # ---------------------------------------------------------------------------
 #
-# run_report() routes the three rules over the SAME records and groups every
+# run_report() routes all four rules over the SAME records and groups every
 # hit by record. The answer key below is the hand-written oracle for that
 # combined view: for each record that surfaces anything, the (expert, item)
 # findings in EXACT render order — records by id, experts in registry order
-# (recurrence, then gap, then frequency), hits within a rule in that rule's
-# own order. Dates/counts are already oracled by the three keys above; this key
-# states only WHICH lens surfaced WHICH item, so the views can never silently
-# diverge. Composed by hand from the keys above; run_report must reproduce it.
+# (recurrence, then gap, then frequency, then cooccurrence), hits within a rule
+# in that rule's own order. Dates/counts are already oracled by the keys above;
+# this key states only WHICH lens surfaced WHICH item, so the views can never
+# silently diverge. Composed by hand from the keys above; run_report reproduces it.
+# A cooccurrence finding's item is the pair label "item_a + item_b".
 #
 #   python recurrence.py --report
 #
 # Records that surface nothing at v0 defaults (R003, R006, R007, R014) are
 # ABSENT by design: the report lists what is present, never asserts "clean".
-# Two records prove the combined view's worth — one dataset, two lenses each:
-#   R015 = recurrence + gap        R016 = recurrence + frequency
+# Records that prove the combined view's worth — one dataset, several lenses:
+#   R015 = recurrence + gap                R016 = recurrence + frequency
+#   R017 = recurrence x2 + cooccurrence    R018 = recurrence x3 + cooccurrence x3
 REPORT_ANSWER_KEY: dict = {
     "R001": [("recurrence", "poor sleep")],
     "R002": [("recurrence", "appetite change"), ("recurrence", "fatigue")],
@@ -384,4 +496,61 @@ REPORT_ANSWER_KEY: dict = {
     "R013": [("recurrence", "housing instability")],
     "R015": [("recurrence", "depression"), ("gap", "depression")],
     "R016": [("recurrence", "chest pain"), ("frequency", "chest pain")],
+    "R017": [
+        ("recurrence", "knee pain"),
+        ("recurrence", "poor sleep"),
+        ("cooccurrence", "knee pain + poor sleep"),
+    ],
+    "R018": [
+        ("recurrence", "dizziness"),
+        ("recurrence", "fatigue"),
+        ("recurrence", "nausea"),
+        ("cooccurrence", "dizziness + fatigue"),
+        ("cooccurrence", "dizziness + nausea"),
+        ("cooccurrence", "fatigue + nausea"),
+    ],
+    "R019": [("recurrence", "cough"), ("recurrence", "rash")],
+    "R020": [("recurrence", "back pain"), ("recurrence", "edema")],
+}
+
+
+# The v1 combined report: run_report with the same opt-in matching as --demo-v1
+# (normalize + SYNONYMS + fuzzy_cutoff=0.85). Identical to REPORT_ANSWER_KEY
+# EXCEPT the three records that only merge under v1 now surface a recurrence
+# line: R006 (synonyms), R007 (normalize), R014 (fuzzy typo). Gap/frequency and
+# the co-occurrence records are unchanged (R017-R020 carry no variants). R003
+# still surfaces nothing. Written by hand first; run_report must reproduce it.
+#
+#   python recurrence.py --report-v1
+REPORT_ANSWER_KEY_V1: dict = {
+    "R001": [("recurrence", "poor sleep")],
+    "R002": [("recurrence", "appetite change"), ("recurrence", "fatigue")],
+    "R004": [("recurrence", "back pain")],
+    "R005": [("recurrence", "anxiety")],
+    "R006": [("recurrence", "poor sleep")],          # v1: synonyms merge
+    "R007": [("recurrence", "Hypertension")],         # v1: normalize merges case/space
+    "R008": [("recurrence", "medication review")],
+    "R009": [("recurrence", "med refill: metformin")],
+    "R010": [("recurrence", "edema")],
+    "R011": [("recurrence", "lab: A1C")],
+    "R012": [("recurrence", "blood pressure elevated")],
+    "R013": [("recurrence", "housing instability")],
+    "R014": [("recurrence", "blood pressure")],        # v1: fuzzy merges the typo
+    "R015": [("recurrence", "depression"), ("gap", "depression")],
+    "R016": [("recurrence", "chest pain"), ("frequency", "chest pain")],
+    "R017": [
+        ("recurrence", "knee pain"),
+        ("recurrence", "poor sleep"),
+        ("cooccurrence", "knee pain + poor sleep"),
+    ],
+    "R018": [
+        ("recurrence", "dizziness"),
+        ("recurrence", "fatigue"),
+        ("recurrence", "nausea"),
+        ("cooccurrence", "dizziness + fatigue"),
+        ("cooccurrence", "dizziness + nausea"),
+        ("cooccurrence", "fatigue + nausea"),
+    ],
+    "R019": [("recurrence", "cough"), ("recurrence", "rash")],
+    "R020": [("recurrence", "back pain"), ("recurrence", "edema")],
 }

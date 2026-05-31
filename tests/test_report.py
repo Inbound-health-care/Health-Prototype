@@ -16,9 +16,15 @@ import unittest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from data.sample_records import REPORT_ANSWER_KEY, SAMPLE_RECORDS
+from data.sample_records import (
+    REPORT_ANSWER_KEY,
+    REPORT_ANSWER_KEY_V1,
+    SAMPLE_RECORDS,
+    SYNONYMS,
+)
 from recurrence import (
     EXPERTS,
+    detect_cooccurrence,
     detect_frequency,
     detect_gap,
     detect_recurrence,
@@ -76,6 +82,12 @@ class TestReportComposition(unittest.TestCase):
         self.assertEqual(
             self._findings_for("frequency"),
             _group_hits_by_record(detect_frequency(SAMPLE_RECORDS)),
+        )
+
+    def test_cooccurrence_findings_match_detect_cooccurrence(self):
+        self.assertEqual(
+            self._findings_for("cooccurrence"),
+            _group_hits_by_record(detect_cooccurrence(SAMPLE_RECORDS)),
         )
 
 
@@ -140,13 +152,48 @@ class TestReportFirewall(unittest.TestCase):
         self.assertIn("[recurrence]", text)
         self.assertIn("[gap]", text)
         self.assertIn("[frequency]", text)
+        self.assertIn("[cooccurrence]", text)
+
+
+class TestReportV1(unittest.TestCase):
+    """The v1-matched combined report (normalize + declared synonyms + fuzzy).
+
+    Same router, same firewall — only the opt-in matching is turned on. Three
+    records that surface nothing at v0 (R006 synonyms, R007 normalize, R014 fuzzy)
+    now merge and recur, so the v0->v1 difference is visible in one view.
+    """
+
+    def _v1_reports(self):
+        return run_report(
+            SAMPLE_RECORDS, normalize=True, synonyms=SYNONYMS, fuzzy_cutoff=0.85
+        )
+
+    def test_v1_report_equals_answer_key_v1(self):
+        shaped = {
+            rep.record_id: [(f.expert, f.hit.item) for f in rep.findings]
+            for rep in self._v1_reports()
+        }
+        self.assertEqual(shaped, REPORT_ANSWER_KEY_V1)
+
+    def test_v1_surfaces_records_that_are_clean_under_v0(self):
+        ids = {rep.record_id for rep in self._v1_reports()}
+        for merged in ("R006", "R007", "R014"):
+            self.assertIn(merged, ids)
+
+    def test_v1_report_has_no_banned_words(self):
+        text = format_report(self._v1_reports()).lower()
+        for word in TestReportFirewall.BANNED:
+            self.assertNotIn(word, text, f"banned word surfaced: {word!r}")
 
 
 class TestExpertRegistry(unittest.TestCase):
     """The registry is well-formed and the abstraction is immutable."""
 
     def test_registry_order_and_names(self):
-        self.assertEqual([e.name for e in EXPERTS], ["recurrence", "gap", "frequency"])
+        self.assertEqual(
+            [e.name for e in EXPERTS],
+            ["recurrence", "gap", "frequency", "cooccurrence"],
+        )
 
     def test_names_unique(self):
         names = [e.name for e in EXPERTS]

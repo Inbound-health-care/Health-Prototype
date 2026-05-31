@@ -13,26 +13,29 @@ supplies all judgment. Tests enforce this — keep it that way.
 ## Commands
 - Tests:     `python -m unittest discover -s tests -t .`  (or `make test`)
 - Self-test: `python recurrence.py --self-test`  (the six spec cases)
-- Demos:     `python recurrence.py --demo | --demo-v1 | --demo-gap | --demo-frequency`
-- Report:    `python recurrence.py --report`  (all rules, one per-record view)
+- Demos:     `python recurrence.py --demo | --demo-v1 | --demo-gap | --demo-frequency | --demo-cooccurrence`
+- Report:    `python recurrence.py --report | --report-v1`  (all rules, one per-record view; v0 / v1 matching)
 - Lint:      `make lint`   ·   Clean: `make clean`
 
 ## Architecture map
-- `recurrence.py` — the engine. Shared core `_record_groups` feeds 3 rules:
+- `recurrence.py` — the engine. Shared core `_record_groups` feeds 4 rules:
   `detect_recurrence` (same item ≥N), `detect_gap` (returns after absence),
-  `detect_frequency` (clusters in a window). Hits: `RecurrenceHit` / `GapHit` /
-  `FrequencyHit`, each carrying `variants` (the audit trail of merged spellings).
+  `detect_frequency` (clusters in a window), `detect_cooccurrence` (two items on
+  the same dates ≥N). Hits: `RecurrenceHit` / `GapHit` / `FrequencyHit` /
+  `CooccurrenceHit`, each carrying `variants` (the audit trail of merged
+  spellings; co-occurrence carries one per item: `variants_a` / `variants_b`).
 - Matching is layered and **opt-in** (defaults = exact v0): `normalize`
   (case/space), `synonyms` (human-declared map), `fuzzy_cutoff` (difflib typos).
   Every merge cites originals in `variants`; `format_*` appends `[merged: ...]`.
 - Router: an `EXPERTS` registry (one `Expert` per rule) + `run_report` route the
-  3 rules into a per-record `RecordReport`; `format_report` renders it. Adding a
-  4th rule = appending one `Expert`. The report lists only — it never ranks.
-- `data/sample_records.py` — invented records + FIVE hand-written answer keys
+  4 rules into a per-record `RecordReport`; `format_report` renders it. Adding a
+  5th rule = appending one `Expert`. The report lists only — it never ranks.
+- `data/sample_records.py` — invented records + SEVEN hand-written answer keys
   (`ANSWER_KEY`, `ANSWER_KEY_V1`, `GAP_ANSWER_KEY`, `FREQUENCY_ANSWER_KEY`,
-  `REPORT_ANSWER_KEY`) + `SYNONYMS`.
+  `CO_OCCURRENCE_ANSWER_KEY`, `REPORT_ANSWER_KEY`, `REPORT_ANSWER_KEY_V1`) +
+  `SYNONYMS`.
 - `data/RECORDS.md` — data dictionary (field rationale, per-record reasons).
-- `tests/` — 6 files, 53 tests. CI: `.github/workflows/ci.yml` (Py 3.10–3.13).
+- `tests/` — 7 files, 68 tests. CI: `.github/workflows/ci.yml` (Py 3.10–3.13).
 
 ## Hard rules
 - Pure Python **stdlib only** at runtime. No network egress. Zero real PHI, ever.
