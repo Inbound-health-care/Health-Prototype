@@ -12,6 +12,35 @@ is made visible. The struggle and the reasoning ARE the deliverable._
 
 ---
 
+## 2026-05-31 (latest) — Handoff-loss guard (so the AuditAndBuild vanish can't recur)
+**Where:** computer (Claude Code web session). **What I set out to do:** the whole
+reason this session started blind was a handoff file that was written locally and
+never committed, so the fresh-container clone didn't have it. Close that hole.
+
+**How it went / what I learned:**
+- **Two layers, because one isn't enough.** (1) Structural: `/handoff` now ends with
+  a non-optional commit+push step — a handoff created the right way is committed the
+  moment it's written. (2) Backstop: a `Stop` hook (`stop_handoff_guard.py`) that
+  refuses to end a session while any `*handoff*.md` is uncommitted.
+- **Scoped narrow on purpose.** The hook only fires on handoff-shaped files and
+  excludes `.claude/` (the command template is literally named `handoff.md` — caught
+  it in testing, would've nagged on every harness edit). Ordinary mid-session
+  uncommitted work is never touched. Verified all four cases by hand (block on a real
+  `SESSION_HANDOFF_*.md`; allow on `stop_hook_active`; allow when clean; ignore a
+  plain `.txt`).
+- **Verified the hook contract before writing it.** A `claude-code-guide` subagent +
+  the official docs: block = `{"decision":"block","reason":...}` on stdout, exit 0;
+  Stop ignores matchers; loop-safety via `stop_hook_active` AND the condition
+  self-clearing once committed. Fail-open on any error (never trap a session).
+- **Hit the agent-self-modification guardrail.** Editing `.claude/settings.json` to
+  register the Stop hook was blocked by the permission classifier — "yes add it"
+  didn't specifically authorize changing agent control-flow config. Correct call by
+  the harness; I committed the hook + `/handoff` change and asked Scott to explicitly
+  authorize the one settings line rather than work around it.
+
+**What's next:** Scott approves the `settings.json` registration -> wire the Stop
+block -> the guard is live.
+
 ## 2026-05-31 (later still) — Toolchain audit: "install the tools we need"
 **Where:** computer (Claude Code web session). **What I set out to do:** the
 session's handoff file (`SESSION_HANDOFF_..._AuditAndBuild.md`) never survived the

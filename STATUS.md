@@ -44,6 +44,12 @@ Last updated: 2026-05-31
       hand-formatting. `make typecheck` / `make fmt-check` preview either anytime.
 - [x] **pygame — dropped** (Scott, 2026-05-31): out-of-scope for this stdlib repo;
       not added. Nothing in the repo references it.
+- [ ] **Handoff-loss guard** (so a local-only handoff can't vanish again, as the
+      AuditAndBuild one did): `/handoff` now commits+pushes by default, and a `Stop`
+      hook `.claude/hooks/stop_handoff_guard.py` (written + tested) refuses to end a
+      session while a `*handoff*.md` is uncommitted. **NOT yet wired** —
+      registering it in `.claude/settings.json` needs Scott's explicit OK (agent
+      control-flow config). Once approved, add the `Stop` block to settings.
 
 ## Next step — pick one
 A 5th rule is still a **drop-in**: append one `Expert(name, detect_x, format_x)`
