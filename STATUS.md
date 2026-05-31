@@ -33,6 +33,16 @@ Last updated: 2026-05-31
       this import — but it predates co-occurrence, so do NOT merge it) and the
       closed `coderabbitai/utg/379a87a`.
 - [ ] Pick the next build increment (below).
+- [x] **Toolchain audit** (`docs/TOOLCHAIN_AUDIT_2026-05-31.md`): the managed web
+      env pre-installs the 2026 stack (pytest 9 / ruff 0.15.8 / mypy 1.19 / uv 0.8);
+      coverage/bandit/ty are `uvx`-on-demand. Added optional Makefile targets
+      (`tools`/`typecheck`/`fmt-check`/`fmt`/`cov`/`security`) + a hook tool line.
+      Engine stays pure-stdlib — all dev-only, additive.
+- [ ] **Two SURFACED capability flags (NOT fixed — Scott decides):** mypy reports 2
+      type errors at `recurrence.py:501` (`None` operand); `ruff format` would
+      rewrite 10/12 files (project was never formatted). `make fmt-check` to see it.
+- [ ] **pygame** requested but **out-of-scope for this stdlib repo** — confirm
+      whether it's for a different/future project before adding anything.
 
 ## Next step — pick one
 A 5th rule is still a **drop-in**: append one `Expert(name, detect_x, format_x)`

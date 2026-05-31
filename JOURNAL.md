@@ -12,6 +12,43 @@ is made visible. The struggle and the reasoning ARE the deliverable._
 
 ---
 
+## 2026-05-31 (later still) — Toolchain audit: "install the tools we need"
+**Where:** computer (Claude Code web session). **What I set out to do:** the
+session's handoff file (`SESSION_HANDOFF_..._AuditAndBuild.md`) never survived the
+fresh-container clone — it was local-only, so the task was gone. Reconstructed
+state from STATUS/handoff docs and asked; Scott redirected: install pytest/etc.,
+check for missing tools, web-search the 2026 landscape.
+
+**How it went / what I learned:**
+- **We weren't missing the tools — we couldn't *see* them.** `python -m pytest`
+  failed with "no module named pytest," which reads like "not installed." It isn't:
+  the managed env pre-installs pytest 9 / ruff 0.15.8 / mypy 1.19 / pyright / uv /
+  poetry into `/root/.local/bin`. The `pytest` CLI runs all 68 tests green; only
+  *system-python's* module path lacked it. Lesson: check `command -v`, not just
+  `python -m`, before declaring a tool absent.
+- **`uvx` is the real answer to "things we don't have."** coverage, bandit, and
+  Astral's `ty` aren't installed, but `uvx <tool>` runs any of them on demand with
+  no install and no env pollution (verified `uvx ty@latest` -> ty 0.0.40). So the
+  effective gap is ~zero.
+- **2026 stack (web-checked):** the field is consolidating on uv + Ruff + **ty**
+  (Astral). We're current on uv/Ruff; ty is the one genuinely-new tool, and it's a
+  `uvx` away. mypy 2.0 shipped but 1.19 is fine.
+- **Surface, don't fix — even for our own code.** Running mypy/ruff-format turned up
+  two things: 2 mypy type errors at `recurrence.py:501`, and that `ruff format` would
+  rewrite 10/12 files (the project was never formatted). Both are real but are
+  engine changes; per the librarian rule I logged them to the audit doc + STATUS and
+  did **not** touch code. A formatter sweep or a `None`-guard fix is Scott's call.
+- **Persistence reality:** in-session `pip install` evaporates with the container, and
+  the env already provides the toolchain — so the durable move wasn't installing
+  anything, it was *teaching the repo it has these tools*: an audit doc, optional
+  Makefile targets (no-op if absent / `uvx` otherwise), and one SessionStart line so
+  the next memory-less session doesn't repeat the `python -m pytest` confusion.
+
+**What got hard / open:** pygame was named but is unrelated to a stdlib
+health-records engine — flagged out-of-scope rather than polluting the repo;
+awaiting Scott on whether it's for a different project. **What's next:** Scott's
+calls on the two surfaced flags, then back to a build increment per STATUS.
+
 ## 2026-05-31 (later) — Rule #4 (co-occurrence) + closing the `--report-v1` loop
 **Where:** computer (Claude Code web session). **What I set out to do:** pick the
 next build increment off STATUS.md and plan it properly before touching code.

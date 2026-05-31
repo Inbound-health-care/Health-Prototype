@@ -26,7 +26,14 @@ else
   echo "WARN: python3 not found."
 fi
 
-# 3. Quick commands reminder.
+# 3. Dev-tool availability (optional; engine itself is pure stdlib).
+#    Prevents the recurring "python -m pytest: no module named pytest" confusion —
+#    pytest et al. live on PATH, not on system python. See docs/TOOLCHAIN_AUDIT_*.
+_have=""; for t in pytest ruff mypy uv; do command -v "$t" >/dev/null 2>&1 && _have="$_have $t"; done
+echo "dev tools present:${_have:- (none)}  | others on-demand via 'uvx <tool>' (coverage/bandit/ty)"
+
+# 4. Quick commands reminder.
 echo "Run: make test | python recurrence.py --self-test | --demo/--demo-v1/--demo-gap/--demo-frequency"
+echo "More: make tools (what's installed) | make typecheck | make cov | make fmt-check"
 echo "=== end session start ==="
 exit 0

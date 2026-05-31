@@ -1,6 +1,9 @@
-.PHONY: test selftest demo lint branch-audit clean
+.PHONY: test selftest demo lint typecheck fmt-check fmt cov security tools branch-audit clean
 
-# Pure stdlib; no dependencies to install.
+# Engine is pure stdlib; no runtime dependencies to install.
+# The targets below test/lint/type-check are OPTIONAL dev tooling: each is a
+# no-op when the tool is absent, or reaches it via `uvx`. None is imported by
+# the engine. See docs/TOOLCHAIN_AUDIT_2026-05-31.md.
 
 test:          ## Run the full unittest suite
 	python -m unittest discover -s tests -t .
@@ -18,6 +21,27 @@ demo:          ## Run every surfacing-rule demo
 lint:          ## Byte-compile sanity check (+ ruff if installed)
 	python -m compileall -q recurrence.py tests data scripts
 	-ruff check .
+
+typecheck:     ## Static type check (mypy if installed) — report-only, won't fail the run
+	-mypy recurrence.py
+
+fmt-check:     ## Show what `ruff format` WOULD change (non-destructive)
+	-ruff format --check .
+
+fmt:           ## Apply `ruff format` (cosmetic; large diff — opt-in, see toolchain audit)
+	ruff format .
+
+cov:           ## Test coverage via uvx (no install): run suite + report
+	-uvx coverage run -m pytest -q && uvx coverage report
+
+security:      ## Security/AST lint via uvx (no install)
+	-uvx bandit -q -r recurrence.py
+
+tools:         ## Report which optional dev tools are available
+	@for t in python3 pytest ruff mypy pyright uv black; do \
+	  printf "%-9s" "$$t"; command -v "$$t" >/dev/null 2>&1 && command -v "$$t" || echo MISSING; \
+	done
+	@echo "on-demand via uvx (no install): coverage  bandit  ty  pre-commit"
 
 branch-audit:  ## Read-only audit of local/remote branch cleanup candidates
 	python scripts/branch_audit.py
