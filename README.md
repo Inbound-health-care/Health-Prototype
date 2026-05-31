@@ -55,6 +55,7 @@ python recurrence.py --demo                        # recurrence, v0 exact match
 python recurrence.py --demo-v1                      # recurrence, v1 opt-in matching
 python recurrence.py --demo-gap                     # gap / re-emergence rule
 python recurrence.py --demo-frequency               # frequency / burst rule
+python recurrence.py --report                        # combined per-record report (all rules)
 python -m unittest discover -s tests -t .          # full test suite (from repo root)
 ```
 
@@ -80,6 +81,23 @@ counts, and cites — none interprets.
 
 One record can surface under several rules — see [`data/RECORDS.md`](data/RECORDS.md)
 §7 for the gap/frequency walkthrough and their hand-written answer keys.
+
+### Combined report — all rules, one per-record view
+
+`run_report` (CLI `--report`) runs all three rules over one record set and groups
+every finding under its record, each line tagged with the lens that surfaced it.
+Records that surface nothing are omitted — it lists what is present, and it never
+ranks, scores, totals, or prioritizes records.
+
+```text
+Record R015:
+  [recurrence] "depression" recurred 3 times — 2026-01-10, 2026-09-10, 2026-10-05
+  [gap] "depression" returned after 243 days — last seen 2026-01-10, then 2026-09-10
+
+Record R016:
+  [recurrence] "chest pain" recurred 4 times — 2026-02-01, 2026-02-10, 2026-02-20, 2026-05-10
+  [frequency] "chest pain" appeared 3 times within 19 days — 2026-02-01, 2026-02-10, 2026-02-20
+```
 
 ## Matching: exact by default, fuzzy when asked
 

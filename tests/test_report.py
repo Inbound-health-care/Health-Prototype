@@ -19,9 +19,6 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from data.sample_records import REPORT_ANSWER_KEY, SAMPLE_RECORDS
 from recurrence import (
     EXPERTS,
-    Expert,
-    Finding,
-    RecordReport,
     detect_frequency,
     detect_gap,
     detect_recurrence,

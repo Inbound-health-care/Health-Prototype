@@ -206,6 +206,22 @@ cited in `variants` exactly as in recurrence.
 
 ---
 
+## 7b. One dataset, all lenses at once (the combined report)
+
+`run_report` (CLI `--report`) runs all three rules over this same set and groups
+every finding under its record. Two records carry more than one lens — the whole
+point of the combined view:
+
+- **R015** — `depression` surfaces under **recurrence** (3 occurrences) *and*
+  **gap** (the 243-day quiet stretch). One record, two lenses.
+- **R016** — `chest pain` surfaces under **recurrence** (4 occurrences) *and*
+  **frequency** (3x within 19 days).
+
+Records that surface nothing at v0 defaults (R003, R006, R007, R014) are
+**omitted** — the report lists what is present, never asserts a record is
+"clean", and never ranks or totals across records. The hand-written oracle is
+`REPORT_ANSWER_KEY` in `data/sample_records.py`.
+
 ## 8. Sources (what 2026 records actually carry)
 
 - USCDI **Problems** data class (incl. Onset Date) — ONC Interoperability Standards Platform: https://www.healthit.gov/isp/uscdi-data-class/problems

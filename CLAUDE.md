@@ -32,7 +32,7 @@ supplies all judgment. Tests enforce this — keep it that way.
   (`ANSWER_KEY`, `ANSWER_KEY_V1`, `GAP_ANSWER_KEY`, `FREQUENCY_ANSWER_KEY`,
   `REPORT_ANSWER_KEY`) + `SYNONYMS`.
 - `data/RECORDS.md` — data dictionary (field rationale, per-record reasons).
-- `tests/` — 6 files, 49 tests. CI: `.github/workflows/ci.yml` (Py 3.10–3.13).
+- `tests/` — 6 files, 53 tests. CI: `.github/workflows/ci.yml` (Py 3.10–3.13).
 
 ## Hard rules
 - Pure Python **stdlib only** at runtime. No network egress. Zero real PHI, ever.

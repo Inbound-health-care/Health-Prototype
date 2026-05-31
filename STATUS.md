@@ -6,7 +6,7 @@ Last updated: 2026-05-31
 ## Current state
 - v0 recurrence engine + v1 opt-in matching (normalize / synonyms / fuzzy) +
   rules gap & frequency + **router/registry combined `--report`** — all built.
-  **49 tests green**, CI green on Py 3.10–3.13.
+  **53 tests green**, CI green on Py 3.10–3.13.
 - **PR #1** open with the full build + the Claude harness (`.claude/`, hooks,
   slash commands, `docs/`, `JOURNAL.md`). CodeRabbit review addressed; stale
   auto-generated test PR #2 closed.
