@@ -1,3 +1,22 @@
 __pycache__/
 *.py[cod]
 .pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Local configuration / secrets (zero real PHI, zero secrets — defense in depth)
+.env
+.env.local
+.env.*.local
+!.env.example
+*.key
+*.pem
+*.token
+*.secret
+
+# Generated or local-only evidence/output
+exports/
+screenshots/
+raw/
+raw_evidence/
+evidence/raw/

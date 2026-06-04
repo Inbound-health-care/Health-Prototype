@@ -7,32 +7,54 @@ Last updated: 2026-05-31
 - **Engine: 4 surfacing rules on `main`, 68 tests green, `ruff` clean.**
   `detect_recurrence` / `detect_gap` / `detect_frequency` / `detect_cooccurrence`
   + v1 opt-in matching (normalize / synonyms / fuzzy) + router/registry combined
-  report (`--report` v0 and `--report-v1`). All merged — PRs #1, #3, #4.
-- **This branch (`claude/nifty-fermat-g4cKA`) — doc/harness reconciliation (draft PR).**
-  Salvaged the doc/harness stack that was stranded on
-  `claude/recurrence-detection-spec-jm3Ck` after PR #1 squash-merged: `LOAD.md`,
-  the `repo-onboard` skill, the Tier-3 architecture guide, the agent-audit method,
-  cold-start + web-session handoffs, the full session log, the Sovereign Scribe
-  salvage, the Operator Rules + assistant-limitations sections, and two JOURNAL
-  entries. Cherry-picked the additive docs; adopted the **Tier-1 (lean CLAUDE.md)
-  / Tier-3 (`docs/agent-guides/architecture.md`) split** — and **corrected** the
-  stale engine facts the old stack carried (it said "3 rules / 53 tests / FIVE
-  keys"; reality is 4 / 68 / SEVEN). Docs-only — engine untouched. See ADR 0005.
+  report (`--report` v0 and `--report-v1`). All merged — PRs #1, #3, #4, and #7
+  (doc/harness salvage + Tier-1/Tier-3 split).
+- **This branch (`claude/quirky-brahmagupta-P0H4b`) — back-end / workflow hardening
+  (PR #8, ready for review). ENGINE CODE FROZEN this phase** (Scott: fix all back-end/workflow
+  things before changing any code). Done so far: toolchain audit, handoff-loss
+  guard (live), a drift sweep correcting STATUS + the cold-start handoff, a new
+  **CI lint gate** (ruff, pinned 0.15.8) + `make check`, and the back-end hygiene
+  extracted from PR #6 (CONTRIBUTING / PUBLISH_CHECKLIST / `.gitignore`).
+  CI green on PR #8 (3.10–3.13).
 - Repo on **`Inbound-health-care/health-prototype`** (org on Team).
   **Branch protection ACTIVE** on `main` (4 `test` checks + up-to-date +
   conversation resolution + linear history + no-bypass; required approvals 0).
+  **FOLLOW-UP for Scott:** the new `lint` CI check is not yet a *required* check —
+  add it to branch protection (GitHub Settings → Branches) to gate merges on it.
 
 ## Open loops
 - [x] All 4 rules + v1 matching + combined report merged to `main`.
 - [x] `docs/adr/` running log (0001 tool-call, 0002 report arch, 0003
       co-occurrence, 0004 `--report-v1`, **0005 doc/harness reconciliation**).
-- [x] Doc/harness stack salvaged off `spec-jm3Ck` onto this branch (draft PR).
-- [ ] **PR #6** (Codex) — `--version` + `VERSION` + `make check` + hygiene docs —
-      open draft; needs review/CI. **PR #5 closed** as its duplicate.
-- [ ] Retire stale branches once this lands: `spec-jm3Ck` (superseded for docs by
-      this import — but it predates co-occurrence, so do NOT merge it) and the
-      closed `coderabbitai/utg/379a87a`.
-- [ ] Pick the next build increment (below).
+- [x] Doc/harness stack salvaged off `spec-jm3Ck` and merged to `main` via PR #7.
+- [x] Stale branches retired: only `main` + the active working branch remain on
+      origin (`spec-jm3Ck` and `coderabbitai/utg/379a87a` are gone).
+- [x] **PR #6 resolved** (Scott: extract back-end bits, defer code): brought
+      `CONTRIBUTING.md`, `docs/PUBLISH_CHECKLIST.md`, `make check`, and the
+      `.gitignore` secret/output hygiene into PR #8; **closed PR #6** to avoid a
+      stale, duplicated draft. **PR #5 closed earlier** as its duplicate.
+- [ ] **DEFERRED to the code phase** (the engine bit of PR #6, fully specified):
+      `VERSION = "0.4.0"` + a `--version` flag printing
+      `Health-Prototype recurrence engine 0.4.0` + `tests/test_cli.py`. Re-add
+      cleanly when engine code unfreezes (README already lists `make check`; add
+      the `--version` line then).
+- [ ] Pick the next build increment (below) — AFTER the back-end pass is signed off.
+- [x] **Toolchain audit** (`docs/TOOLCHAIN_AUDIT_2026-05-31.md`): the managed web
+      env pre-installs the 2026 stack (pytest 9 / ruff 0.15.8 / mypy 1.19 / uv 0.8);
+      coverage/bandit/ty are `uvx`-on-demand. Added optional Makefile targets
+      (`tools`/`typecheck`/`fmt-check`/`fmt`/`cov`/`security`) + a hook tool line.
+      Engine stays pure-stdlib — all dev-only, additive.
+- [x] **Two SURFACED capability flags — DECIDED leave-as-is (Scott, 2026-05-31):**
+      mypy's unguarded-Optional at `recurrence.py:501` stays a noted flag (no runtime
+      bug; tests green); `ruff format` (would rewrite 10/12 files) NOT applied — keep
+      hand-formatting. `make typecheck` / `make fmt-check` preview either anytime.
+- [x] **pygame — dropped** (Scott, 2026-05-31): out-of-scope for this stdlib repo;
+      not added. Nothing in the repo references it.
+- [x] **Handoff-loss guard — LIVE** (so a local-only handoff can't vanish again, as
+      the AuditAndBuild one did): `/handoff` commits+pushes by default, and the `Stop`
+      hook `.claude/hooks/stop_handoff_guard.py` (registered in `.claude/settings.json`,
+      Scott OK'd 2026-05-31) refuses to end a session while a `*handoff*.md` is
+      uncommitted. Narrow scope (excludes `.claude/`), fail-open, loop-safe.
 
 ## Next step — pick one
 A 5th rule is still a **drop-in**: append one `Expert(name, detect_x, format_x)`
@@ -45,7 +67,7 @@ to `EXPERTS` and it joins `--report` automatically.
    the firewall holds; the clinician judges.
 
 ## Key facts
-- Branch: `claude/nifty-fermat-g4cKA`  (base `main`, post-merge of #1/#3/#4)
+- Branch: `claude/quirky-brahmagupta-P0H4b`  (base `main`, post-merge of #1/#3/#4/#7)
 - Spec (contract): Drive `BUILD_SPEC_RecurrenceDetection_v0_2026-05-30.md`
 - Quick check: `make test` · `python recurrence.py --self-test`
 - Tier-1 rules + firewall: **`CLAUDE.md`**.

@@ -23,6 +23,15 @@ continue without loss. Do ALL THREE:
    STATUS open loops. Don't let an improvement live only in chat — it dies at
    session end. State access/build status plainly (pushed? blocked? PR open?).
 
+4. **Commit AND push — non-optional, do it last.** A handoff that lives only in
+   the working tree (or only in chat) DIES when the web container is reclaimed —
+   it never reaches the remote. `git add` the handoff/STATUS/JOURNAL, commit with
+   a clear message, and push to the working branch. If `git push` is blocked, fall
+   back to the GitHub API write tool (`create_or_update_file`). Then verify against
+   the remote — "pushed" is not proof until you see it on origin.
+   (A `Stop` hook, `stop_handoff_guard.py`, backstops this: it refuses to end the
+   session while a `*handoff*.md` file is still uncommitted.)
+
 Keep STATUS + CLAUDE tight; let JOURNAL be the longer narrative.
 
 Extra notes to capture: $ARGUMENTS

@@ -12,6 +12,108 @@ is made visible. The struggle and the reasoning ARE the deliverable._
 
 ---
 
+## 2026-05-31 (latest) — Back-end / workflow hardening pass (engine frozen)
+**Where:** computer (Claude Code web session). **What I set out to do:** Scott
+scoped it plainly — "fix all back-end things before changing any of the code; make
+sure the workflow is up to snuff." So: audit the infrastructure (CI, hooks, docs
+consistency, branches, PRs, hygiene) and fix it, engine code OFF-LIMITS.
+
+**How it went / what I learned:**
+- **The front door was lying.** A drift sweep (METHOD-003) found STATUS.md still
+  called the current branch `nifty-fermat`, described PR #7's merged doc work as an
+  in-progress draft, and listed stale branches for retirement that were already
+  gone. COLD_START_HANDOFF still said "53 tests / PR #1 open / spec-jm3Ck" and
+  omitted co-occurrence. Fixed both to reality (68 tests, 4 rules, current branch).
+  **Left the ADRs alone** — their "53 tests / nifty-fermat" lines are correct
+  point-in-time history; rewriting decision records would be the wrong kind of tidy.
+- **CI had a real gap:** it gated tests on Py 3.10–3.13 but never ran ruff, so a PR
+  could go green with lint errors. Added a separate `lint` job (ruff pinned to the
+  local 0.15.8 — pinned so CI can't drift from local on a ruff release). Lint only,
+  NOT `ruff format` (Scott kept hand-formatting). Branch protection still needs the
+  new check marked *required* — flagged that as a manual step for Scott (no tool to
+  edit protection from here).
+- **PR #6 was a bundling problem.** It mixed engine code (`--version`) with back-end
+  hygiene (CONTRIBUTING, PUBLISH_CHECKLIST, `make check`, `.gitignore`). During an
+  engine-freeze you can't merge it whole. Scott's call: extract the back-end bits,
+  defer the code. Pulled the four hygiene pieces into this branch verbatim from the
+  PR diff (token-frugal — no re-invention), recorded the deferred `--version` spec
+  in STATUS so it isn't lost, and closed PR #6 so a stale duplicated draft doesn't
+  linger (the cruft this pass exists to kill).
+- **Hit the self-mod guardrail again earlier** (registering the Stop hook) — same
+  lesson holds: agent-config changes need explicit sign-off, and that's correct.
+
+**What got hard:** keeping the librarian discipline pointed at our OWN process —
+surface drift, fix the genuinely-wrong, but don't "improve" history or silently
+restructure someone's PR. **What's next:** Scott signs off the back-end pass (and
+marks the `lint` check required); then the engine unfreezes and we pick a build
+increment (or land the deferred `--version`).
+
+## 2026-05-31 (evening) — Handoff-loss guard (so the AuditAndBuild vanish can't recur)
+**Where:** computer (Claude Code web session). **What I set out to do:** the whole
+reason this session started blind was a handoff file that was written locally and
+never committed, so the fresh-container clone didn't have it. Close that hole.
+
+**How it went / what I learned:**
+- **Two layers, because one isn't enough.** (1) Structural: `/handoff` now ends with
+  a non-optional commit+push step — a handoff created the right way is committed the
+  moment it's written. (2) Backstop: a `Stop` hook (`stop_handoff_guard.py`) that
+  refuses to end a session while any `*handoff*.md` is uncommitted.
+- **Scoped narrow on purpose.** The hook only fires on handoff-shaped files and
+  excludes `.claude/` (the command template is literally named `handoff.md` — caught
+  it in testing, would've nagged on every harness edit). Ordinary mid-session
+  uncommitted work is never touched. Verified all four cases by hand (block on a real
+  `SESSION_HANDOFF_*.md`; allow on `stop_hook_active`; allow when clean; ignore a
+  plain `.txt`).
+- **Verified the hook contract before writing it.** A `claude-code-guide` subagent +
+  the official docs: block = `{"decision":"block","reason":...}` on stdout, exit 0;
+  Stop ignores matchers; loop-safety via `stop_hook_active` AND the condition
+  self-clearing once committed. Fail-open on any error (never trap a session).
+- **Hit the agent-self-modification guardrail.** Editing `.claude/settings.json` to
+  register the Stop hook was blocked by the permission classifier — "yes add it"
+  didn't specifically authorize changing agent control-flow config. Correct call by
+  the harness; I committed the hook + `/handoff` change and asked Scott to explicitly
+  authorize the one settings line rather than work around it.
+
+**What's next:** Scott approves the `settings.json` registration -> wire the Stop
+block -> the guard is live.
+
+## 2026-05-31 (later still) — Toolchain audit: "install the tools we need"
+**Where:** computer (Claude Code web session). **What I set out to do:** the
+session's handoff file (`SESSION_HANDOFF_..._AuditAndBuild.md`) never survived the
+fresh-container clone — it was local-only, so the task was gone. Reconstructed
+state from STATUS/handoff docs and asked; Scott redirected: install pytest/etc.,
+check for missing tools, web-search the 2026 landscape.
+
+**How it went / what I learned:**
+- **We weren't missing the tools — we couldn't *see* them.** `python -m pytest`
+  failed with "no module named pytest," which reads like "not installed." It isn't:
+  the managed env pre-installs pytest 9 / ruff 0.15.8 / mypy 1.19 / pyright / uv /
+  poetry into `/root/.local/bin`. The `pytest` CLI runs all 68 tests green; only
+  *system-python's* module path lacked it. Lesson: check `command -v`, not just
+  `python -m`, before declaring a tool absent.
+- **`uvx` is the real answer to "things we don't have."** coverage, bandit, and
+  Astral's `ty` aren't installed, but `uvx <tool>` runs any of them on demand with
+  no install and no env pollution (verified `uvx ty@latest` -> ty 0.0.40). So the
+  effective gap is ~zero.
+- **2026 stack (web-checked):** the field is consolidating on uv + Ruff + **ty**
+  (Astral). We're current on uv/Ruff; ty is the one genuinely-new tool, and it's a
+  `uvx` away. mypy 2.0 shipped but 1.19 is fine.
+- **Surface, don't fix — even for our own code.** Running mypy/ruff-format turned up
+  two things: 2 mypy type errors at `recurrence.py:501`, and that `ruff format` would
+  rewrite 10/12 files (the project was never formatted). Both are real but are
+  engine changes; per the librarian rule I logged them to the audit doc + STATUS and
+  did **not** touch code. A formatter sweep or a `None`-guard fix is Scott's call.
+- **Persistence reality:** in-session `pip install` evaporates with the container, and
+  the env already provides the toolchain — so the durable move wasn't installing
+  anything, it was *teaching the repo it has these tools*: an audit doc, optional
+  Makefile targets (no-op if absent / `uvx` otherwise), and one SessionStart line so
+  the next memory-less session doesn't repeat the `python -m pytest` confusion.
+
+**What got hard / open:** pygame was named but is unrelated to a stdlib
+health-records engine — flagged out-of-scope rather than polluting the repo;
+awaiting Scott on whether it's for a different project. **What's next:** Scott's
+calls on the two surfaced flags, then back to a build increment per STATUS.
+
 ## 2026-05-31 (later) — Rule #4 (co-occurrence) + closing the `--report-v1` loop
 **Where:** computer (Claude Code web session). **What I set out to do:** pick the
 next build increment off STATUS.md and plan it properly before touching code.
