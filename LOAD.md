@@ -5,9 +5,12 @@ then branch out in the order below. This is the single front door so the
 Instructions field can stay tiny._
 
 ## Step 1 — read these, in order
-1. `CLAUDE.md` — operator rules (top), assistant limits, engine rules, architecture.
-2. `STATUS.md` — where am I / next step. CANONICAL if anything conflicts.
-3. `docs/COLD_START_HANDOFF.md` — fresh-session orientation.
+1. `AGENTS.md` — SOURCE OF TRUTH: operator rules, working limits, engine firewall, commands.
+2. `CLAUDE.md` — Claude-Code-specific notes (Claude only; points back to AGENTS.md).
+3. `STATUS.md` — where am I / next step. CANONICAL if anything conflicts.
+4. `docs/COLD_START_HANDOFF.md` — fresh-session orientation.
+Before any write/delete/install/send this session, read `SECURITY_AND_TOOL_POLICY.md`.
+At startup, emit a load trace using `LOAD_TRACE_TEMPLATE.md`.
 Then STOP and tell Scott, in one sentence each: (a) the operator rules you'll
 hold, (b) current project state, (c) the next step. Then ask where to start.
 Do not start work until he says.
@@ -20,11 +23,13 @@ Do not start work until he says.
 - Tooling / token-frugal patterns -> `docs/TOOLS_CHEAT_SHEET.md`
 - The other project (clinical scribe) -> `SOVEREIGN_SCRIBE_SALVAGE.md`
 - Data field meanings -> `data/RECORDS.md`
+- Security / tool-use / PHI / source-conflict policy -> `SECURITY_AND_TOOL_POLICY.md`
+- File map (what's where / what's canonical) -> `PROJECT_MAP.md`
 Pull these on demand. Do not read everything up front (wastes context).
 
 ## Step 3 — long-context self-check (THE IMPORTANT ONE)
-You degrade as the window grows (see CLAUDE.md limits). So:
-- Re-read CLAUDE.md "Operator rules" before any big step, and any time you are
+You degrade as the window grows (see AGENTS.md "Working limits"). So:
+- Re-read AGENTS.md "Operator rules" before any big step, and any time you are
   unsure of tone/scope. If you notice yourself adding emojis/hype, you have
   already drifted — re-read and correct.
 - When the session feels long OR you are about to do something complex, SAY:
