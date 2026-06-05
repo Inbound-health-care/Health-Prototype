@@ -8,7 +8,7 @@ canonical files.
 ## Control / startup (Tier 1 — every session)
 | File | Purpose | Canonical? | Load when |
 |---|---|---|---|
-| `AGENTS.md` | Source of truth: operator rules, working limits, engine firewall, commands, load order | **yes (rules)** | First, every session |
+| `AGENTS.md` | Source of truth: operator rules, working limits, the librarian rule, commands, load order | **yes (rules)** | First, every session |
 | `CLAUDE.md` | Thin pointer to AGENTS.md + Claude-Code-specific notes | — (pointer) | Claude Code only |
 | `LOAD.md` | Startup procedure (read → report → stop) | yes (load order) | Every session start |
 | `STATUS.md` | Current state / next step | **yes (current state)** | Every session start; update last |
@@ -38,7 +38,7 @@ canonical files.
 ## Decisions / discipline / narrative
 | File | Purpose | Canonical? | Load when |
 |---|---|---|---|
-| `docs/adr/` (`0001`–`0007` + `README.md`) | Decision log (build + assistant process) | **yes (decisions)** | "Why was X done" |
+| `docs/adr/` (`0001`–`0010` + `README.md`) | Decision log (build + assistant process) | **yes (decisions)** | "Why was X done" |
 | `docs/DOC_DISCIPLINE.md` | Evidence levels + ADR-confirmation + drift control | **yes (evidence levels)** | Tagging claims / audits |
 | `JOURNAL.md` | Session narrative / lessons / limitations | yes (narrative) | Want the why/story |
 | `docs/CLAUDE_OPERATING_MANUAL.md` | Operating manual | — | Deeper process |

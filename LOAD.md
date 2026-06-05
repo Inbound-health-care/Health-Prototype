@@ -5,7 +5,7 @@ then branch out in the order below. This is the single front door so the
 Instructions field can stay tiny._
 
 ## Step 1 — read these, in order
-1. `AGENTS.md` — SOURCE OF TRUTH: operator rules, working limits, engine firewall, commands.
+1. `AGENTS.md` — SOURCE OF TRUTH: operator rules, working limits, the librarian rule, commands.
 2. `CLAUDE.md` — Claude-Code-specific notes (Claude only; points back to AGENTS.md).
 3. `STATUS.md` — where am I / next step. CANONICAL if anything conflicts.
 4. `docs/COLD_START_HANDOFF.md` — fresh-session orientation.

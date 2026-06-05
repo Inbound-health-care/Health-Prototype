@@ -48,7 +48,7 @@ Real longitudinal records carry far more. We leave these out on purpose:
 
 - **Demographics, free-text clinical notes, lab *values*, medication doses** —
   not needed to detect *that* an item recurs, and pulling them in invites
-  interpretation, which the spec's firewall forbids in v0.
+  interpretation, which the spec's librarian rule forbids in v0.
 - **Author / source-system of each entry (full provenance chain)** — useful
   later, but v0 provenance is "which record + which dates," which is enough to
   trace any hit. Adding more now would be unjustified scope.
@@ -141,7 +141,7 @@ declared dictionary can, and keeping it as *data you supply* means the engine is
 applying your rule, not inferring meaning. Fuzzy is the one layer where the
 engine groups on its own, so it is off by default.
 
-### The firewall holds: every merge is cited
+### The librarian rule holds: every merge is cited
 
 When v1 combines differently-spelled entries, the hit's `variants` lists every
 original surface string, and `format_hit` appends them:

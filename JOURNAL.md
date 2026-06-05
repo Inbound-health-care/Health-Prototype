@@ -135,7 +135,7 @@ deferred `--report-v1`.
   method), and chose tight dates so gap/frequency stayed untouched.
 - **Two-item provenance** was the one genuinely new wrinkle: a pair has two audit
   trails (`variants_a`/`variants_b`), and a read-only `item` property keeps the
-  report generic. The firewall extended to ban relationship words
+  report generic. The librarian rule extended to ban relationship words
   (associated/correlated/linked) — co-occurrence is a count, never a claim.
 - **Found drift:** STATUS.md still said PR #1 was "open" on the old branch; it was
   actually merged to `main`. Fixed it.

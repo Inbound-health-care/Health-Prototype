@@ -31,6 +31,6 @@ R003 still surfaces nothing. Written by hand first, from the per-rule keys.
 ## Confirmation
 - `python recurrence.py --report-v1` → R006/R007/R014 now present.
 - `tests/test_report.py::TestReportV1` — oracle agreement with
-  `REPORT_ANSWER_KEY_V1`, the three newly-surfacing records, and the firewall
+  `REPORT_ANSWER_KEY_V1`, the three newly-surfacing records, and the librarian-rule
   word-ban applied to the v1 report text.
 - `python -m unittest discover -s tests -t .` → 68 tests OK. `ruff` clean.

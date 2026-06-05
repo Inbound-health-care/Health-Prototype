@@ -10,7 +10,7 @@ do not skip to coding:
    sources. Do not rely on training memory for anything versioned or fast-moving.
 2. **Document what you found.** Write a short note: what's the current best
    practice, what changed, what you'll adopt vs skip, and why. Tag the evidence
-   level (CONFIRMED / RESEARCH_ONLY). This is the research firewall — research is
+   level (CONFIRMED / RESEARCH_ONLY). This is the research gate — research is
    not project truth until proven.
 3. **Plan the increment.** Small, verified, one-branch. State the oracle/answer-key
    up front (write the expected result before the code), per the project's method.

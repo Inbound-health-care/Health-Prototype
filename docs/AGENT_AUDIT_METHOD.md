@@ -52,7 +52,7 @@ verify less next time. If they miss, tighten the brief.
 ## Applying this to CODE (the payoff)
 Same loop stops repeated bugs:
 - FRAME = "review this diff for <bug class>, judge by behavior not style."
-- Hard rules = the project's invariants (the firewall, stdlib-only, etc.).
+- Hard rules = the project's invariants (the librarian rule, stdlib-only, etc.).
 - "MY METHOD" = agent explains how it checked -> you see blind spots.
 - "VERIFY LIST" = agent flags the changes it's LEAST sure are correct -> those get
   a test or a manual look.

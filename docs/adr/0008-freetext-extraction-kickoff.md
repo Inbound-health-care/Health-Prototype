@@ -10,7 +10,7 @@ runs it. The design + research that preceded it (Drive) were RESEARCH_ONLY.
 ## Context
 With the five rules + polish (ADR/PR history through #15) landed, the next increment
 Scott picked is **free-text extraction** — the long-deferred heavy one. `data/RECORDS.md`
-deliberately excluded free-text at v0 *to protect the firewall*, so adding it is a real
+deliberately excluded free-text at v0 *to protect the librarian rule*, so adding it is a real
 architectural step, not a drop-in rule. Per the new-phase discipline (web-search → doc
 → plan), and to keep an over-docced repo lean, the full design + oracle + cited research
 live in **Drive: `health-prototype/freetext-design`** (`DESIGN_freetext_extraction.md`,
@@ -28,7 +28,7 @@ five rules **unchanged**. Extraction is a front door to the librarian, not part 
   **regex explicit-date extraction** (HeidelTime/SUTime family; relative dates deferred —
   they need an anchor date); rule-based **segmentation**; **char-offset provenance** on
   every `(date, item)`. Aho-Corasick/FlashText trie noted as the scale upgrade, not built first.
-- **Firewall stance (the crux — RESOLVED: Stance A, strict literal):** a gazetteer would
+- **Librarian-rule stance (the crux — RESOLVED: Stance A, strict literal):** a gazetteer would
   extract `chest pain` from *"denies chest pain."* Deciding it's absent / hypothetical /
   non-patient is **interpretation — forbidden.** Resolution: **surface the literal mention +
   char-offset provenance**; the human/policy filters. Scott chose **Stance A (strict literal)**
@@ -45,7 +45,7 @@ five rules **unchanged**. Extraction is a front door to the librarian, not part 
   self-test/`--demo`. Fuzzy/synonym matching, relative dates, and multi-patient notes deferred.
 
 Rejected for now: ML/NER models; NegEx/ConText assertion *verdicts*; a UMLS dependency;
-relative-date normalization (all break determinism / stdlib-only / the firewall, or are
+relative-date normalization (all break determinism / stdlib-only / the librarian rule, or are
 deferred to a later slice).
 
 ## Consequences
@@ -63,8 +63,8 @@ deferred to a later slice).
 - **Slice 1 (IMPLEMENTED_UNVERIFIED, this branch):** `extract.py` + `tests/test_extract.py`
   (27 tests across 11 classes) prove extractor output equals the hand-written oracle
   (`FREETEXT_EXPECTED_RECORDS`, incl. exact char-offset spans); the extracted records feed
-  `detect_recurrence` end-to-end (`poor sleep` ×2); `TestAllowlistFirewall` proves identifiers
+  `detect_recurrence` end-to-end (`poor sleep` ×2); `TestAllowlist` proves identifiers
   are un-extractable; `TestDateShiftDeIdentification` proves a shift preserves intervals;
-  `TestFirewallBannedWords` asserts no banned interpretive words and no `context_cue`.
+  `TestLibrarianRuleBannedWords` asserts no banned interpretive words and no `context_cue`.
   `recurrence.py` and its 90 tests are untouched. `make check` green — 117 tests / self-test
   6+3 / `ruff` clean. Awaiting CONFIRMED_USER_SIDE (Scott runs it).

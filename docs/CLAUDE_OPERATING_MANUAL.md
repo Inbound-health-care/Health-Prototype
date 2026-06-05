@@ -17,7 +17,7 @@ down becomes part of the next Claude.
 
 | Lever | File / location | What it does | Status |
 |---|---|---|---|
-| **Constitution** | `CLAUDE.md` | Auto-read every session: rules, firewall, commands, frugality | ✅ live |
+| **Constitution** | `CLAUDE.md` | Auto-read every session: rules, the librarian rule, commands, frugality | ✅ live |
 | **Front door** | `STATUS.md` | "Where am I / next step" — carries state across the reset | ✅ live |
 | **Auto-verify + orient** | `.claude/settings.json` + `.claude/hooks/session_start.sh` | Runs on session start: points Claude at the docs, runs tests so it can verify its own work | ✅ added |
 | **Saved workflows** | `.claude/commands/*.md` | Slash commands that force a habit on demand | ✅ added |

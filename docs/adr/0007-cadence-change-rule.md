@@ -13,7 +13,7 @@ CONFIRMED_ASSISTANT_SIDE in the sandbox (87 tests, `ruff` clean,
 With four rules merged (recurrence / gap / frequency / co-occurrence), STATUS.md
 and the 2026-06-04 handoff named **cadence change** as the next increment: surface
 an item whose *spacing between events* shifted (e.g. monthly → weekly), as a
-drop-in 5th `Expert`. The hard constraint is the firewall: state that the interval
+drop-in 5th `Expert`. The hard constraint is the librarian rule: state that the interval
 changed and where, never whether faster or slower means anything, and never why.
 The handoff specified the ISI-ratio framing (median interval before vs after a
 pivot) and explicitly ruled out FFT / ML / heavy change-point machinery
@@ -39,7 +39,7 @@ Add `detect_cadence_change` as a drop-in 5th `Expert`, reusing `_record_groups`,
   monthly→weekly pivot a visit early); Pettitt locates it correctly. Ties (rare,
   small N) break by larger median-ratio, then earliest split — fully deterministic.
   Sources: CRAN `trend` vignette (Pettitt); Lancaster MATH337 (CUSUM).
-- **Firewall.** `format_cadence_change_hit` emits only
+- **The librarian rule.** `format_cadence_change_hit` emits only
   `"<item>" interval changed from ~Xd to ~Yd at <pivot> — <dates>`. No direction
   or judgment word; the test BANNED list gains
   accelerat/decelerat/increasing/decreasing/escalat/declining/deteriorat/improving/trend.
@@ -61,14 +61,14 @@ shifts).
   record, **R016** (chest pain, 10d→79d), naturally surfaces a cadence line — so
   `REPORT_ANSWER_KEY` and `REPORT_ANSWER_KEY_V1` each gain that single R016 row.
 - Eighth answer key; test count 74 → 87 (new `tests/test_cadence_change.py`, 4
-  classes incl. firewall, + a report composition test).
+  classes incl. the librarian-rule test, + a report composition test).
 
 ## Confirmation
 - `python recurrence.py --demo-cadence-change` → R016 "chest pain" interval
   changed from ~10d to ~79d at 2026-02-20. `--report` shows the same under R016.
 - `tests/test_cadence_change.py` — oracle agreement, tightening + loosening,
   steady / too-few / undated controls, ratio-threshold respect, input validation,
-  and the firewall (neutral, cited line). `tests/test_report.py` gains a cadence
+  and the librarian rule (neutral, cited line). `tests/test_report.py` gains a cadence
   composition test + updated registry order; `REPORT_ANSWER_KEY(_V1)` updated.
 - `make check` → 87 tests OK, 6 self-test scenarios, `ruff` clean.
 - **User-side (2026-06-05):** Scott ran the branch on Windows (Python 3.12.10) —

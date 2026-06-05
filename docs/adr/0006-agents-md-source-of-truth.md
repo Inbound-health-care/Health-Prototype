@@ -22,7 +22,7 @@ none of it was consolidated into the repo where agents act.
 
 ## Decision
 - **`AGENTS.md` becomes the engine-agnostic source of truth** (operator rules,
-  working limits, engine firewall, commands, where-to-find, load order, scope).
+  working limits, the librarian rule, commands, where-to-find, load order, scope).
 - **`CLAUDE.md` is slimmed to a pointer** to `AGENTS.md` plus only the
   genuinely Claude-Code-specific notes (`git push` allowlist → GitHub API write
   fallback; the `.claude/` skill/hook/commands). **No symlink** — two real files,
@@ -45,7 +45,7 @@ source — consolidate instead).
 ## Consequences
 - One source of truth for rules, read by every agent; Claude Code still works via
   the slim `CLAUDE.md`.
-- The control docs only *point* — rules are single-sourced (firewall in
+- The control docs only *point* — rules are single-sourced (the librarian rule in
   `AGENTS.md`, evidence levels in `DOC_DISCIPLINE.md`, engine facts in
   `architecture.md`), so they cannot drift apart.
 - `make check` gives local/agent sessions one verification target (CI is

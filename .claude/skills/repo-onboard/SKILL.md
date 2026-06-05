@@ -8,7 +8,7 @@ description: Load Scott's operating rules and current project state for the heal
 When this skill activates, do this and nothing else first:
 
 ## 1. Read, in order (Tier 1 — every session)
-1. `AGENTS.md` — source of truth: operator rules, working limits, engine firewall.
+1. `AGENTS.md` — source of truth: operator rules, working limits, the librarian rule.
 2. `CLAUDE.md` — Claude-Code-specific notes (points back to AGENTS.md).
 3. `STATUS.md` — current state / next step. CANONICAL if anything conflicts.
 4. `docs/COLD_START_HANDOFF.md` — orientation.

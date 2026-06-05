@@ -60,8 +60,8 @@ Least-privilege rules (2026):
 - The engine has **no network egress** by design — do not add one.
 - If real PHI is ever pasted in or surfaced: STOP, do not persist it, tell Scott.
 
-### C.1 Firewall legal grounding (see ADR 0009 — NOT legal advice)
-The engine firewall is "the design principle and the legal firewall in one." Its legal
+### C.1 Legal grounding — the allowlist + the librarian rule (see ADR 0009 — NOT legal advice)
+The librarian rule is "the design principle and the legal grounding in one." Its legal
 half (web-sourced; re-confirm against primary HHS/FDA docs + counsel before any real-PHI
 use). Full cited write-up: Drive `health-prototype/freetext-design/FIREWALL_legal_grounding.md`.
 - **PHI (HIPAA Safe Harbor, 45 CFR §164.514):** free-text extraction is **allowlist** by
@@ -91,5 +91,5 @@ call it "drift" (see `AGENTS.md`).
 ## E. Evidence levels (reference)
 Tag every claim by proof strength (`CONFIRMED_USER_SIDE`,
 `CONFIRMED_ASSISTANT_SIDE`, `IMPLEMENTED_UNVERIFIED`, `RESEARCH_ONLY`,
-`SUPERSEDED` / `DEPRECATED`). **Full definitions + the research firewall:**
+`SUPERSEDED` / `DEPRECATED`). **Full definitions + the research gate:**
 `docs/DOC_DISCIPLINE.md` §1. Do not restate the list here — that doc owns it.

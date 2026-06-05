@@ -92,7 +92,7 @@ Source: `MASTER_ASSET_VAULT_V4` + `STRESS_TEST_M1_RECALIBRATION_V12`.
 ## 5b. More unique clinical items (from later session logs)
 - **Crisis Protocol** (`STRESS_TEST_V12`): on detected crisis language, **bypass
   the LLM entirely** and trigger a direct clinician alert — never let the model
-  handle a crisis. (Same firewall instinct as the recurrence engine.)
+  handle a crisis. (Same librarian-rule instinct as the recurrence engine.)
 - **ICD-11 match bug+fix** (`STRESS_TEST_V12`): billing match was 74% -> fixed via
   **lowercase normalization** of diagnosis strings. (Same normalization lesson the
   recurrence engine's v1 matching taught.)
@@ -124,13 +124,13 @@ Source: `MASTER_ASSET_VAULT_V4` + `STRESS_TEST_M1_RECALIBRATION_V12`.
   PASS/FAIL against a spec, but a **deterministic harness decides** — unparseable /
   schema-invalid / self-contradictory output = FAIL, fail-closed, exit codes
   (0 PASS / 1 FAIL / 2 COULD-NOT-RUN). Same "determinism in the harness, never
-  trust the model" firewall as the recurrence engine. The best single salvage.
+  trust the model" librarian rule as the recurrence engine. The best single salvage.
 - **DSM-5 knowledge-graph ingestion rule** (`Raw Assets & JSON Schemas`): don't
   flat-chunk diagnostic manuals — map them as a graph: Primary Diagnostic Code ->
   Core Symptoms (as mandatory logic gates) -> Differential Diagnoses (as exclusion
   edges). Cross-reference this partition when generating clinical notes.
 - **Thesis Architect P.A.C.T. prompt** variant: air-gapped MSW thesis/SOAP
-  synthesizer persona — same Cold-Scribe firewall, academic mode.
+  synthesizer persona — same Cold-Scribe librarian rule, academic mode.
 
 ---
 

@@ -30,8 +30,9 @@ naming later. Values brutal honesty over hype. Reads everything.
 - **health-prototype**: recurrence engine. v0 exact-match + v1 opt-in matching
   (normalize/synonyms/fuzzy) + **5 rules** (recurrence / gap / frequency /
   co-occurrence / cadence-change) + router/expert registry with `--report` (v0 and `--report-v1`).
-  **90 tests green**, `ruff` clean, CI on Py 3.10-3.13. Firewall: surface/count/cite,
-  NEVER interpret. PRs #1/#3/#4/#7/#8/#9/#10/#13 merged to `main`; branch protection active.
+  **117 tests green** (engine 90 + free-text extract 27), `ruff` clean, CI on Py 3.10-3.13.
+  The librarian rule: surface/count/cite, NEVER interpret. PRs through #20 merged to `main`
+  (incl. `extract.py`, a free-text front-end — slice 1, ADR 0008); branch protection active.
 - A **6th** rule is a drop-in: append one `Expert(name, detect_x, format_x)` to
   `EXPERTS` and it joins `--report` automatically.
 - A SECOND project exists (separate): **Sovereign Scribe / PACT** — local clinical
@@ -52,8 +53,8 @@ naming later. Values brutal honesty over hype. Reads everything.
       Reference" (local-LLM / health-AI / reference). Resume detail in SESSION_LOG.
 - [ ] Write "Local LLM Settings — Master Reference" (per-device/per-mode) — the
       recipe the April research pointed at but never became a doc.
-- [ ] Next build increment: another rule (co-occurrence / cadence) OR free-text
-      extraction OR `--report-v1`.
+- [ ] Next build increment: free-text **slice 2** (opt-in fuzzy/synonym gazetteer via the
+      engine's v1 layer; relative-date anchoring; or multi-patient notes) — Scott's pick.
 
 ## First move for the fresh session
 Confirm you read STATUS.md + CLAUDE.md (one sentence). Hold the operator rules.

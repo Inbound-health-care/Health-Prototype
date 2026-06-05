@@ -1,15 +1,15 @@
-# 0009 — Firewall: the legal grounding (HIPAA Safe Harbor + FDA Non-Device CDS)
+# 0009 — Legal grounding: the allowlist + the librarian rule (HIPAA Safe Harbor + FDA Non-Device CDS)
 
 **Date:** 2026-06-05
 **Evidence level:** RESEARCH_ONLY for the legal citations — web sources, **NOT
 counsel-verified**; the primary HHS/FDA pages returned 403 to the fetcher, so the
 verbatim text must be re-confirmed against the primary documents before anyone relies
-on this. The engine-side firewall rules this *formalizes* are already
+on this. The engine-side librarian rule this *formalizes* is already
 CONFIRMED_ASSISTANT_SIDE (the BANNED-word tests).
-**Type:** Architecture / firewall / legal grounding
+**Type:** Architecture / legal grounding
 
 ## Context
-`recurrence.py` calls the firewall "the design principle and the legal firewall in one,"
+`recurrence.py` calls it "the design principle and the legal grounding in one,"
 but the *legal* half was asserted, never written down or cited. Scott asked to ground it
 in the actual definitions of what is and isn't allowed, and to build free-text extraction
 as an **allowlist of acceptable items** rather than a denylist of bad ones. Two bodies of
@@ -20,13 +20,13 @@ law bind a tool that surfaces health data:
   guidance, refreshed Jan 2026).
 
 This is **not legal advice** — it records what the regulations/guidance say so the
-firewall is anchored and checkable; Scott/counsel judge. The full cited write-up lives in
+two controls are anchored and checkable; Scott/counsel judge. The full cited write-up lives in
 Drive `health-prototype/freetext-design/FIREWALL_legal_grounding.md` (the repo stays lean).
 
 ## Decision
-Adopt a two-layer firewall, each rule traceable to the definition it satisfies.
+Adopt two layers of control, each rule traceable to the definition it satisfies.
 
-**Layer 1 — PHI firewall (HIPAA), allowlist by construction.**
+**Layer 1 — the allowlist (HIPAA Safe Harbor), by construction.**
 - Extraction surfaces ONLY terms on a curated **allowlist gazetteer** of acceptable
   clinical concepts. The 17 non-date Safe-Harbor identifiers (names, SSN, MRN, contact
   info, account/device IDs, biometrics, photos, the catch-all unique code, …) are
@@ -40,7 +40,7 @@ Adopt a two-layer firewall, each rule traceable to the definition it satisfies.
 - No raw free-text enters a record — only `concept + (shifted) date + provenance offset`.
   Reinforced by the existing zero-egress / local-only / synthetic-only rules.
 
-**Layer 2 — Interpretation firewall (FDA), surface/cite only.**
+**Layer 2 — the librarian rule (FDA Non-Device CDS), surface/cite only.**
 - The four Non-Device-CDS criteria: (1) no medical-image / IVD-signal analysis;
   (2) display/analyze medical info; (3) provide **recommendations** to an HCP; (4) let the
   HCP **independently review the basis**. The engine makes **no recommendations at all** —
@@ -56,7 +56,7 @@ Safe-Harbor date-truncation to year (breaks the engine); NegEx/ConText assertion
 *verdicts* (interpretation — only their cue *lists* are borrowed, as surfaced provenance).
 
 ## Consequences
-- The firewall is anchored to citable definitions, not assertion — each rule names the
+- These two controls are anchored to citable definitions, not assertion — each rule names the
   identifier # / criterion # it enforces (that traceability is the deliverable).
 - Gives free-text extraction a clear, low-risk shape (allowlist gazetteer + shifted dates)
   before any code is written.
@@ -69,11 +69,11 @@ Safe-Harbor date-truncation to year (breaks the engine); NegEx/ConText assertion
   in Drive; `make check` stays green (docs-only). The rule→definition mapping is reviewable
   in `FIREWALL_legal_grounding.md`.
 - **Free-text slice 1 (IMPLEMENTED_UNVERIFIED, this branch):** the three predicted tests now
-  exist and pass in `tests/test_extract.py` — (a) `TestAllowlistFirewall`: a note with a
+  exist and pass in `tests/test_extract.py` — (a) `TestAllowlist`: a note with a
   name/SSN/MRN yields entries only for gazetteer concepts (allowlist holds; the `Patient:`
   value is the record id, never scanned); (b) `TestDateShiftDeIdentification`: a consistent
   per-record shift moves every date equally and preserves intervals; (c)
-  `TestFirewallBannedWords`: the front-end output carries no banned interpretive words (and
+  `TestLibrarianRuleBannedWords`: the front-end output carries no banned interpretive words (and
   emits no `context_cue`). The legal-grounding *citations* themselves stay RESEARCH_ONLY
   pending primary-source + counsel review.
 - **Standing:** primary-source + counsel verification of the HIPAA/FDA claims before any

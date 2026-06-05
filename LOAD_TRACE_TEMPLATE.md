@@ -8,7 +8,7 @@ unknown" must not be empty if anything is unsure.
 LOAD TRACE — <YYYY-MM-DD>, <engine/model>
 - Loaded:               <files actually read this session, in load order>
 - Not loaded:           <control/Tier-3 files deliberately skipped — and why>
-- Applied rules:        <operator rules + firewall + security policy you hold>
+- Applied rules:        <operator rules + the librarian rule + security policy you hold>
 - Verified state:       <facts checked against the live repo/tests THIS session>
 - Unverified / unknown: <anything assumed, stale, or not yet checked>
 ```

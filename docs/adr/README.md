@@ -37,4 +37,5 @@ it — history is the point.
 - [0006 — Adopt AGENTS.md as source of truth; slim CLAUDE.md; add control-doc layer](0006-agents-md-source-of-truth.md)
 - [0007 — Cadence change: the fifth surfacing rule (interval shifted)](0007-cadence-change-rule.md)
 - [0008 — Free-text extraction: design kickoff (deterministic front-end)](0008-freetext-extraction-kickoff.md)
-- [0009 — Firewall: legal grounding (HIPAA Safe Harbor + FDA Non-Device CDS)](0009-firewall-legal-grounding.md)
+- [0009 — Legal grounding: the allowlist + the librarian rule (HIPAA Safe Harbor + FDA Non-Device CDS)](0009-legal-grounding.md)
+- [0010 — Rename the "firewall" metaphor (librarian rule / allowlist / research gate)](0010-rename-firewall-metaphor.md)

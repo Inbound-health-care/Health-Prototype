@@ -8,7 +8,7 @@ set -u
 echo "=== health-prototype session start ==="
 
 # 1. Orientation: point the fresh instance at the durable docs FIRST.
-echo "READ FIRST: AGENTS.md (source of truth: rules + firewall), then CLAUDE.md (Claude-specific), then STATUS.md (state)."
+echo "READ FIRST: AGENTS.md (source of truth: rules + the librarian rule), then CLAUDE.md (Claude-specific), then STATUS.md (state)."
 echo "Core rule: librarian-not-interpreter — surface/count/cite, never interpret."
 echo "Policy: read SECURITY_AND_TOOL_POLICY.md before any write/delete/install/send."
 echo "Emit a LOAD TRACE now — template: LOAD_TRACE_TEMPLATE.md."
