@@ -12,7 +12,11 @@ is made visible. The struggle and the reasoning ARE the deliverable._
 
 ---
 
-## 2026-05-31 (latest) — Back-end / workflow hardening pass (engine frozen)
+_Per-session records for 2026-06-04 (co-occurrence window, PR #10) and 2026-06-05
+(cadence rule #5, PR #13) are captured factually in STATUS.md and the Drive archive
+(`health-prototype/archive`); they are not re-narrated here._
+
+## 2026-05-31 — Back-end / workflow hardening pass (engine frozen)
 **Where:** computer (Claude Code web session). **What I set out to do:** Scott
 scoped it plainly — "fix all back-end things before changing any of the code; make
 sure the workflow is up to snuff." So: audit the infrastructure (CI, hooks, docs

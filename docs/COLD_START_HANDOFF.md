@@ -1,6 +1,6 @@
 # COLD START HANDOFF
 _For a fresh session with zero memory. Read this, then STATUS.md, then CLAUDE.md.
-Last written 2026-05-31._
+Last written 2026-05-31; counts/pointers refreshed 2026-06-05._
 
 ## Who you're working with
 Scott — psychiatric NP building health AI. Works ~67% on phone (now also a PC
@@ -28,11 +28,11 @@ naming later. Values brutal honesty over hype. Reads everything.
 
 ## Project state (trust STATUS.md over this if they differ — STATUS is canonical)
 - **health-prototype**: recurrence engine. v0 exact-match + v1 opt-in matching
-  (normalize/synonyms/fuzzy) + **4 rules** (recurrence / gap / frequency /
-  co-occurrence) + router/expert registry with `--report` (v0 and `--report-v1`).
-  **68 tests green**, `ruff` clean, CI on Py 3.10-3.13. Firewall: surface/count/cite,
-  NEVER interpret. PRs #1/#3/#4/#7 merged to `main`; branch protection active.
-- A **5th** rule is a drop-in: append one `Expert(name, detect_x, format_x)` to
+  (normalize/synonyms/fuzzy) + **5 rules** (recurrence / gap / frequency /
+  co-occurrence / cadence-change) + router/expert registry with `--report` (v0 and `--report-v1`).
+  **90 tests green**, `ruff` clean, CI on Py 3.10-3.13. Firewall: surface/count/cite,
+  NEVER interpret. PRs #1/#3/#4/#7/#8/#9/#10/#13 merged to `main`; branch protection active.
+- A **6th** rule is a drop-in: append one `Expert(name, detect_x, format_x)` to
   `EXPERTS` and it joins `--report` automatically.
 - A SECOND project exists (separate): **Sovereign Scribe / PACT** — local clinical
   SOAP scribe. Salvaged into `SOVEREIGN_SCRIBE_SALVAGE.md`. Not active in this repo.
@@ -42,7 +42,7 @@ naming later. Values brutal honesty over hype. Reads everything.
 2. `CLAUDE.md` — operator rules + limits + engine rules + architecture.
 3. `docs/adr/` — decision log (incl. the assistant's own process changes).
 4. `JOURNAL.md` — the WHY / narrative / lessons (incl. limitations found).
-5. `docs/SESSION_LOG_2026-05-31_full.md` — full prior-session audit.
+5. Drive: `health-prototype/archive` — full prior-session audit + per-session handoffs (off-repo).
 6. `docs/AGENT_AUDIT_METHOD.md` — reusable subagent-audit playbook (use for code
    review too: brief -> run -> review HOW -> tighten brief -> repeat).
 
