@@ -38,7 +38,7 @@ canonical files.
 ## Decisions / discipline / narrative
 | File | Purpose | Canonical? | Load when |
 |---|---|---|---|
-| `docs/adr/` (`0001`–`0007` + `README.md`) | Decision log (build + assistant process) | **yes (decisions)** | "Why was X done" |
+| `docs/adr/` (`0001`–`0010` + `README.md`) | Decision log (build + assistant process) | **yes (decisions)** | "Why was X done" |
 | `docs/DOC_DISCIPLINE.md` | Evidence levels + ADR-confirmation + drift control | **yes (evidence levels)** | Tagging claims / audits |
 | `JOURNAL.md` | Session narrative / lessons / limitations | yes (narrative) | Want the why/story |
 | `docs/CLAUDE_OPERATING_MANUAL.md` | Operating manual | — | Deeper process |

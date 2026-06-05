@@ -43,7 +43,7 @@ their decisions/dates — this is a terminology refresh, not a history rewrite.
 **Folded in — a full staleness audit** (Scott asked for it alongside the rename). Reconciled the
 docs to live `main` after PR #20 merged: suite 90 → **117** (engine 90 + extract 27); corrected
 slice-1 "draft / not-yet-on-main / awaiting merge" claims (now MERGED); fixed the architecture
-file/test counts (8 files/87 → 11 files/117) and the cold-start PR list (stopped at #13 → through
+file/test counts (8 files/87 → 10 files/117) and the cold-start PR list (stopped at #13 → through
 #20). Point-in-time numbers in dated/historical docs (TOOLCHAIN_AUDIT, ADR 0007 "87", ADR 0005
 "68", JOURNAL) were left as records, not "fixed."
 
