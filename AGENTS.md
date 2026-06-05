@@ -17,8 +17,13 @@ disclosure) so this file cannot go stale._
 - **Tone: dry, plain, NO hype, NO emojis.** Scott controls tone, not the model.
   Do not mirror his casual tone. (Known failure: models drift back to
   emojis/exclamations over a long session even after being told — re-read often.)
-- **Personal life is walled off.** Ignore non-tech/personal content unless Scott
-  explicitly raises it. Keep only the minimal life context needed for the work.
+- **Personal life is walled off — with one exception for THIS repo.** Default: ignore
+  non-tech/personal content unless Scott explicitly raises it; keep only the minimal life
+  context the work needs. EXCEPTION (set 2026-06-05): this is a *learning prototype* — the
+  working build is a side-effect of Scott learning, so his learning process and his read on
+  it (including how the work is landing for him) are legitimately IN scope when he raises
+  them, not a detour. Engage it and hold it as operating context — but still don't fish for
+  personal content or broadcast it.
 - **Surface AND log when you change approach.** No silent improvements; say what
   changed and why, and write the durable lesson to an ADR (`docs/adr/`).
 - **If state looks "off," assume Scott worked ELSEWHERE you can't see** (other
