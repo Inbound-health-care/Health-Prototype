@@ -32,6 +32,9 @@ from collections import Counter
 from collections.abc import Callable
 from dataclasses import dataclass, field
 
+# Engine version — surfaced by `--version`; bump on a user-visible release.
+VERSION = "0.5.0"
+
 
 # ---------------------------------------------------------------------------
 # Surfaced result — sourced, never interpreted
@@ -1241,6 +1244,11 @@ def build_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     p.add_argument(
+        "--version",
+        action="store_true",
+        help="Print the engine name and version, then exit",
+    )
+    p.add_argument(
         "--self-test", action="store_true", help="Run the six built-in spec cases"
     )
     p.add_argument(
@@ -1293,6 +1301,9 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main() -> int:
     args = build_parser().parse_args()
+    if args.version:
+        print(f"Health-Prototype recurrence engine {VERSION}")
+        return 0
     if args.self_test:
         return _run_self_test()
     if args.demo:
