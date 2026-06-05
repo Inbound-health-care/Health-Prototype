@@ -31,7 +31,7 @@ rather than leaving them to mislead.
 and the mislabeled vision docs. Make it routine, not accidental.
 
 ---
-### Research firewall (the rule that governs all three)
+### Research gate (the rule that governs all three)
 A researched method is **not project truth** until: source identified → ADR
 accepts it → a test/check proves it → STATUS reflects it. Until then it stays
 `RESEARCH_ONLY`. (This is the rule the old Exoskeleton docs violated by calling

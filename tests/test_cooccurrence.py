@@ -5,7 +5,7 @@ detect_cooccurrence surfaces two distinct items in one record that BOTH appear
 on the same date, on ``min_count`` or more distinct shared dates. These tests
 assert the hand-written CO_OCCURRENCE_ANSWER_KEY, the pair combinatorics, the two
 negative controls (items recur but never share a date / share only one date),
-undated exclusion, input validation, and the output firewall.
+undated exclusion, input validation, and the librarian rule in output.
 
 Run from the repo root:
     python -m unittest discover -s tests -t .
@@ -118,7 +118,7 @@ class TestCooccurrenceBehavior(unittest.TestCase):
         self.assertEqual(len(detect_cooccurrence([_record("R017")], min_count=2)), 1)
 
 
-class TestCooccurrenceFirewall(unittest.TestCase):
+class TestCooccurrenceLibrarianRule(unittest.TestCase):
     """Output cites provenance only — pure counting, never a relationship claim."""
 
     BANNED = (
@@ -213,7 +213,7 @@ class TestCooccurrenceWindow(unittest.TestCase):
         line = format_cooccurrence_hit(hit)
         self.assertIn("co-occurred 2 times within 4 days", line)
         self.assertIn("(2026-03-22 ~ 2026-03-18: 4d)", line)
-        for banned in TestCooccurrenceFirewall.BANNED:
+        for banned in TestCooccurrenceLibrarianRule.BANNED:
             self.assertNotIn(banned, line.lower(), f"banned word: {banned!r}")
 
 

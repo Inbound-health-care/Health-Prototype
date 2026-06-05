@@ -1,7 +1,7 @@
 # CLAUDE.md — health-prototype (Claude Code notes)
 
 **Read `AGENTS.md` first — it is the source of truth for this repo** (operator
-rules, working limits, the engine firewall, commands, load order). It applies to
+rules, working limits, the librarian rule, commands, load order). It applies to
 you. This file holds ONLY Claude-Code-specific notes that don't belong in the
 engine-agnostic `AGENTS.md`.
 
@@ -26,5 +26,5 @@ file just points there and adds the Claude-specific bits below.
   older "Scott merges, nothing auto-merges" convention; relates to
   `SECURITY_AND_TOOL_POLICY.md` §B.)
 
-Everything else — operator rules, tone, the librarian-not-interpreter firewall,
+Everything else — operator rules, tone, the librarian rule,
 working limits, commands, where-to-find-things, scope — is in `AGENTS.md`.

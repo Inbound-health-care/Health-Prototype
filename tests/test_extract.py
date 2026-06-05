@@ -6,8 +6,8 @@ recurrence.py's five rules then consume it UNCHANGED. These tests assert the
 hand-written FREETEXT oracle (items, dates, and exact char-offset spans), the
 longest-match / word-boundary matching, case-insensitivity, the three explicit
 date formats and the de-identifying date shift (intervals preserved), the
-allowlist/PHI firewall (identifiers are structurally un-extractable), the output
-firewall (Stance A: literal mentions, no interpretation, no context_cue), input
+allowlist (identifiers are structurally un-extractable), the librarian rule in
+output (Stance A: literal mentions, no interpretation, no context_cue), input
 validation, and the end-to-end bridge into detect_recurrence.
 
 Run from the repo root:
@@ -153,7 +153,7 @@ class TestDateShiftDeIdentification(unittest.TestCase):
         self.assertEqual((d1 - d0).days, 36)  # 2026-01-05 -> 2026-02-10 preserved
 
 
-class TestAllowlistFirewall(unittest.TestCase):
+class TestAllowlist(unittest.TestCase):
     """ADR 0009 Layer 1: only gazetteer concepts surface; identifiers cannot."""
 
     def test_patient_header_value_is_id_not_entry(self):
@@ -176,7 +176,7 @@ class TestAllowlistFirewall(unittest.TestCase):
         )
 
 
-class TestFirewallBannedWords(unittest.TestCase):
+class TestLibrarianRuleBannedWords(unittest.TestCase):
     """Stance A: the front-end surfaces literal mentions and adds no judgment.
 
     BANNED is the full suite-wide union of interpretive words the engine forbids

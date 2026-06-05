@@ -50,7 +50,7 @@ kwarg instead).
   R015 = recurrence+gap, R016 = recurrence+frequency; R003/R006/R007/R014
   omitted).
 - `tests/test_report.py` — oracle, composition (×3), determinism, omission,
-  registry integrity, and a firewall test that also bans ranking/aggregation
+  registry integrity, and a librarian-rule test that also bans ranking/aggregation
   words (top/most/priority/rank/total/highest/worst/best).
 - `python -m unittest discover -s tests -t .` → 53 tests OK.
 - `make lint` → clean. Commits `3cc27bb` + `bd657c9`.

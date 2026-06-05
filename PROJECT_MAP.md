@@ -8,7 +8,7 @@ canonical files.
 ## Control / startup (Tier 1 — every session)
 | File | Purpose | Canonical? | Load when |
 |---|---|---|---|
-| `AGENTS.md` | Source of truth: operator rules, working limits, engine firewall, commands, load order | **yes (rules)** | First, every session |
+| `AGENTS.md` | Source of truth: operator rules, working limits, the librarian rule, commands, load order | **yes (rules)** | First, every session |
 | `CLAUDE.md` | Thin pointer to AGENTS.md + Claude-Code-specific notes | — (pointer) | Claude Code only |
 | `LOAD.md` | Startup procedure (read → report → stop) | yes (load order) | Every session start |
 | `STATUS.md` | Current state / next step | **yes (current state)** | Every session start; update last |

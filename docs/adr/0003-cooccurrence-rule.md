@@ -54,7 +54,7 @@ report shaper for the pair (chose the `item` property — keeps the router gener
   pairs); `--report` shows R017/R018 co-occurrence lines.
 - `tests/test_cooccurrence.py` — oracle agreement, the two controls (never-share,
   single-share), 3-pair combinatorics + ordering, undated exclusion, input
-  validation, and a firewall test banning relationship words
+  validation, and a librarian-rule test banning relationship words
   (associated/correlated/linked/cause/…). `tests/test_report.py` gained a
   co-occurrence composition test and updated registry order.
 - `python -m unittest discover -s tests -t .` → 68 tests OK. `ruff` clean.

@@ -14,10 +14,10 @@ dependency runs one way: extract.py imports recurrence.py, never the reverse.
 Stance A — strict literal (chosen by the operator; see ADR 0008): emit every
 exact, word-bounded, longest-match gazetteer hit on a dated line, with its
 character-offset provenance. NO cue logic, NO presence/absence/ownership
-judgment: "chest pain" is emitted from "Denies chest pain" — the firewall point.
+judgment: "chest pain" is emitted from "Denies chest pain" — the librarian rule in action.
 Filtering a mention is the human's job, done on the cited provenance.
 
-Firewall, by construction (see ADR 0009 — NOT legal advice):
+The two controls, by construction (see ADR 0009 — NOT legal advice):
   - Allowlist (HIPAA Safe Harbor): only curated gazetteer concepts can surface,
     so names / SSNs / MRNs and the other identifiers are structurally
     un-extractable. The "Patient:" header value becomes the record id and is
@@ -189,7 +189,7 @@ def find_gazetteer_hits(text: str, gazetteer: list[str]) -> list[tuple[int, int,
 
 # ---------------------------------------------------------------------------
 # Identity (record id) — the "Patient:" header value, taken verbatim and never
-# gazetteer-scanned (the allowlist firewall, ADR 0009).
+# gazetteer-scanned (the allowlist, ADR 0009).
 # ---------------------------------------------------------------------------
 
 _PATIENT_RE = re.compile(r"\s*Patient:\s*(.+?)\s*$")

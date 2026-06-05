@@ -27,13 +27,17 @@ sync with the code (see ADR 0005)._
 - Router: an `EXPERTS` registry (one `Expert` per rule) + `run_report` route the
   5 rules into a per-record `RecordReport`; `format_report` renders it. Adding a
   6th rule = appending one `Expert`. The report lists only — it never ranks.
-- `data/sample_records.py` — invented records + EIGHT hand-written answer keys
+- `data/sample_records.py` — invented records + NINE hand-written answer keys
   (`ANSWER_KEY`, `ANSWER_KEY_V1`, `GAP_ANSWER_KEY`, `FREQUENCY_ANSWER_KEY`,
   `CO_OCCURRENCE_ANSWER_KEY`, `REPORT_ANSWER_KEY`, `REPORT_ANSWER_KEY_V1`,
-  `CADENCE_CHANGE_ANSWER_KEY`) + `SYNONYMS`. Cadence has a dedicated
+  `CADENCE_CHANGE_ANSWER_KEY`, `FREETEXT_EXPECTED_RECORDS`) + `SYNONYMS`. Cadence has a dedicated
   `CADENCE_CHANGE_RECORDS` set (kept out of `SAMPLE_RECORDS` to avoid key ripple).
 - `data/RECORDS.md` — data dictionary (field rationale, per-record reasons).
-- `tests/` — 8 files, 87 tests. CI: `.github/workflows/ci.yml` (Py 3.10-3.13).
+- `extract.py` — free-text extraction FRONT-END (slice 1): turns dated prose into the
+  canonical record shape the 5 rules consume unchanged (allowlist gazetteer + explicit-date
+  regex + char-offset `source_span`; de-identified date shift). A front door to the librarian,
+  not part of it — imports `recurrence.py`, never the reverse. See ADR 0008.
+- `tests/` — 11 files, 117 tests (engine 90 + extract 27). CI: `.github/workflows/ci.yml` (Py 3.10-3.13).
 
 ## Engine hard rules
 - Pure Python STDLIB ONLY at runtime. No network egress. Zero real PHI, ever.
@@ -42,7 +46,7 @@ sync with the code (see ADR 0005)._
 - Determinism: stable ordering; ANSWER KEYS ARE WRITTEN BY HAND FIRST, the code
   is made to match — never patch the key toward the code.
 
-## Engine firewall (also in CLAUDE.md — the one rule that governs the engine)
+## The librarian rule (also in CLAUDE.md — the one rule that governs the engine)
 Librarian, not interpreter. Surface, count, cite provenance. NEVER score, rank,
 diagnose, or say what a pattern means. No "caution/concern/worsening/risk/severe"
 in output. Human or human-declared policy supplies all judgment. Tests enforce it.

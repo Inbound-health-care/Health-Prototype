@@ -134,7 +134,7 @@ class TestInputValidation(unittest.TestCase):
             detect_recurrence([], fuzzy_cutoff=2.0)
 
 
-class TestSurfacingFirewall(unittest.TestCase):
+class TestSurfacingLibrarianRule(unittest.TestCase):
     """Output cites provenance and carries no interpretation."""
 
     def test_format_hit_cites_provenance_only(self):

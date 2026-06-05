@@ -6,7 +6,7 @@ detect_cadence_change surfaces an item whose inter-event spacing shifted by
 Pettitt's rank statistic (nonparametric, deterministic), and the flag compares
 the median interval before vs after. These tests assert the hand-written
 CADENCE_CHANGE_ANSWER_KEY, both shift directions, the steady / too-few / undated
-controls, input validation, and the output firewall (it never says a faster or
+controls, input validation, and the librarian rule (it never says a faster or
 slower cadence means anything).
 
 Run from the repo root:
@@ -169,7 +169,7 @@ class TestCadenceChangeBehavior(unittest.TestCase):
         self.assertEqual((hits[0].before_interval, hits[0].after_interval), (10, 15))
 
 
-class TestCadenceChangeFirewall(unittest.TestCase):
+class TestCadenceChangeLibrarianRule(unittest.TestCase):
     """Output states the interval change and where — never what it means."""
 
     BANNED = (

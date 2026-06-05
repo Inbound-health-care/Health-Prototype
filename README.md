@@ -12,7 +12,7 @@ occurrence came from.
 
 It is a **librarian, not an interpreter**. It surfaces, counts, and cites
 provenance — it never scores, ranks, or diagnoses, and it never says what a
-pattern *means*. That separation is the design principle and the legal firewall
+pattern *means*. That separation is the design principle and the legal grounding
 in one.
 
 Domain-agnostic by design: a record can be a patient, a pharmacy profile, or a
@@ -125,7 +125,7 @@ detect_recurrence(records, normalize=True, synonyms={"insomnia": "poor sleep"}, 
   is the one layer where the engine groups without a declared rule, so it is off
   by default.
 
-**The firewall holds.** Whenever entries with different spellings are combined,
+**The librarian rule holds.** Whenever entries with different spellings are combined,
 the hit cites every original via `variants`, and the output shows them:
 
 ```text

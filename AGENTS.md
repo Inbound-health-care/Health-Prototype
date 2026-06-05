@@ -9,7 +9,7 @@ This is the **source of truth** for working in this repo, for ANY AI agent
 standard. Claude Code reads `CLAUDE.md`; that file is a thin pointer back here
 plus a few Claude-Code-specific notes. Rules live HERE, once.
 
-_Keep this file lean: operator rules + working limits + engine firewall +
+_Keep this file lean: operator rules + working limits + the librarian rule +
 commands + pointers. Engine detail and counts live in linked files (progressive
 disclosure) so this file cannot go stale._
 
@@ -37,7 +37,7 @@ disclosure) so this file cannot go stale._
 - **"done / pushed" claims are not proof.** Verify against the real remote/state,
   not memory, before reporting completion.
 
-## Engine firewall (the one rule that governs the engine)
+## The librarian rule (the one rule that governs the engine)
 **Librarian, not interpreter.** Surface, count, and cite provenance — NEVER
 score, rank, diagnose, or say what a pattern *means*. No "caution / concern /
 worsening / risk / severe" in output. The human (or a human-declared policy)
@@ -62,7 +62,7 @@ supplies all judgment. Tests enforce this — keep it that way.
 - **Other project (clinical scribe):** `SOVEREIGN_SCRIBE_SALVAGE.md`
 
 ## Load order + startup
-1. **`AGENTS.md`** (this file) — rules, working limits, firewall, commands.
+1. **`AGENTS.md`** (this file) — rules, working limits, the librarian rule, commands.
 2. **`CLAUDE.md`** — only if you are Claude Code (Claude-specific notes).
 3. **`STATUS.md`** — current state / next step. CANONICAL if anything conflicts.
 4. **`docs/COLD_START_HANDOFF.md`** — fresh-session orientation.

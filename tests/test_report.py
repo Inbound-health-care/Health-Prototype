@@ -3,7 +3,7 @@
 The report is a VIEW over the three existing rules. These tests pin it two
 ways: against the hand-written REPORT_ANSWER_KEY (oracle agreement), and
 against the three detect_* functions themselves (composition consistency) — so
-the combined view can never silently diverge from any single rule. The firewall
+the combined view can never silently diverge from any single rule. The librarian-rule
 test additionally bans ranking/aggregation words, not only severity words: a
 combined report is the place a "which record is worst" temptation would creep
 in, and it must not.
@@ -135,11 +135,11 @@ class TestReportOrderingAndOmission(unittest.TestCase):
         run_report(junk)  # must not raise
 
 
-class TestReportFirewall(unittest.TestCase):
+class TestReportLibrarianRule(unittest.TestCase):
     """Output cites provenance only — no interpretation, no ranking."""
 
     BANNED = (
-        # interpretive (the existing per-rule firewall set)
+        # interpretive (the existing per-rule banned-word set)
         "worsening", "worsen", "severe", "severity", "suggests", "diagnos",
         "risk", "concern", "caution", "abnormal", "score", "relapse", "acute",
         # ranking / aggregation (stricter, specific to a combined view)
@@ -166,7 +166,7 @@ class TestReportFirewall(unittest.TestCase):
 class TestReportV1(unittest.TestCase):
     """The v1-matched combined report (normalize + declared synonyms + fuzzy).
 
-    Same router, same firewall — only the opt-in matching is turned on. Three
+    Same router, same librarian rule — only the opt-in matching is turned on. Three
     records that surface nothing at v0 (R006 synonyms, R007 normalize, R014 fuzzy)
     now merge and recur, so the v0->v1 difference is visible in one view.
     """
@@ -190,7 +190,7 @@ class TestReportV1(unittest.TestCase):
 
     def test_v1_report_has_no_banned_words(self):
         text = format_report(self._v1_reports()).lower()
-        for word in TestReportFirewall.BANNED:
+        for word in TestReportLibrarianRule.BANNED:
             self.assertNotIn(word, text, f"banned word surfaced: {word!r}")
 
 

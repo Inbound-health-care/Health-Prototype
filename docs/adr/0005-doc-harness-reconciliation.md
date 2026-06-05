@@ -25,7 +25,7 @@ facts.
   a fresh branch off `main` (`claude/nifty-fermat-g4cKA`). Eight commits were pure
   new files (zero conflict); CLAUDE.md and JOURNAL.md were reconciled by hand.
 - **Adopt the Tier-1 / Tier-3 split** the stack was building: CLAUDE.md becomes
-  lean (operator rules + limits + engine firewall + pointers); engine detail
+  lean (operator rules + limits + the librarian rule + pointers); engine detail
   (commands / architecture map / hard rules / workflow) moves to
   `docs/agent-guides/architecture.md`.
 - **Correct the stale engine facts on the way in.** The imported CLAUDE.md trim
