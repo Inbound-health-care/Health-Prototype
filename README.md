@@ -55,6 +55,8 @@ python recurrence.py --demo                        # recurrence, v0 exact match
 python recurrence.py --demo-v1                      # recurrence, v1 opt-in matching
 python recurrence.py --demo-gap                     # gap / re-emergence rule
 python recurrence.py --demo-frequency               # frequency / burst rule
+python recurrence.py --demo-cooccurrence            # co-occurrence rule (same date)
+python recurrence.py --demo-cooccurrence-window     # co-occurrence within a 7-day window (opt-in)
 python recurrence.py --report                        # combined per-record report (all rules)
 make check                                           # full local verification (tests + self-test + lint)
 python -m unittest discover -s tests -t .          # full test suite (from repo root)
@@ -79,14 +81,17 @@ counts, and cites — none interprets.
 | Recurrence | `detect_recurrence` | Has the same item come up repeatedly (≥ `min_count`)? |
 | Gap / re-emergence | `detect_gap` | Did an item return after a long absence (> `gap_days`)? |
 | Frequency / burst | `detect_frequency` | Did an item cluster (`min_count`+ within `window_days`)? |
+| Co-occurrence | `detect_cooccurrence` | Did two items show up together — the same date, or within an opt-in `window_days` — on ≥ `min_count` dates? |
 
 One record can surface under several rules — see [`data/RECORDS.md`](data/RECORDS.md)
 §7 for the gap/frequency walkthrough and their hand-written answer keys.
 
 ### Combined report — all rules, one per-record view
 
-`run_report` (CLI `--report`) runs all three rules over one record set and groups
+`run_report` (CLI `--report`) runs all four rules over one record set and groups
 every finding under its record, each line tagged with the lens that surfaced it.
+(The report uses each rule's defaults, so co-occurrence there is same-date; the
+`window_days` variant is opt-in via `detect_cooccurrence` / `--demo-cooccurrence-window`.)
 Records that surface nothing are omitted — it lists what is present, and it never
 ranks, scores, totals, or prioritizes records.
 

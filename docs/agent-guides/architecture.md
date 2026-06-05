@@ -8,7 +8,7 @@ sync with the code (see ADR 0005)._
 ## Commands
 - Tests:     `python -m unittest discover -s tests -t .`  (or `make test`)
 - Self-test: `python recurrence.py --self-test`  (the six spec cases)
-- Demos:     `python recurrence.py --demo | --demo-v1 | --demo-gap | --demo-frequency | --demo-cooccurrence`
+- Demos:     `python recurrence.py --demo | --demo-v1 | --demo-gap | --demo-frequency | --demo-cooccurrence | --demo-cooccurrence-window`
 - Report:    `python recurrence.py --report | --report-v1`  (all rules, one per-record view; v0 / v1 matching)
 - Lint:      `make lint`   ·   Clean: `make clean`
 
@@ -16,7 +16,8 @@ sync with the code (see ADR 0005)._
 - `recurrence.py` — the engine. Shared core `_record_groups` feeds 4 rules:
   `detect_recurrence` (same item >=N), `detect_gap` (returns after absence),
   `detect_frequency` (clusters in a window), `detect_cooccurrence` (two items on
-  the same dates >=N). Hits: `RecurrenceHit` / `GapHit` / `FrequencyHit` /
+  the same date — or within opt-in `window_days`, anchored on `item_a` — >=N).
+  Hits: `RecurrenceHit` / `GapHit` / `FrequencyHit` /
   `CooccurrenceHit`, each carrying `variants` (the audit trail of merged
   spellings; co-occurrence carries one per item: `variants_a` / `variants_b`).
 - Matching is layered and OPT-IN (defaults = exact v0): `normalize` (case/space),
@@ -30,7 +31,7 @@ sync with the code (see ADR 0005)._
   `CO_OCCURRENCE_ANSWER_KEY`, `REPORT_ANSWER_KEY`, `REPORT_ANSWER_KEY_V1`) +
   `SYNONYMS`.
 - `data/RECORDS.md` — data dictionary (field rationale, per-record reasons).
-- `tests/` — 7 files, 68 tests. CI: `.github/workflows/ci.yml` (Py 3.10-3.13).
+- `tests/` — 7 files, 76 tests. CI: `.github/workflows/ci.yml` (Py 3.10-3.13).
 
 ## Engine hard rules
 - Pure Python STDLIB ONLY at runtime. No network egress. Zero real PHI, ever.
