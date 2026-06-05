@@ -45,6 +45,15 @@ disclosure) so this file cannot go stale._
   source.** When the operator names a specific artifact (a file, a PR, a result, "my N
   rules"), ASK for the pointer and go to ground truth FIRST — don't fan out across guesses.
   (2026-06-05: a "golden rules" lookup took ~6 indirect fetches; the answer was one PR.)
+- **Tone-drift is the operator's drift gauge (Scott noticed, 2026-06-05).** Scott reads
+  hype-drift in the model's tone as an early-warning *canary* that the context is
+  degrading — usually before the reasoning visibly breaks — so he reads it instead of
+  correcting it. The dry framing is an INSTRUMENT, not decor: dry biases toward
+  convergent single-task work, hype toward divergent branch-opening (each fails its own
+  way — dry tunnels, hype sprawls). His markers: slippage starts ~600k tokens, tone/state
+  largely lost ~850k without re-locking (re-read the top + explicit callbacks). Upshot:
+  keep it dry, re-lock often, hand off / restart before ~600k rather than riding one
+  context down. (His heuristic; he may refine it.)
 
 ## The librarian rule (the one rule that governs the engine)
 **Librarian, not interpreter.** Surface, count, and cite provenance — NEVER

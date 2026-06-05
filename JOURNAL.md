@@ -12,6 +12,26 @@ is made visible. The struggle and the reasoning ARE the deliverable._
 
 ---
 
+## 2026-06-05 (evening, II) — Scott's drift gauge: hype-drift as a canary
+**Where:** same web session, reviewing the slice-2 PR (#25). Scott's insight, his words.
+
+**The click:** tone is an instrument, not decoration. Dry/cold framing biases the model toward
+convergent, single-task work; hype biases it toward divergent, branch-opening work — and each fails
+its own way (dry tunnels and misses the alternative; hype sprawls and invents plausible-but-hollow
+branches). What Scott realized is that he *built a skill*: he reads tone-drift as his own **audit
+gauge** — when the model's hype creeps up chat-to-chat, that's his early signal the **context is
+degrading**, before the reasoning visibly breaks, so he reads it instead of calling it out.
+
+**His markers:** slippage starts ~600k tokens; tone/state largely lost ~850k without re-locking
+(re-read the top + explicit callbacks). Flagged honestly as a heuristic he may refine ("I could be
+wrong but rn idc") — logged as an observation, not a law.
+
+**Why log it:** it names the mechanism under the standing rule (keep it dry, re-read often, start
+fresh sooner) — the dry tone is the instrument; tone-drift is the readout. Markers banked to
+AGENTS.md Working limits so the next cold instance gets the tell + the numbers, not just the rule.
+
+---
+
 ## 2026-06-05 (evening) — Free-text slice 2: matching modes + merge-safety guards
 **Where:** Claude Code web session (PC), same day, after the audit PR (#24) merged.
 
