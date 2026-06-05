@@ -1,9 +1,12 @@
 # 0007 — Cadence change: the fifth surfacing rule (interval shifted)
 
 **Date:** 2026-06-05
-**Evidence level:** CONFIRMED_ASSISTANT_SIDE (87 tests green, `ruff` clean,
+**Evidence level:** CONFIRMED_USER_SIDE (2026-06-05 — Scott ran the branch on
+Windows / Python 3.12.10: `--self-test` 6 scenarios pass, full suite 87 tests
+pass, and a hand-made record surfaced the expected lenses). Also
+CONFIRMED_ASSISTANT_SIDE in the sandbox (87 tests, `ruff` clean,
 `--demo-cadence-change` / `--report` surface R016's 10d→79d shift; the dedicated
-`CADENCE_CHANGE_ANSWER_KEY` matches by hand)
+`CADENCE_CHANGE_ANSWER_KEY` matches by hand).
 **Type:** Architecture / build
 
 ## Context
@@ -68,3 +71,7 @@ shifts).
   and the firewall (neutral, cited line). `tests/test_report.py` gains a cadence
   composition test + updated registry order; `REPORT_ANSWER_KEY(_V1)` updated.
 - `make check` → 87 tests OK, 6 self-test scenarios, `ruff` clean.
+- **User-side (2026-06-05):** Scott ran the branch on Windows (Python 3.12.10) —
+  `python recurrence.py --self-test` → 6 scenarios; `python -m unittest discover -s
+  tests -t .` → 87 tests OK; and a hand-written `mytest.py` record surfaced the
+  expected recurrence / gap / frequency / cadence lines. CONFIRMED_USER_SIDE.

@@ -31,7 +31,9 @@ Last updated: 2026-06-05
   unchanged); greedy one-to-one date pairing (no double-count); cites matched
   pairs + gaps; adds `--demo-cooccurrence-window`. Engine extension — rule count
   stays 4. (A parallel anchor-date take, PR #12, was closed as a duplicate.)
-- **Cadence change — rule #5 (PR pending, `claude/hopeful-einstein-C78CE`).**
+- **Cadence change — rule #5 (PR #13, ready for review, `claude/hopeful-einstein-C78CE`).**
+  CI green; **CONFIRMED_USER_SIDE** (Scott ran it on Windows / Py 3.12.10 — 6
+  scenarios + 87 tests + a hand-made record). Awaiting Scott's merge.
   `detect_cadence_change`: an item whose inter-event spacing shifted by `ratio`
   across a single change point. Pivot located with **Pettitt's rank statistic**
   (web-checked; the standard non-ML, stdlib method), flagged on the median
@@ -52,9 +54,10 @@ Last updated: 2026-06-05
       CLAUDE.md + SECURITY_AND_TOOL_POLICY + LOAD_TRACE + PROJECT_MAP + ADR 0006.
 - [x] **Co-occurrence window (PR #10) — MERGED**: opt-in `window_days` on rule #4
       (greedy one-to-one). Duplicate anchor-date take (PR #12) closed.
-- [ ] **Cadence change — rule #5 (`claude/hopeful-einstein-C78CE`)** — Pettitt
-      pivot + median-ratio (ADR 0007); dedicated oracle; 87 tests, `make check`
-      green. Needs review/CI.
+- [ ] **Cadence change — rule #5 (PR #13, `claude/hopeful-einstein-C78CE`)** — Pettitt
+      pivot + median-ratio (ADR 0007); dedicated oracle; 87 tests, CI green,
+      **CONFIRMED_USER_SIDE** (Scott ran it on Windows). Ready for review; awaiting
+      Scott's merge.
 - [ ] **DEFERRED to the code phase** (the engine bit of PR #6): `VERSION = "0.4.0"`
       + a `--version` flag printing `Health-Prototype recurrence engine 0.4.0`
       + `tests/test_cli.py`. Re-add when engine code unfreezes.
