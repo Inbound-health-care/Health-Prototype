@@ -71,6 +71,11 @@ Last updated: 2026-06-05
 - [x] **Handoff-loss guard — LIVE**: `/handoff` commits+pushes by default; the `Stop`
       hook `.claude/hooks/stop_handoff_guard.py` refuses to end a session while a
       `*handoff*.md` is uncommitted. Narrow scope, fail-open, loop-safe.
+- [x] **Repo lean-out (PR B) — DONE**: the 3 per-session handoffs + the full session log
+      moved off-repo to Drive (`health-prototype/archive`); references repointed (LOAD /
+      PROJECT_MAP / COLD_START / repo-onboard skill). Front door de-staled (COLD_START
+      → 5 rules / 90 tests; PROJECT_MAP ADRs → 0001–0007; JOURNAL `(latest)` tag dropped).
+      Docs-only; `make check` green.
 
 ## Next step — decided order (engine code phase)
 Both planned engine increments are MERGED to `main`:

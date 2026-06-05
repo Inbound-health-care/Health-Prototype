@@ -18,7 +18,7 @@ Do not start work until he says.
 ## Step 2 — load MORE only when the task needs it (don't front-load)
 - Decisions / "why was X done" -> `docs/adr/`
 - Narrative / lessons / limitations -> `JOURNAL.md`
-- Full prior-session detail -> `docs/SESSION_LOG_2026-05-31_full.md`
+- Full prior-session detail (handoffs + session log) -> Drive: `health-prototype/archive` (off-repo)
 - How to run subagent audits / code review -> `docs/AGENT_AUDIT_METHOD.md`
 - Tooling / token-frugal patterns -> `docs/TOOLS_CHEAT_SHEET.md`
 - The other project (clinical scribe) -> `SOVEREIGN_SCRIBE_SALVAGE.md`

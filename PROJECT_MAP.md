@@ -38,7 +38,7 @@ canonical files.
 ## Decisions / discipline / narrative
 | File | Purpose | Canonical? | Load when |
 |---|---|---|---|
-| `docs/adr/` (`0001`–`0006` + `README.md`) | Decision log (build + assistant process) | **yes (decisions)** | "Why was X done" |
+| `docs/adr/` (`0001`–`0007` + `README.md`) | Decision log (build + assistant process) | **yes (decisions)** | "Why was X done" |
 | `docs/DOC_DISCIPLINE.md` | Evidence levels + ADR-confirmation + drift control | **yes (evidence levels)** | Tagging claims / audits |
 | `JOURNAL.md` | Session narrative / lessons / limitations | yes (narrative) | Want the why/story |
 | `docs/CLAUDE_OPERATING_MANUAL.md` | Operating manual | — | Deeper process |
@@ -47,8 +47,7 @@ canonical files.
 | `docs/TOOLS_CHEAT_SHEET.md` | Token-frugal tool patterns | — | Tooling questions |
 | `docs/PROMPT_AUDIT.md` | Prompt-audit notes | — | Prompt audits |
 | `docs/COLD_START_HANDOFF.md` | Cold-start orientation | — | (see Tier 1) |
-| `docs/HANDOFF_2026-05-31_web-session.md` | Web-session handoff | — | History |
-| `docs/SESSION_LOG_2026-05-31_full.md` | Full prior-session audit | — | Deep history |
+| _session handoffs + full session log_ | Per-session deep history (3 handoffs + full log) | — | **Archived to Drive:** `health-prototype/archive` (off-repo, keeps the tree lean) |
 
 ## Build / CI / meta / public
 | File | Purpose | Canonical? | Load when |

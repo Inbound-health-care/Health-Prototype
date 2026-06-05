@@ -24,7 +24,7 @@ Then ask Scott where to start. Do NOT begin work until he answers.
 - Architecture / commands / how the engine works -> `docs/agent-guides/architecture.md`
 - Decisions / why X -> `docs/adr/`
 - Narrative / lessons / limitations -> `JOURNAL.md`
-- Full prior-session detail -> `docs/SESSION_LOG_2026-05-31_full.md`
+- Full prior-session detail (handoffs + session log) -> Drive: `health-prototype/archive` (off-repo)
 - Subagent-audit + code-review method -> `docs/AGENT_AUDIT_METHOD.md`
 - Token-frugal tool patterns -> `docs/TOOLS_CHEAT_SHEET.md`
 - Other project (clinical scribe) -> `SOVEREIGN_SCRIBE_SALVAGE.md`
