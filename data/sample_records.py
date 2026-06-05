@@ -714,3 +714,64 @@ FREETEXT_EXPECTED_RECORDS_SYNONYMS: list[dict] = [
         ],
     },
 ]
+
+# ---------------------------------------------------------------------------
+# Relative-date anchoring (ADR 0013) — OPT-IN fixtures. resolve_relative must be
+# set explicitly; reference_date (the encounter/document date) is the anchor. The
+# note exercises every bucket:
+#   - an EXPLICIT-date line (proves explicit output is unchanged in relative mode),
+#   - "N weeks ago" -> resolved against the anchor,
+#   - "since <date>" -> absolute, needs no anchor,
+#   - a leading frequency token -> surfaced + cited, NEVER given an invented date.
+# Anchor = 2026-03-15; "3 weeks ago" -> 2026-02-22 (-21 days). source_span and
+# date_span are CHARACTER OFFSETS into the whole note (end exclusive), hand-verified
+# against the literal below (total length 109, trailing newline included). The note
+# literal and these offsets are two statements of one truth; if either drifts,
+# tests/test_extract.py fails.
+# ---------------------------------------------------------------------------
+FREETEXT_RELATIVE_NOTE: str = (
+    "Patient: EXAMPLE-009\n"
+    "2026-03-15 poor sleep.\n"
+    "3 weeks ago poor sleep.\n"
+    "since 2026-02-01 chest pain.\n"
+    "q2wk sleep.\n"
+)
+
+FREETEXT_RELATIVE_REFERENCE_DATE: str = "2026-03-15"  # the anchor (encounter date)
+
+FREETEXT_EXPECTED_RECORDS_RELATIVE: list[dict] = [
+    {
+        "id": "EXAMPLE-009",
+        "entries": [
+            # Explicit-date line — identical shape to strict mode (no annotation).
+            {"date": "2026-03-15", "item": "poor sleep", "source_span": [32, 42]},
+            # "3 weeks ago" resolved against the 2026-03-15 anchor (-21 days).
+            {
+                "date": "2026-02-22",
+                "item": "poor sleep",
+                "source_span": [56, 66],
+                "date_kind": "relative",
+                "date_phrase": "3 weeks ago",
+                "date_span": [44, 55],
+            },
+            # "since <date>" is absolute — the anchor is not needed.
+            {
+                "date": "2026-02-01",
+                "item": "chest pain",
+                "source_span": [85, 95],
+                "date_kind": "relative",
+                "date_phrase": "since 2026-02-01",
+                "date_span": [68, 84],
+            },
+            # Leading frequency token — surfaced + cited, NEVER an invented date.
+            {
+                "date": "",
+                "item": "sleep",
+                "source_span": [102, 107],
+                "date_kind": "frequency",
+                "date_phrase": "q2wk",
+                "date_span": [97, 101],
+            },
+        ],
+    },
+]

@@ -57,12 +57,24 @@ Last updated: 2026-06-05
   exemption + gazetteer-anchored fuzzy). Engine + its 90 tests untouched; suite now **144** (self-test 6+7).
   **CONFIRMED_USER_SIDE** — Scott ran it on his own laptop (2026-06-05); all results came back as expected.
   ADR 0012; liability framing RESEARCH_ONLY.
+- **Relative-date anchoring — IMPLEMENTED on `claude/dazzling-shannon-jPWz2` (ADR 0013; draft PR #26; NOT yet on `main`).**
+  Opt-in (`resolve_relative`, default off → strict slices byte-for-byte), conservative: resolves only
+  explicitly-anchored relatives ("3 weeks ago", "since <date>") against the line/`reference_date`; partial
+  ("March 2026") and frequency ("q2wk") are surfaced **cited but undated**; an anchorless relative is left
+  **unresolved**, never guessed. Additive provenance fields only — `recurrence.py` + its 90 tests untouched.
+  `make check` green (**159 tests**, self-test 6+10, ruff). Awaiting CONFIRMED_USER_SIDE.
+- **Counsel-verification checklist — NEW doc on the same branch (resolves ADR 0011's "counsel-verify" loop; RESEARCH_ONLY).**
+  `docs/COUNSEL_VERIFICATION_CHECKLIST.md`: the ordered counsel path (two tracks; Expert Determination; FDA
+  non-device memo; Q-Sub/513(g); pilot gate), the verified **FDA Jan-2026** findings (twice-refreshed; March =
+  Town Hall; criterion 3→4), the HIPAA **date-shift = Expert Determination, NOT Safe Harbor** distinction, the
+  BH-roadmap read, and a **deferred** list of ADR 0009 fixes (not applied until counsel — Scott's call).
 
 ## Open loops
 - [x] All 4 rules + v1 matching + combined report merged to `main`.
 - [x] `docs/adr/` running log (0001 tool-call, 0002 report arch, 0003 co-occurrence,
       0004 `--report-v1`, 0005 doc/harness reconciliation, 0006 AGENTS.md source-of-truth,
-      **0007 cadence-change rule**, 0008 free-text kickoff, 0009 legal grounding, 0010 rename).
+      **0007 cadence-change rule**, 0008 free-text kickoff, 0009 legal grounding, 0010 rename,
+      0011 compliance/market audit, 0012 matching modes, **0013 relative-date anchoring**).
 - [x] Doc/harness stack salvaged off `spec-jm3Ck` and merged to `main` via PR #7.
 - [x] Stale branches retired: only `main` + active working branches remain on origin.
 - [x] **PR #6 resolved**: back-end bits (`CONTRIBUTING.md`, `docs/PUBLISH_CHECKLIST.md`,
@@ -118,6 +130,13 @@ Last updated: 2026-06-05
       **behavioral health**; the product shape is a pull-based, EHR-embedded "pre-visit pattern
       digest," every line cited. **Open for Scott:** counsel-verify the legal claims before any
       real-PHI use; decide whether the BH-digest direction reshapes the roadmap.
+      **(2026-06-05, branch `claude/dazzling-shannon-jPWz2`):** the counsel-verify sub-part now has a
+      written path — `docs/COUNSEL_VERIFICATION_CHECKLIST.md` (draft PR #26) — incl. deferred ADR 0009
+      fixes (date-shift = Expert Determination, not Safe Harbor). BH-roadmap decision still Scott's.
+- [ ] **Relative-date anchoring (ADR 0013) — IMPLEMENTED on `claude/dazzling-shannon-jPWz2` (draft PR #26).**
+      Opt-in, conservative; default off == strict byte-for-byte; resolves explicitly-anchored relatives,
+      surfaces partial/frequency/unresolved cited-but-undated; engine + 90 tests untouched. `make check`
+      green (**159 tests**, self-test 6+10, ruff). Awaiting CONFIRMED_USER_SIDE; not yet on `main`.
 - [x] **Free-text slice 2 — matching modes + merge-safety guards (ADR 0012) — MERGED (PR #25).** `extract.py`
       gained an explicit, must-be-chosen `MatchConfig`: **strict** (default = slice-1 behavior) / **synonyms** /
       **fuzzy** / **both**. Fuzzy is guarded (domain-agnostic affix-antonym detector + look-alike
@@ -139,14 +158,18 @@ Both planned engine increments are MERGED to `main`:
    (Scott ran it on his own laptop, 2026-06-05 — all results came back as expected). Synonym/fuzzy matching
    shipped as explicit, **must-be-chosen, guarded** modes (strict/synonyms/fuzzy/both) — affix-antonym detector
    + look-alike denylist + drug-name exemption + gazetteer-anchored fuzzy; strict default == slice 1, byte-for-byte.
-6. **NEXT pick (open — Scott's call):** relative-date anchoring, or multi-patient notes — framed by the
-   **behavioral-health "pre-visit pattern digest"** direction (see open loops + Drive `audit-2026-06-05/`).
-   Treat the free-text extractor as the regulated boundary.
+6. ~~**Relative-date anchoring**~~ — DONE this session (ADR 0013; branch `claude/dazzling-shannon-jPWz2`,
+   draft PR #26): opt-in, conservative, default-off byte-for-byte; explicitly-anchored relatives resolve,
+   partial/frequency/unresolved surfaced cited-but-undated. Awaiting CONFIRMED_USER_SIDE; not yet on `main`.
+7. **NEXT pick (open — Scott's call):** multi-patient notes (specced fail-closed in ADR 0013 /
+   `COUNSEL_VERIFICATION_CHECKLIST.md`), or mid-line temporal expressions / partial-date normalization —
+   framed by the **behavioral-health "pre-visit pattern digest"** direction. Treat the free-text extractor
+   as the regulated boundary.
 
 ## Key facts
-- Branch: `main` is current (5 rules + free-text slices 1–2, **144 tests**; post
-  #1/#3/#4/#7/#8/#9/#10/#13/#15–#25). Free-text **slice 1** (PR #20), the librarian-rule rename (PR #21),
-  the session/audit docs (#22–#24), and free-text **slice 2** matching modes (PR #25, ADR 0012) are all MERGED.
+- Branch: `main` has 5 rules + free-text slices 1–2, **144 tests** (post #1–#25). Active dev branch
+  **`claude/dazzling-shannon-jPWz2`** (draft PR #26) carries: the STATUS/ADR-0012 reconcile, **relative-date
+  anchoring** (ADR 0013, opt-in) and `docs/COUNSEL_VERIFICATION_CHECKLIST.md` — **159 tests**, not yet on `main`.
   `claude/hopeful-albattani-sYkkR` is merged via #25 (retire-able).
   Per-session history + the free-text/legal-grounding design + the 2026 compliance/market audit live
   in Drive `health-prototype/` (`archive` + `freetext-design` + `audit-2026-06-05`).
