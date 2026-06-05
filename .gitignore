@@ -20,3 +20,6 @@ screenshots/
 raw/
 raw_evidence/
 evidence/raw/
+# Generated HTML report (report_html.py --demo); regenerate, never commit
+report_demo.html
+*.report.html

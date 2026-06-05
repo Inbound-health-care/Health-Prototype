@@ -68,13 +68,19 @@ Last updated: 2026-06-05
   non-device memo; Q-Sub/513(g); pilot gate), the verified **FDA Jan-2026** findings (twice-refreshed; March =
   Town Hall; criterion 3→4), the HIPAA **date-shift = Expert Determination, NOT Safe Harbor** distinction, the
   BH-roadmap read, and a **deferred** list of ADR 0009 fixes (not applied until counsel — Scott's call).
+- **UI slice 1 — self-contained HTML report (ADR 0014; same branch / draft PR #26; NOT on `main`).**
+  `report_html.py` (pure stdlib, no deps, no network): the source note with cited spans highlighted
+  (item `source_span` + relative-date `date_span`) beside the `run_report` findings; click a finding →
+  highlight its cited source. Grayscale-only, document order, banned-words-clean — the librarian rule
+  holds in the view. `python report_html.py --demo`. The clinician-facing **pre-visit digest** is being
+  mocked in **Figma** (design-first, separate from the repo).
 
 ## Open loops
 - [x] All 4 rules + v1 matching + combined report merged to `main`.
 - [x] `docs/adr/` running log (0001 tool-call, 0002 report arch, 0003 co-occurrence,
       0004 `--report-v1`, 0005 doc/harness reconciliation, 0006 AGENTS.md source-of-truth,
       **0007 cadence-change rule**, 0008 free-text kickoff, 0009 legal grounding, 0010 rename,
-      0011 compliance/market audit, 0012 matching modes, **0013 relative-date anchoring**).
+      0011 compliance/market audit, 0012 matching modes, **0013 relative-date anchoring**, **0014 HTML report view**).
 - [x] Doc/harness stack salvaged off `spec-jm3Ck` and merged to `main` via PR #7.
 - [x] Stale branches retired: only `main` + active working branches remain on origin.
 - [x] **PR #6 resolved**: back-end bits (`CONTRIBUTING.md`, `docs/PUBLISH_CHECKLIST.md`,
@@ -137,6 +143,10 @@ Last updated: 2026-06-05
       Opt-in, conservative; default off == strict byte-for-byte; resolves explicitly-anchored relatives,
       surfaces partial/frequency/unresolved cited-but-undated; engine + 90 tests untouched. `make check`
       green (**159 tests**, self-test 6+10, ruff). Awaiting CONFIRMED_USER_SIDE; not yet on `main`.
+- [ ] **UI slice 1 — HTML report view (ADR 0014) — IMPLEMENTED on `claude/dazzling-shannon-jPWz2` (draft PR #26).**
+      `report_html.py`: dependency-free single-file HTML (cited spans ↔ surfaced patterns, click-to-highlight);
+      grayscale / document-order / banned-words-clean (librarian rule in the view). `make check` green
+      (**167 tests**, self-test 6+10, ruff). Figma clinician-digest mock in progress. Awaiting CONFIRMED_USER_SIDE.
 - [x] **Free-text slice 2 — matching modes + merge-safety guards (ADR 0012) — MERGED (PR #25).** `extract.py`
       gained an explicit, must-be-chosen `MatchConfig`: **strict** (default = slice-1 behavior) / **synonyms** /
       **fuzzy** / **both**. Fuzzy is guarded (domain-agnostic affix-antonym detector + look-alike
@@ -161,16 +171,19 @@ Both planned engine increments are MERGED to `main`:
 6. ~~**Relative-date anchoring**~~ — DONE this session (ADR 0013; branch `claude/dazzling-shannon-jPWz2`,
    draft PR #26): opt-in, conservative, default-off byte-for-byte; explicitly-anchored relatives resolve,
    partial/frequency/unresolved surfaced cited-but-undated. Awaiting CONFIRMED_USER_SIDE; not yet on `main`.
-7. **NEXT pick (open — Scott's call):** multi-patient notes (specced fail-closed in ADR 0013 /
-   `COUNSEL_VERIFICATION_CHECKLIST.md`), or mid-line temporal expressions / partial-date normalization —
-   framed by the **behavioral-health "pre-visit pattern digest"** direction. Treat the free-text extractor
-   as the regulated boundary.
+7. ~~**UI slice 1 — HTML report view**~~ — DONE this session (ADR 0014; branch `claude/dazzling-shannon-jPWz2`,
+   draft PR #26): dependency-free self-contained HTML making provenance visible (cited spans ↔ findings);
+   librarian rule holds in the view. Clinician-facing pre-visit digest being mocked in Figma. Awaiting CONFIRMED_USER_SIDE.
+8. **NEXT pick (open — Scott's call):** multi-patient notes (specced fail-closed in ADR 0013 /
+   `COUNSEL_VERIFICATION_CHECKLIST.md`), mid-line temporal expressions / partial-date normalization, or
+   building out the digest UI from the Figma mock — framed by the **behavioral-health "pre-visit pattern
+   digest"** direction. Treat the free-text extractor as the regulated boundary.
 
 ## Key facts
 - Branch: `main` has 5 rules + free-text slices 1–2, **144 tests** (post #1–#25). Active dev branch
   **`claude/dazzling-shannon-jPWz2`** (draft PR #26) carries: the STATUS/ADR-0012 reconcile, **relative-date
-  anchoring** (ADR 0013, opt-in) and `docs/COUNSEL_VERIFICATION_CHECKLIST.md` — **159 tests**, not yet on `main`.
-  `claude/hopeful-albattani-sYkkR` is merged via #25 (retire-able).
+  anchoring** (ADR 0013), `docs/COUNSEL_VERIFICATION_CHECKLIST.md`, and **UI slice 1** — `report_html.py`
+  (ADR 0014) — **167 tests**, not yet on `main`. `claude/hopeful-albattani-sYkkR` is merged via #25 (retire-able).
   Per-session history + the free-text/legal-grounding design + the 2026 compliance/market audit live
   in Drive `health-prototype/` (`archive` + `freetext-design` + `audit-2026-06-05`).
 - Spec (contract): Drive `BUILD_SPEC_RecurrenceDetection_v0_2026-05-30.md`
