@@ -1,74 +1,68 @@
 # STATUS — health-prototype
 
 _The front door. Read this first, update it last. One source of "where am I."_
-Last updated: 2026-05-31
+Last updated: 2026-06-04
 
 ## Current state
 - **Engine: 4 surfacing rules on `main`, 68 tests green, `ruff` clean.**
   `detect_recurrence` / `detect_gap` / `detect_frequency` / `detect_cooccurrence`
   + v1 opt-in matching (normalize / synonyms / fuzzy) + router/registry combined
-  report (`--report` v0 and `--report-v1`). All merged — PRs #1, #3, #4, and #7
-  (doc/harness salvage + Tier-1/Tier-3 split).
-- **This branch (`claude/quirky-brahmagupta-P0H4b`) — back-end / workflow hardening
-  (PR #8, ready for review). ENGINE CODE FROZEN this phase** (Scott: fix all back-end/workflow
-  things before changing any code). Done so far: toolchain audit, handoff-loss
+  report (`--report` v0 and `--report-v1`). All merged — PRs #1, #3, #4, #7, #8.
+- **Back-end / workflow hardening — MERGED (PR #8).** Toolchain audit, handoff-loss
   guard (live), a drift sweep correcting STATUS + the cold-start handoff, a new
   **CI lint gate** (ruff, pinned 0.15.8) + `make check`, and the back-end hygiene
   extracted from PR #6 (CONTRIBUTING / PUBLISH_CHECKLIST / `.gitignore`).
-  CI green on PR #8 (3.10–3.13).
+- **Control-doc hardening (PR #9, `claude/control-docs-hardening`) — rebased on main, ready for review.**
+  `AGENTS.md` as the engine-agnostic **source of truth** (2026 AGENTS.md standard);
+  `CLAUDE.md` slimmed to a pointer + Claude-specific notes (no content lost);
+  `SECURITY_AND_TOOL_POLICY.md` (Drive doctrine + OWASP / least-privilege),
+  `LOAD_TRACE_TEMPLATE.md` (+ hook wiring), `PROJECT_MAP.md`; AGENTS.md-first load
+  order (`LOAD.md` + `repo-onboard`). Relies on main's existing `make check`.
+  Docs-only — engine untouched. See ADR 0006.
 - Repo on **`Inbound-health-care/health-prototype`** (org on Team).
   **Branch protection ACTIVE** on `main` (4 `test` checks + up-to-date +
   conversation resolution + linear history + no-bypass; required approvals 0).
-  **FOLLOW-UP for Scott:** the new `lint` CI check is not yet a *required* check —
+  **FOLLOW-UP for Scott:** the `lint` CI check is not yet a *required* check —
   add it to branch protection (GitHub Settings → Branches) to gate merges on it.
 
 ## Open loops
 - [x] All 4 rules + v1 matching + combined report merged to `main`.
-- [x] `docs/adr/` running log (0001 tool-call, 0002 report arch, 0003
-      co-occurrence, 0004 `--report-v1`, **0005 doc/harness reconciliation**).
+- [x] `docs/adr/` running log (0001 tool-call, 0002 report arch, 0003 co-occurrence,
+      0004 `--report-v1`, 0005 doc/harness reconciliation, **0006 AGENTS.md source-of-truth**).
 - [x] Doc/harness stack salvaged off `spec-jm3Ck` and merged to `main` via PR #7.
-- [x] Stale branches retired: only `main` + the active working branch remain on
-      origin (`spec-jm3Ck` and `coderabbitai/utg/379a87a` are gone).
-- [x] **PR #6 resolved** (Scott: extract back-end bits, defer code): brought
-      `CONTRIBUTING.md`, `docs/PUBLISH_CHECKLIST.md`, `make check`, and the
-      `.gitignore` secret/output hygiene into PR #8; **closed PR #6** to avoid a
-      stale, duplicated draft. **PR #5 closed earlier** as its duplicate.
-- [ ] **DEFERRED to the code phase** (the engine bit of PR #6, fully specified):
-      `VERSION = "0.4.0"` + a `--version` flag printing
-      `Health-Prototype recurrence engine 0.4.0` + `tests/test_cli.py`. Re-add
-      cleanly when engine code unfreezes (README already lists `make check`; add
-      the `--version` line then).
-- [ ] Pick the next build increment (below) — AFTER the back-end pass is signed off.
-- [x] **Toolchain audit** (`docs/TOOLCHAIN_AUDIT_2026-05-31.md`): the managed web
-      env pre-installs the 2026 stack (pytest 9 / ruff 0.15.8 / mypy 1.19 / uv 0.8);
-      coverage/bandit/ty are `uvx`-on-demand. Added optional Makefile targets
-      (`tools`/`typecheck`/`fmt-check`/`fmt`/`cov`/`security`) + a hook tool line.
-      Engine stays pure-stdlib — all dev-only, additive.
-- [x] **Two SURFACED capability flags — DECIDED leave-as-is (Scott, 2026-05-31):**
-      mypy's unguarded-Optional at `recurrence.py:501` stays a noted flag (no runtime
-      bug; tests green); `ruff format` (would rewrite 10/12 files) NOT applied — keep
-      hand-formatting. `make typecheck` / `make fmt-check` preview either anytime.
-- [x] **pygame — dropped** (Scott, 2026-05-31): out-of-scope for this stdlib repo;
-      not added. Nothing in the repo references it.
-- [x] **Handoff-loss guard — LIVE** (so a local-only handoff can't vanish again, as
-      the AuditAndBuild one did): `/handoff` commits+pushes by default, and the `Stop`
-      hook `.claude/hooks/stop_handoff_guard.py` (registered in `.claude/settings.json`,
-      Scott OK'd 2026-05-31) refuses to end a session while a `*handoff*.md` is
-      uncommitted. Narrow scope (excludes `.claude/`), fail-open, loop-safe.
+- [x] Stale branches retired: only `main` + active working branches remain on origin.
+- [x] **PR #6 resolved**: back-end bits (`CONTRIBUTING.md`, `docs/PUBLISH_CHECKLIST.md`,
+      `make check`, `.gitignore` hygiene) brought into PR #8; **PR #6 closed**, **PR #5 closed**.
+- [ ] **Control-doc hardening (PR #9)** — AGENTS.md source of truth + slim CLAUDE.md +
+      SECURITY_AND_TOOL_POLICY + LOAD_TRACE + PROJECT_MAP + ADR 0006. Rebased on main
+      (took main's Makefile; relies on its `make check`). Docs-only; needs review/CI.
+- [ ] **DEFERRED to the code phase** (the engine bit of PR #6): `VERSION = "0.4.0"`
+      + a `--version` flag printing `Health-Prototype recurrence engine 0.4.0`
+      + `tests/test_cli.py`. Re-add when engine code unfreezes.
+- [x] **Toolchain audit** (`docs/TOOLCHAIN_AUDIT_2026-05-31.md`): managed web env
+      pre-installs the 2026 stack (pytest 9 / ruff 0.15.8 / mypy 1.19 / uv 0.8);
+      coverage/bandit/ty `uvx`-on-demand. Optional Makefile targets added; engine
+      stays pure-stdlib (all dev-only, additive).
+- [x] **Capability flags — leave-as-is (Scott, 2026-05-31):** mypy unguarded-Optional
+      at `recurrence.py:501` noted (no runtime bug; tests green); `ruff format` NOT
+      applied — keep hand-formatting. Preview via `make typecheck` / `make fmt-check`.
+- [x] **pygame — dropped** (Scott, 2026-05-31): out-of-scope for this stdlib repo.
+- [x] **Handoff-loss guard — LIVE**: `/handoff` commits+pushes by default; the `Stop`
+      hook `.claude/hooks/stop_handoff_guard.py` refuses to end a session while a
+      `*handoff*.md` is uncommitted. Narrow scope, fail-open, loop-safe.
 
-## Next step — pick one
-A 5th rule is still a **drop-in**: append one `Expert(name, detect_x, format_x)`
-to `EXPERTS` and it joins `--report` automatically.
+## Next step — decided order (engine code phase)
+A 5th rule is a **drop-in**: append one `Expert(name, detect_x, format_x)` to
+`EXPERTS` and it joins `--report` automatically. Scott's order:
 1. **Co-occurrence within a window** — opt-in `window_days` so "together" means
-   "within N days," not just the same date (the deferred v1 extension of rule #4).
-2. **Cadence change** — interval shifts (e.g. monthly -> weekly).
-3. **Free-text extraction** (big) — narrative note -> structured item + date.
-   It may surface "3x over 4 weeks + dates" but must NEVER label it "caution" —
-   the firewall holds; the clinician judges.
+   "within N days," not just the same date (extends rule #4). **DO FIRST.**
+2. **Cadence change** — interval shifts (e.g. monthly -> weekly); new rule #5,
+   ISI-ratio method (no FFT/ML). **DO SECOND.**
+3. ~~Free-text extraction~~ — deferred for now (Scott).
 
 ## Key facts
-- Branch: `claude/quirky-brahmagupta-P0H4b`  (base `main`, post-merge of #1/#3/#4/#7)
+- Branch: `claude/control-docs-hardening` (PR #9; base `main`, post #1/#3/#4/#7/#8)
 - Spec (contract): Drive `BUILD_SPEC_RecurrenceDetection_v0_2026-05-30.md`
-- Quick check: `make test` · `python recurrence.py --self-test`
-- Tier-1 rules + firewall: **`CLAUDE.md`**.
-  Engine detail (commands / architecture / hard rules): **`docs/agent-guides/architecture.md`**.
+- Quick check: `make check` · `make test` · `python recurrence.py --self-test`
+- Source of truth: **`AGENTS.md`** (rules + firewall); `CLAUDE.md` = Claude-specific pointer.
+  Engine detail (commands / architecture / counts): **`docs/agent-guides/architecture.md`**.

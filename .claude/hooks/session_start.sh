@@ -8,8 +8,10 @@ set -u
 echo "=== health-prototype session start ==="
 
 # 1. Orientation: point the fresh instance at the durable docs FIRST.
-echo "READ FIRST: STATUS.md (where am I / next), then CLAUDE.md (rules + firewall)."
+echo "READ FIRST: AGENTS.md (source of truth: rules + firewall), then CLAUDE.md (Claude-specific), then STATUS.md (state)."
 echo "Core rule: librarian-not-interpreter — surface/count/cite, never interpret."
+echo "Policy: read SECURITY_AND_TOOL_POLICY.md before any write/delete/install/send."
+echo "Emit a LOAD TRACE now — template: LOAD_TRACE_TEMPLATE.md."
 
 # 2. Verify the toolchain works (pure stdlib, no install needed).
 if command -v python3 >/dev/null 2>&1; then
