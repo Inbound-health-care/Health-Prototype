@@ -4,7 +4,7 @@ _The front door. Read this first, update it last. One source of "where am I."_
 Last updated: 2026-06-05
 
 ## Current state
-- **Engine: 5 surfacing rules on `main`, 117 tests green (engine 90 + free-text extract 27), `ruff` clean.**
+- **Engine: 5 surfacing rules on `main`, 144 tests green (engine 90 + free-text slice-1 27 + matching-modes 27), `ruff` clean.**
   `detect_recurrence` / `detect_gap` / `detect_frequency` / `detect_cooccurrence`
   (opt-in `window_days`) / `detect_cadence_change` + v1 opt-in matching (normalize /
   synonyms / fuzzy) + router/registry combined report (`--report` v0 and `--report-v1`).
@@ -51,6 +51,12 @@ Last updated: 2026-06-05
   repo-wide: the surface/don't-interpret rule is **the librarian rule**, the HIPAA PHI layer is
   **the allowlist**, and the evidence-level rule is **the research gate**. Term-only + a staleness
   sweep reconciling docs to `main` = 117; no behavior change.
+- **Free-text extraction — slice 2 (matching modes) MERGED (PR #25, squash; `claude/hopeful-albattani-sYkkR`).**
+  `extract.py` gains an explicit `MatchConfig`: **strict** (default == slice-1, byte-for-byte) / **synonyms** /
+  **fuzzy** / **both**, with always-on merge-safety guards (affix-antonym detector + LASA denylist + drug-name
+  exemption + gazetteer-anchored fuzzy). Engine + its 90 tests untouched; suite now **144** (self-test 6+7).
+  **CONFIRMED_USER_SIDE** — Scott ran it on his own laptop (2026-06-05); all results came back as expected.
+  ADR 0012; liability framing RESEARCH_ONLY.
 
 ## Open loops
 - [x] All 4 rules + v1 matching + combined report merged to `main`.
@@ -112,13 +118,13 @@ Last updated: 2026-06-05
       **behavioral health**; the product shape is a pull-based, EHR-embedded "pre-visit pattern
       digest," every line cited. **Open for Scott:** counsel-verify the legal claims before any
       real-PHI use; decide whether the BH-digest direction reshapes the roadmap.
-- [ ] **Free-text slice 2 — matching modes + merge-safety guards (ADR 0012).** `extract.py` gains an
-      explicit, must-be-chosen `MatchConfig`: **strict** (default = slice-1 behavior) / **synonyms** /
+- [x] **Free-text slice 2 — matching modes + merge-safety guards (ADR 0012) — MERGED (PR #25).** `extract.py`
+      gained an explicit, must-be-chosen `MatchConfig`: **strict** (default = slice-1 behavior) / **synonyms** /
       **fuzzy** / **both**. Fuzzy is guarded (domain-agnostic affix-antonym detector + look-alike
       denylist + drug-name exemption) and anchored to the gazetteer; affix-antonym synonyms are refused;
-      vocabulary stays domain-agnostic/minimal (callers supply their own). On
-      `claude/hopeful-albattani-sYkkR`, **draft PR (pending)**; `make check` green (**144 tests**,
-      self-test 6+7, ruff). Liability framing RESEARCH_ONLY. Awaiting CONFIRMED_USER_SIDE.
+      vocabulary stays domain-agnostic/minimal (callers supply their own). Merged off
+      `claude/hopeful-albattani-sYkkR`; `make check` green (**144 tests**, self-test 6+7, ruff). Liability
+      framing RESEARCH_ONLY. **CONFIRMED_USER_SIDE** (Scott ran it on his own laptop, 2026-06-05 — all results as expected).
 
 ## Next step — decided order (engine code phase)
 Both planned engine increments are MERGED to `main`:
@@ -129,20 +135,19 @@ Both planned engine increments are MERGED to `main`:
    de-identified/shifted dates (default 0); `extract.py` front-end (allowlist gazetteer +
    explicit-date regex + char-offset `source_span`) → canonical records → the existing 5 rules,
    untouched. ADR 0008 → IMPLEMENTED_UNVERIFIED.
-5. **Free-text slice 2 — matching modes — IMPLEMENTED (ADR 0012; branch `claude/hopeful-albattani-sYkkR`,
-   draft PR pending):** synonym/fuzzy matching shipped as explicit, **must-be-chosen, guarded** modes
-   (strict/synonyms/fuzzy/both) — affix-antonym detector + look-alike denylist + drug-name exemption +
-   gazetteer-anchored fuzzy; vocabulary domain-agnostic/minimal (callers supply their own). Strict
-   default == slice 1, byte-for-byte. `make check` green (144 tests). Awaiting CONFIRMED_USER_SIDE.
-   **NEXT pick:** relative-date anchoring, or multi-patient notes — framed by the
+5. ~~**Free-text slice 2 — matching modes**~~ — DONE, **MERGED (PR #25; ADR 0012)**; **CONFIRMED_USER_SIDE**
+   (Scott ran it on his own laptop, 2026-06-05 — all results came back as expected). Synonym/fuzzy matching
+   shipped as explicit, **must-be-chosen, guarded** modes (strict/synonyms/fuzzy/both) — affix-antonym detector
+   + look-alike denylist + drug-name exemption + gazetteer-anchored fuzzy; strict default == slice 1, byte-for-byte.
+6. **NEXT pick (open — Scott's call):** relative-date anchoring, or multi-patient notes — framed by the
    **behavioral-health "pre-visit pattern digest"** direction (see open loops + Drive `audit-2026-06-05/`).
    Treat the free-text extractor as the regulated boundary.
 
 ## Key facts
-- Branch: `main` is current (5 rules, **117 tests**; post #1/#3/#4/#7/#8/#9/#10/#13/#15–#18/#20/#21).
-  Free-text **slice 1** (PR #20) and the librarian-rule rename + staleness audit (PR #21) are MERGED.
-  Active dev branch `claude/hopeful-albattani-sYkkR` carries free-text **slice 2** matching modes
-  (ADR 0012; **144 tests**) — draft PR pending, not yet on `main`.
+- Branch: `main` is current (5 rules + free-text slices 1–2, **144 tests**; post
+  #1/#3/#4/#7/#8/#9/#10/#13/#15–#25). Free-text **slice 1** (PR #20), the librarian-rule rename (PR #21),
+  the session/audit docs (#22–#24), and free-text **slice 2** matching modes (PR #25, ADR 0012) are all MERGED.
+  `claude/hopeful-albattani-sYkkR` is merged via #25 (retire-able).
   Per-session history + the free-text/legal-grounding design + the 2026 compliance/market audit live
   in Drive `health-prototype/` (`archive` + `freetext-design` + `audit-2026-06-05`).
 - Spec (contract): Drive `BUILD_SPEC_RecurrenceDetection_v0_2026-05-30.md`
