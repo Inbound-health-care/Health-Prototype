@@ -39,3 +39,4 @@ it — history is the point.
 - [0008 — Free-text extraction: design kickoff (deterministic front-end)](0008-freetext-extraction-kickoff.md)
 - [0009 — Legal grounding: the allowlist + the librarian rule (HIPAA Safe Harbor + FDA Non-Device CDS)](0009-legal-grounding.md)
 - [0010 — Rename the "firewall" metaphor (librarian rule / allowlist / research gate)](0010-rename-firewall-metaphor.md)
+- [0011 — FDA CDS guidance refreshed (Jan 2026) + 2026 compliance audit](0011-fda-cds-guidance-refresh-2026.md)

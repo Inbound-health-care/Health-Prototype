@@ -104,6 +104,14 @@ Last updated: 2026-06-05
 - [x] **Terminology rename — "firewall" → librarian rule / allowlist / research gate (ADR 0010).**
       Repo-wide term sweep + staleness audit (reconciled to `main` = 117 post-#20). Term-only;
       no behavior change; `make check` green.
+- [ ] **Compliance + market audit — RESEARCH_ONLY (2026-06-05).** Cited research in Drive
+      `health-prototype/audit-2026-06-05/` (HIPAA/FDA mitigations, 2026 customer problems, strategy).
+      Repo got **ADR 0011**: FDA refreshed the 2022 CDS guidance twice in Jan 2026 → supersedes ADR
+      0009's FDA cite (the four Non-Device criteria still hold). Strategic read: the white-space is a
+      verifiable, non-interpreting "librarian layer" *under* the generative incumbents; the wedge is
+      **behavioral health**; the product shape is a pull-based, EHR-embedded "pre-visit pattern
+      digest," every line cited. **Open for Scott:** counsel-verify the legal claims before any
+      real-PHI use; decide whether the BH-digest direction reshapes the roadmap.
 
 ## Next step — decided order (engine code phase)
 Both planned engine increments are MERGED to `main`:
@@ -115,13 +123,15 @@ Both planned engine increments are MERGED to `main`:
    explicit-date regex + char-offset `source_span`) → canonical records → the existing 5 rules,
    untouched. ADR 0008 → IMPLEMENTED_UNVERIFIED.
    **NEXT = free-text slice 2 (Scott's pick):** opt-in fuzzy/synonym gazetteer matching (reuse
-   the engine's v1 layer); relative-date anchoring; or multi-patient notes.
+   the engine's v1 layer); relative-date anchoring; or multi-patient notes — now framed by the
+   **behavioral-health "pre-visit pattern digest"** direction from the 2026 audit (see open loops +
+   Drive `audit-2026-06-05/`). Treat the free-text extractor as the regulated boundary.
 
 ## Key facts
 - Branch: `main` is current (5 rules, **117 tests**; post #1/#3/#4/#7/#8/#9/#10/#13/#15–#18/#20/#21).
   Free-text **slice 1** (PR #20) and the librarian-rule rename + staleness audit (PR #21) are MERGED.
-  Per-session history + the free-text/legal-grounding design live in Drive `health-prototype/`
-  (`archive` + `freetext-design`).
+  Per-session history + the free-text/legal-grounding design + the 2026 compliance/market audit live
+  in Drive `health-prototype/` (`archive` + `freetext-design` + `audit-2026-06-05`).
 - Spec (contract): Drive `BUILD_SPEC_RecurrenceDetection_v0_2026-05-30.md`
 - Quick check: `make check` · `make test` · `python recurrence.py --self-test` · `python extract.py --self-test`
 - Source of truth: **`AGENTS.md`** (rules + the librarian rule); `CLAUDE.md` = Claude-specific pointer.

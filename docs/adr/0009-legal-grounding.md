@@ -8,6 +8,10 @@ on this. The engine-side librarian rule this *formalizes* is already
 CONFIRMED_ASSISTANT_SIDE (the BANNED-word tests).
 **Type:** Architecture / legal grounding
 
+> **Update (2026-06-05): superseded in part by [ADR 0011](0011-fda-cds-guidance-refresh-2026.md)** —
+> FDA refreshed the CDS guidance (Jan 2026), so the FDA citation below (the 2022 guidance) is updated
+> there. The four Non-Device criteria still hold; the rest of this ADR stands.
+
 ## Context
 `recurrence.py` calls it "the design principle and the legal grounding in one,"
 but the *legal* half was asserted, never written down or cited. Scott asked to ground it
