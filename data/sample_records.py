@@ -633,3 +633,56 @@ CADENCE_CHANGE_ANSWER_KEY: dict = {
     ],
     # RC2: steady ~monthly -> no flag. RC3: too few dated days -> no flag.
 }
+
+
+# ---------------------------------------------------------------------------
+# Free-text extraction front-end (extract.py, slice 1) — sample note +
+# gazetteer + hand-written oracle. Lives here, with every other answer key, so
+# the oracle is data written ONCE by hand and the test asserts agreement.
+#
+# extract.py is a FRONT-END: these records are its expected OUTPUT, then fed to
+# the SAME five rules unchanged. Stance A (strict literal): every exact, word-
+# bounded, longest-match gazetteer hit on a dated line becomes an entry, with NO
+# negation/context judgment ("chest pain" surfaces from "Denies chest pain").
+#
+# source_span values are CHARACTER OFFSETS INTO THE WHOLE NOTE (end exclusive),
+# hand-verified against the literal FREETEXT_SAMPLE_NOTE below (total length 191,
+# trailing newline included). The note literal and these offsets are two
+# statements of one truth; if either drifts, tests/test_extract.py fails.
+# ---------------------------------------------------------------------------
+FREETEXT_SAMPLE_NOTE: str = (
+    "Patient: EXAMPLE-001\n"
+    "\n"
+    "2026-01-05 Reports poor sleep x3 weeks. Denies chest pain.\n"
+    "2026-02-10 Poor sleep continues. Headache today.\n"
+    "2026-03-12 Sleep improved. Notes family history of insomnia.\n"
+)
+
+# Curated, domain-agnostic gazetteer for the sample. "poor sleep" and "sleep"
+# overlap on purpose, to exercise longest-match (poor sleep wins over sleep).
+FREETEXT_GAZETTEER: list[str] = [
+    "poor sleep",
+    "sleep",
+    "chest pain",
+    "headache",
+    "insomnia",
+]
+
+# The hand-written answer key: one record (id from the "Patient:" header) whose
+# entries are every gazetteer hit on a dated line, in document order. Items carry
+# the gazetteer's canonical spelling (so "Poor sleep" groups with "poor sleep").
+FREETEXT_EXPECTED_RECORDS: list[dict] = [
+    {
+        "id": "EXAMPLE-001",
+        "entries": [
+            {"date": "2026-01-05", "item": "poor sleep", "source_span": [41, 51]},
+            # "chest pain" surfaces despite "Denies" — Stance A carries no cue logic.
+            {"date": "2026-01-05", "item": "chest pain", "source_span": [69, 79]},
+            {"date": "2026-02-10", "item": "poor sleep", "source_span": [92, 102]},
+            {"date": "2026-02-10", "item": "headache", "source_span": [114, 122]},
+            {"date": "2026-03-12", "item": "sleep", "source_span": [141, 146]},
+            # "insomnia" surfaces despite "family history of" — Stance A.
+            {"date": "2026-03-12", "item": "insomnia", "source_span": [181, 189]},
+        ],
+    },
+]
