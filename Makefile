@@ -8,8 +8,9 @@
 test:          ## Run the full unittest suite
 	python -m unittest discover -s tests -t .
 
-selftest:      ## Run the six required spec cases
+selftest:      ## Run the six required engine spec cases + the extractor self-test
 	python recurrence.py --self-test
+	python extract.py --self-test
 
 demo:          ## Run every surfacing-rule demo
 	python recurrence.py --demo
@@ -19,7 +20,7 @@ demo:          ## Run every surfacing-rule demo
 	python recurrence.py --demo-cooccurrence
 
 lint:          ## Byte-compile sanity check (+ ruff if installed)
-	python -m compileall -q recurrence.py tests data scripts
+	python -m compileall -q recurrence.py extract.py tests data scripts
 	-ruff check .
 
 check:         ## Standard local verification gate: tests + self-test + lint

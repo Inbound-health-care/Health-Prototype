@@ -68,10 +68,13 @@ Safe-Harbor date-truncation to year (breaks the engine); NegEx/ConText assertion
 - **Now:** this ADR + a `SECURITY_AND_TOOL_POLICY.md` note land; the full cited write-up is
   in Drive; `make check` stays green (docs-only). The rule→definition mapping is reviewable
   in `FIREWALL_legal_grounding.md`.
-- **On free-text slice 1 (future):** three tests prove it — (a) a note containing a
-  name/SSN/MRN yields NO record for those (allowlist holds); (b) absolute dates are
-  shifted/relativized with intervals preserved; (c) the BANNED-word tests, now citing their
-  FDA criterion, still pass. Only then does the legal grounding move from RESEARCH_ONLY
-  toward CONFIRMED.
+- **Free-text slice 1 (IMPLEMENTED_UNVERIFIED, this branch):** the three predicted tests now
+  exist and pass in `tests/test_extract.py` — (a) `TestAllowlistFirewall`: a note with a
+  name/SSN/MRN yields entries only for gazetteer concepts (allowlist holds; the `Patient:`
+  value is the record id, never scanned); (b) `TestDateShiftDeIdentification`: a consistent
+  per-record shift moves every date equally and preserves intervals; (c)
+  `TestFirewallBannedWords`: the front-end output carries no banned interpretive words (and
+  emits no `context_cue`). The legal-grounding *citations* themselves stay RESEARCH_ONLY
+  pending primary-source + counsel review.
 - **Standing:** primary-source + counsel verification of the HIPAA/FDA claims before any
   real-PHI deployment.
