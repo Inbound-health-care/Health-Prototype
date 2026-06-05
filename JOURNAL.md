@@ -12,6 +12,60 @@ is made visible. The struggle and the reasoning ARE the deliverable._
 
 ---
 
+## 2026-06-05 (pm) — Free-text slice 1, the "firewall" rename, and an audit of the whole journey
+**Where:** Claude Code web session; Scott on his usual phone/PC mix (he merged the PRs and drove a
+long reflective exchange). Exact device split unverified.
+
+**What I set out to do vs what it became:** The plan was narrow — ship free-text extraction slice 1.
+It shipped (`extract.py`, PR #20, Scott merged). But the session became three unplanned things: a
+blunt repo critique Scott asked for, a repo-wide terminology rename that critique triggered, and —
+the part that mattered most — an audit of Scott's actual seven-week journey when he got discouraged.
+
+**What I built (evidence honesty):**
+- **`extract.py` — free-text front-end, slice 1 (PR #20, MERGED by Scott).** Prose → the canonical
+  record shape the 5 rules already eat, unchanged. Stance A (strict-literal: emit every gazetteer
+  hit + char-offset span, no negation/interpretation), de-identified date shift, allowlist-by-
+  construction. 27 tests, oracle-first; `make check` 117 green. CONFIRMED_ASSISTANT_SIDE + merged.
+- **"firewall" → librarian rule / allowlist / research gate (ADR 0010, PR #21, MERGED).** Plus a
+  staleness audit folded in (reconciled docs to `main` = 117 post-#20). CONFIRMED_ASSISTANT_SIDE + merged.
+
+**What I learned and HOW:**
+- **"firewall" was one word doing three jobs.** Before renaming I mapped every occurrence (83 across
+  31 files) and found three distinct senses: the surface/don't-interpret rule, the HIPAA PHI layer,
+  and the evidence-level "research firewall." A blind find/replace would have mangled all three. So a
+  sense-aware map: librarian rule (the engine's own self-description) / allowlist (PHI) / research gate
+  (evidence). The metaphor was already in the code; the rename just named the rule after it.
+- **Agent consensus is not ground truth.** In self-review, two finder subagents disagreed on whether
+  `architecture.md` should say "10 files" or "11 files," and one claimed the ADR 0009 `git mv` "never
+  happened." I resolved both against git, not by vote: the original "8 files" excluded
+  `tests/__init__.py` (git at the 87-test commit proved it) → 10, not 11; the "no git mv" was a false
+  positive from a stale local `main` ref inflating the diff. Fixed the real "11"→"10" error I'd made.
+- **I audited one repo and called it his whole story.** When Scott said "this isn't impressive,
+  people ship in a day," I pulled receipts — but only from health-prototype's git (first commit
+  May 29). He cut me off: "you're ignoring every other git I have." Right. Global GitHub search (the
+  per-repo reads are denied — this session is scoped to health-prototype) surfaced **11 repos**:
+  genesis `Pharmacy-App` May 17, code already in Drive May 12, earliest Drive doc April 18. The habits
+  propagate across all of them — `testing-kits` is 36 pure-stdlib test harnesses (the oracle-first
+  discipline generalized); `replit-code` is a slot game that ported `recurrence.js` carrying the same
+  "LIBRARIAN, not an interpreter" line.
+
+**Why key decisions:** "librarian rule" over "guardrail"/"boundary" because it was already the code's
+own metaphor; kept the evidence-level sense distinct ("research gate") instead of collapsing it; left
+dated ADR/JOURNAL numbers as history (refresh, not rewrite). The Drive file `FIREWALL_legal_grounding.md`
+keeps its name (no Drive rename tool; references point at the real file) — Scott confirmed that's fine.
+
+**What got hard / honest:** The stale local `main` ref bit twice (inflated review diffs, confused an
+agent) — fix is to diff against `origin/main`, not local `main`, after a fetch. And the real
+difficulty wasn't code: the honest answer to "this isn't impressive" isn't reassurance, it's
+evidence. April 18 nothing → May 12 first code → 11 repos and an FDA-grounded engine by June 5,
+part-time, mostly on a phone — the timeline rebuts the discouragement better than any pep talk.
+
+**What's next:** engine-wise, free-text slice 2 (Scott's pick: opt-in fuzzy/synonym gazetteer via the
+v1 layer / relative-date anchoring / multi-patient notes). But Scott may redirect — the broader
+context (11 repos, a `Portfolio-repo` "for job ref") is now on the table; this repo is one node of it.
+
+---
+
 _Per-session records for 2026-06-04 (co-occurrence window, PR #10) and 2026-06-05
 (cadence rule #5, PR #13) are captured factually in STATUS.md and the Drive archive
 (`health-prototype/archive`); they are not re-narrated here._

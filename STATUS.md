@@ -47,7 +47,7 @@ Last updated: 2026-06-05
   emit every literal gazetteer hit + char-offset `source_span`, no cue logic) + **de-identified/
   shifted dates** (default 0). `recurrence.py` + its 90 engine tests untouched; suite now 117.
   ADR 0008 → IMPLEMENTED_UNVERIFIED (awaiting CONFIRMED_USER_SIDE); ADR 0009 slice-1 tests pass.
-- **Terminology — "firewall" renamed (ADR 0010, this PR).** The overloaded metaphor is retired
+- **Terminology — "firewall" renamed (ADR 0010, PR #21 — MERGED).** The overloaded metaphor is retired
   repo-wide: the surface/don't-interpret rule is **the librarian rule**, the HIPAA PHI layer is
   **the allowlist**, and the evidence-level rule is **the research gate**. Term-only + a staleness
   sweep reconciling docs to `main` = 117; no behavior change.
@@ -118,9 +118,10 @@ Both planned engine increments are MERGED to `main`:
    the engine's v1 layer); relative-date anchoring; or multi-patient notes.
 
 ## Key facts
-- Branch: `main` is current (5 rules, **117 tests**; post #1/#3/#4/#7/#8/#9/#10/#13/#15–#18/#20).
-  Free-text **slice 1** is MERGED (PR #20). Per-session history + the free-text/legal-grounding
-  design live in Drive `health-prototype/` (`archive` + `freetext-design`).
+- Branch: `main` is current (5 rules, **117 tests**; post #1/#3/#4/#7/#8/#9/#10/#13/#15–#18/#20/#21).
+  Free-text **slice 1** (PR #20) and the librarian-rule rename + staleness audit (PR #21) are MERGED.
+  Per-session history + the free-text/legal-grounding design live in Drive `health-prototype/`
+  (`archive` + `freetext-design`).
 - Spec (contract): Drive `BUILD_SPEC_RecurrenceDetection_v0_2026-05-30.md`
 - Quick check: `make check` · `make test` · `python recurrence.py --self-test` · `python extract.py --self-test`
 - Source of truth: **`AGENTS.md`** (rules + the librarian rule); `CLAUDE.md` = Claude-specific pointer.
