@@ -12,6 +12,46 @@ is made visible. The struggle and the reasoning ARE the deliverable._
 
 ---
 
+## 2026-06-05 (later) — Off-the-record compliance + market audit (research, held off-disk until asked)
+**Where:** Claude Code web session, same day. Scott ran an intense audit/brainstorm and explicitly
+held ALL logging until the end — so this landed as one batch, not live.
+
+**What it was:** a scoped audit on three fronts — (1) how to *close the risk vectors* (compliance
+HIPAA+FDA, correctness/trust, adoption/liability), (2) the 2026 customer-facing problems for
+clinicians + health systems, (3) a brainstorm on direction. Full cited research lives in Drive
+`health-prototype/audit-2026-06-05/` (RESEARCH_ONLY, web-sourced, not counsel-verified).
+
+**What I learned and HOW:**
+- **The repo had a stale legal cite.** ADR 0009 leaned on FDA's *2022* CDS guidance; the research
+  surfaced FDA **superseded it twice in Jan 2026** (eases criterion 3, raises AI-CDS transparency).
+  Logged as **ADR 0011**, superseding 0009's FDA citation. The four Non-Device criteria still hold —
+  the librarian rule is still the right shape.
+- **The strategic read:** every incumbent (ambient scribes, summarizers, Epic-native AI) is
+  *generative and interpretive*, and that's their weakness — clinical-summary hallucination 23–64%,
+  omissions on ~31% of summaries; trust hinges on source traceability. The white-space is the
+  *verifiable, non-interpreting "librarian layer"* underneath them. The wedge is **behavioral
+  health** (Scott's domain; measurement-based care works but <20% uptake; interpretation is most
+  legally fraught there). A shape that satisfies adoption + alert-fatigue + FDA criterion 4 at once:
+  a **pull-based, EHR-embedded "pre-visit pattern digest," every line cited.**
+- **The liability reality (the un-fun part):** "surface-only, never interpret" lowers FDA-device and
+  standard-of-care exposure but is **not tort immunity** — under the learned-intermediary doctrine, a
+  *false pattern* surfaced and acted on can still reach the vendor. The librarian rule is necessary,
+  not sufficient; the UX has to carry it (base rates not bare flags, one-click dismiss, no causal phrasing).
+- **Scott's insight, sharpened:** heavy regulation isn't greyer, it's *brighter-lined* — a
+  **bright-line rule** ("strip these 18 identifiers") vs a **standard** ("minimum necessary"). He
+  built by instinct on the bright-line side of the greyest question (interpret vs surface) — the
+  right survival move in a regulated domain.
+
+**Why Drive not repo:** RESEARCH_ONLY + web-sourced; per the lean-out + research-gate conventions the
+deep cited write-up lives off-repo (like `freetext-design`), with only this coda + ADR 0011 + a STATUS
+direction note in the tree. Vocabulary banked this session: Non-Device CDS, Expert Determination, BAA,
+automation bias, alert fatigue, learned-intermediary doctrine, bright-line rule vs standard, MBC.
+
+**What got hard / honest:** the breadth is a lot for one small project — but that's the tax on seeing
+the whole board, and the point of the session was to *learn the process and leave a map*, not to ship.
+
+**What's next:** engine — free-text slice 2 (unchanged), now framed by the behavioral-health digest
+direction. Standing: counsel-verify the legal claims (ADR 0009/0011) before any real-PHI use.
 ## 2026-06-05 (pm, coda) — FB post help + the golden-rules lesson
 **Where:** same web session, after the handoff (PR #22) merged. Side tasks, no engine change.
 
