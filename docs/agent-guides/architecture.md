@@ -8,29 +8,32 @@ sync with the code (see ADR 0005)._
 ## Commands
 - Tests:     `python -m unittest discover -s tests -t .`  (or `make test`)
 - Self-test: `python recurrence.py --self-test`  (the six spec cases)
-- Demos:     `python recurrence.py --demo | --demo-v1 | --demo-gap | --demo-frequency | --demo-cooccurrence | --demo-cooccurrence-window`
+- Demos:     `python recurrence.py --demo | --demo-v1 | --demo-gap | --demo-frequency | --demo-cooccurrence | --demo-cooccurrence-window | --demo-cadence-change`
 - Report:    `python recurrence.py --report | --report-v1`  (all rules, one per-record view; v0 / v1 matching)
 - Lint:      `make lint`   ·   Clean: `make clean`
 
 ## Engine map
-- `recurrence.py` — the engine. Shared core `_record_groups` feeds 4 rules:
+- `recurrence.py` — the engine. Shared core `_record_groups` feeds 5 rules:
   `detect_recurrence` (same item >=N), `detect_gap` (returns after absence),
   `detect_frequency` (clusters in a window), `detect_cooccurrence` (two items on
-  the same dates >=N, or within an opt-in `window_days`). Hits: `RecurrenceHit` / `GapHit` / `FrequencyHit` /
-  `CooccurrenceHit`, each carrying `variants` (the audit trail of merged
+  the same dates >=N, or within an opt-in `window_days`), `detect_cadence_change`
+  (inter-event spacing shifted by `ratio` across a Pettitt-located pivot). Hits:
+  `RecurrenceHit` / `GapHit` / `FrequencyHit` / `CooccurrenceHit` /
+  `CadenceChangeHit`, each carrying `variants` (the audit trail of merged
   spellings; co-occurrence carries one per item: `variants_a` / `variants_b`).
 - Matching is layered and OPT-IN (defaults = exact v0): `normalize` (case/space),
   `synonyms` (human-declared map), `fuzzy_cutoff` (difflib typos). Every merge
   cites originals in `variants`; `format_*` appends `[merged: ...]`.
 - Router: an `EXPERTS` registry (one `Expert` per rule) + `run_report` route the
-  4 rules into a per-record `RecordReport`; `format_report` renders it. Adding a
-  5th rule = appending one `Expert`. The report lists only — it never ranks.
-- `data/sample_records.py` — invented records + SEVEN hand-written answer keys
+  5 rules into a per-record `RecordReport`; `format_report` renders it. Adding a
+  6th rule = appending one `Expert`. The report lists only — it never ranks.
+- `data/sample_records.py` — invented records + EIGHT hand-written answer keys
   (`ANSWER_KEY`, `ANSWER_KEY_V1`, `GAP_ANSWER_KEY`, `FREQUENCY_ANSWER_KEY`,
-  `CO_OCCURRENCE_ANSWER_KEY`, `REPORT_ANSWER_KEY`, `REPORT_ANSWER_KEY_V1`) +
-  `SYNONYMS`.
+  `CO_OCCURRENCE_ANSWER_KEY`, `REPORT_ANSWER_KEY`, `REPORT_ANSWER_KEY_V1`,
+  `CADENCE_CHANGE_ANSWER_KEY`) + `SYNONYMS`. Cadence has a dedicated
+  `CADENCE_CHANGE_RECORDS` set (kept out of `SAMPLE_RECORDS` to avoid key ripple).
 - `data/RECORDS.md` — data dictionary (field rationale, per-record reasons).
-- `tests/` — 7 files, 74 tests. CI: `.github/workflows/ci.yml` (Py 3.10-3.13).
+- `tests/` — 8 files, 87 tests. CI: `.github/workflows/ci.yml` (Py 3.10-3.13).
 
 ## Engine hard rules
 - Pure Python STDLIB ONLY at runtime. No network egress. Zero real PHI, ever.

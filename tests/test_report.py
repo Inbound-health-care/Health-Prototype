@@ -24,6 +24,7 @@ from data.sample_records import (
 )
 from recurrence import (
     EXPERTS,
+    detect_cadence_change,
     detect_cooccurrence,
     detect_frequency,
     detect_gap,
@@ -90,6 +91,12 @@ class TestReportComposition(unittest.TestCase):
             _group_hits_by_record(detect_cooccurrence(SAMPLE_RECORDS)),
         )
 
+    def test_cadence_change_findings_match_detect_cadence_change(self):
+        self.assertEqual(
+            self._findings_for("cadence_change"),
+            _group_hits_by_record(detect_cadence_change(SAMPLE_RECORDS)),
+        )
+
 
 class TestReportOrderingAndOmission(unittest.TestCase):
     """Deterministic ordering; clean records omitted; empties handled."""
@@ -153,6 +160,7 @@ class TestReportFirewall(unittest.TestCase):
         self.assertIn("[gap]", text)
         self.assertIn("[frequency]", text)
         self.assertIn("[cooccurrence]", text)
+        self.assertIn("[cadence_change]", text)
 
 
 class TestReportV1(unittest.TestCase):
@@ -192,7 +200,7 @@ class TestExpertRegistry(unittest.TestCase):
     def test_registry_order_and_names(self):
         self.assertEqual(
             [e.name for e in EXPERTS],
-            ["recurrence", "gap", "frequency", "cooccurrence"],
+            ["recurrence", "gap", "frequency", "cooccurrence", "cadence_change"],
         )
 
     def test_names_unique(self):

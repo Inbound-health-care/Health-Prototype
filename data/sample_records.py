@@ -495,7 +495,11 @@ REPORT_ANSWER_KEY: dict = {
     "R012": [("recurrence", "blood pressure elevated")],
     "R013": [("recurrence", "housing instability")],
     "R015": [("recurrence", "depression"), ("gap", "depression")],
-    "R016": [("recurrence", "chest pain"), ("frequency", "chest pain")],
+    "R016": [
+        ("recurrence", "chest pain"),
+        ("frequency", "chest pain"),
+        ("cadence_change", "chest pain"),
+    ],
     "R017": [
         ("recurrence", "knee pain"),
         ("recurrence", "poor sleep"),
@@ -537,7 +541,11 @@ REPORT_ANSWER_KEY_V1: dict = {
     "R013": [("recurrence", "housing instability")],
     "R014": [("recurrence", "blood pressure")],        # v1: fuzzy merges the typo
     "R015": [("recurrence", "depression"), ("gap", "depression")],
-    "R016": [("recurrence", "chest pain"), ("frequency", "chest pain")],
+    "R016": [
+        ("recurrence", "chest pain"),
+        ("frequency", "chest pain"),
+        ("cadence_change", "chest pain"),
+    ],
     "R017": [
         ("recurrence", "knee pain"),
         ("recurrence", "poor sleep"),
@@ -553,4 +561,75 @@ REPORT_ANSWER_KEY_V1: dict = {
     ],
     "R019": [("recurrence", "cough"), ("recurrence", "rash")],
     "R020": [("recurrence", "back pain"), ("recurrence", "edema")],
+}
+
+
+# ---------------------------------------------------------------------------
+# Cadence-change rule (#5) — a dedicated record set + hand-written oracle.
+# ---------------------------------------------------------------------------
+#
+# Kept SEPARATE from SAMPLE_RECORDS so the new rule's MatchesAnswerKey test does
+# not ripple the other per-rule keys (recurrence / gap / frequency / report).
+# The rule still runs over SAMPLE_RECORDS in --report (where R016's real
+# 10d -> 79d shift surfaces); these records isolate the cadence behaviour with
+# clean intervals so the oracle can be read by eye.
+CADENCE_CHANGE_RECORDS: list[dict] = [
+    # RC1 — clean tightening: ~30-day (monthly) spacing then ~7-day (weekly).
+    # Intervals [30, 30, 30, 7, 7, 7]; the single change point is the 4th visit
+    # (2026-04-01), where the weekly cadence begins.
+    {
+        "id": "RC1",
+        "entries": [
+            {"date": "2026-01-01", "item": "insulin"},
+            {"date": "2026-01-31", "item": "insulin"},
+            {"date": "2026-03-02", "item": "insulin"},
+            {"date": "2026-04-01", "item": "insulin"},
+            {"date": "2026-04-08", "item": "insulin"},
+            {"date": "2026-04-15", "item": "insulin"},
+            {"date": "2026-04-22", "item": "insulin"},
+        ],
+    },
+    # RC2 — steady-cadence negative control: ~monthly throughout, no shift.
+    {
+        "id": "RC2",
+        "entries": [
+            {"date": "2026-01-05", "item": "checkup"},
+            {"date": "2026-02-05", "item": "checkup"},
+            {"date": "2026-03-05", "item": "checkup"},
+            {"date": "2026-04-05", "item": "checkup"},
+            {"date": "2026-05-05", "item": "checkup"},
+            {"date": "2026-06-05", "item": "checkup"},
+        ],
+    },
+    # RC3 — too-few control: 3 dated occurrences (< min_occurrences=4) plus an
+    # undated one (excluded), so the interval series is never long enough to flag.
+    {
+        "id": "RC3",
+        "entries": [
+            {"date": "2026-01-01", "item": "review"},
+            {"item": "review"},  # undated -> excluded
+            {"date": "2026-02-01", "item": "review"},
+            {"date": "2026-05-01", "item": "review"},
+        ],
+    },
+]
+
+# Hand-written oracle for detect_cadence_change(CADENCE_CHANGE_RECORDS). Only RC1
+# flags: median interval ~30d -> ~7d (ratio ~4.3) at the 2026-04-01 pivot. RC2
+# (steady) and RC3 (too few dated days) surface nothing. Per record the shape is
+# (item, before_interval, after_interval, pivot_date, [every dated day]).
+CADENCE_CHANGE_ANSWER_KEY: dict = {
+    "RC1": [
+        (
+            "insulin",
+            30,
+            7,
+            "2026-04-01",
+            [
+                "2026-01-01", "2026-01-31", "2026-03-02", "2026-04-01",
+                "2026-04-08", "2026-04-15", "2026-04-22",
+            ],
+        ),
+    ],
+    # RC2: steady ~monthly -> no flag. RC3: too few dated days -> no flag.
 }
