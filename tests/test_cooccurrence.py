@@ -149,5 +149,107 @@ class TestCooccurrenceFirewall(unittest.TestCase):
         self.assertIn('"bp" [merged: "BP", "bp"]', line)
 
 
+class TestCooccurrenceWindow(unittest.TestCase):
+    """Opt-in window_days: "together" = within N days. Default 0 == same date.
+
+    Built on inline fixtures (like test_undated_entries...) so no global oracle
+    changes are needed; the default-path oracle is already asserted by
+    TestCooccurrenceMatchesAnswerKey, which proves window_days=0 == today's v0.
+    """
+
+    @staticmethod
+    def _near_pair() -> dict:
+        # x and y are 2 days apart on two occasions; they never share a date.
+        return {
+            "id": "RW",
+            "entries": [
+                {"date": "2026-01-10", "item": "x"},
+                {"date": "2026-01-12", "item": "y"},
+                {"date": "2026-02-10", "item": "x"},
+                {"date": "2026-02-12", "item": "y"},
+            ],
+        }
+
+    def test_default_window_zero_is_exact_same_date(self):
+        # Default (window 0) is same-date only: a near-but-never-same pair is silent.
+        self.assertEqual(detect_cooccurrence([self._near_pair()]), [])
+
+    def test_within_window_surfaces(self):
+        hits = detect_cooccurrence([self._near_pair()], window_days=2)
+        self.assertEqual(len(hits), 1)
+        h = hits[0]
+        self.assertEqual((h.item_a, h.item_b), ("x", "y"))
+        self.assertEqual(h.count, 2)
+        # Cited dates are item_a's (the anchor) qualifying days.
+        self.assertEqual(h.dates, ["2026-01-10", "2026-02-10"])
+
+    def test_just_outside_window_silent(self):
+        # The two days are 2 apart; a 1-day window excludes them.
+        self.assertEqual(detect_cooccurrence([self._near_pair()], window_days=1), [])
+
+    def test_window_respects_min_count(self):
+        rec = {
+            "id": "RW",
+            "entries": [
+                {"date": "2026-01-10", "item": "x"},
+                {"date": "2026-01-12", "item": "y"},
+            ],
+        }
+        # One within-window day -> below the default min_count of 2.
+        self.assertEqual(detect_cooccurrence([rec], window_days=2), [])
+        hits = detect_cooccurrence([rec], window_days=2, min_count=1)
+        self.assertEqual(len(hits), 1)
+        self.assertEqual(hits[0].count, 1)
+        self.assertEqual(hits[0].dates, ["2026-01-10"])
+
+    def test_anchor_is_item_a_asymmetric(self):
+        # beta has three dated days near alpha's two; the count is anchored on
+        # item_a (alpha, canonically first), so it is 2 (alpha's days), not 3.
+        rec = {
+            "id": "RW",
+            "entries": [
+                {"date": "2026-01-10", "item": "alpha"},
+                {"date": "2026-01-20", "item": "alpha"},
+                {"date": "2026-01-11", "item": "beta"},
+                {"date": "2026-01-12", "item": "beta"},
+                {"date": "2026-01-21", "item": "beta"},
+            ],
+        }
+        hits = detect_cooccurrence([rec], window_days=2)
+        self.assertEqual(len(hits), 1)
+        h = hits[0]
+        self.assertEqual((h.item_a, h.item_b), ("alpha", "beta"))
+        self.assertEqual(h.count, 2)
+        self.assertEqual(h.dates, ["2026-01-10", "2026-01-20"])
+
+    def test_undated_excluded_under_window(self):
+        rec = {
+            "id": "RW",
+            "entries": [
+                {"item": "x"},  # undated -> no date to match
+                {"date": "2026-01-10", "item": "x"},
+                {"date": "2026-01-11", "item": "y"},
+            ],
+        }
+        hits = detect_cooccurrence([rec], window_days=2, min_count=1)
+        self.assertEqual(len(hits), 1)
+        self.assertEqual(hits[0].count, 1)
+        self.assertEqual(hits[0].dates, ["2026-01-10"])
+
+    def test_window_days_negative_raises(self):
+        with self.assertRaises(ValueError):
+            detect_cooccurrence(SAMPLE_RECORDS, window_days=-1)
+
+    def test_windowed_line_is_count_only(self):
+        # A line from a cross-day (windowed) match still cites provenance only.
+        hits = detect_cooccurrence([self._near_pair()], window_days=2)
+        self.assertTrue(hits)
+        for hit in hits:
+            line = format_cooccurrence_hit(hit)
+            self.assertIn("co-occurred", line)
+            for banned in TestCooccurrenceFirewall.BANNED:
+                self.assertNotIn(banned, line.lower(), f"banned word: {banned!r}")
+
+
 if __name__ == "__main__":
     unittest.main()
