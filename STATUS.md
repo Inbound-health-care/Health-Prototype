@@ -112,6 +112,13 @@ Last updated: 2026-06-05
       **behavioral health**; the product shape is a pull-based, EHR-embedded "pre-visit pattern
       digest," every line cited. **Open for Scott:** counsel-verify the legal claims before any
       real-PHI use; decide whether the BH-digest direction reshapes the roadmap.
+- [ ] **Free-text slice 2 — matching modes + merge-safety guards (ADR 0012).** `extract.py` gains an
+      explicit, must-be-chosen `MatchConfig`: **strict** (default = slice-1 behavior) / **synonyms** /
+      **fuzzy** / **both**. Fuzzy is guarded (domain-agnostic affix-antonym detector + look-alike
+      denylist + drug-name exemption) and anchored to the gazetteer; affix-antonym synonyms are refused;
+      vocabulary stays domain-agnostic/minimal (callers supply their own). On
+      `claude/hopeful-albattani-sYkkR`, **draft PR (pending)**; `make check` green (**144 tests**,
+      self-test 6+7, ruff). Liability framing RESEARCH_ONLY. Awaiting CONFIRMED_USER_SIDE.
 
 ## Next step — decided order (engine code phase)
 Both planned engine increments are MERGED to `main`:
@@ -122,14 +129,20 @@ Both planned engine increments are MERGED to `main`:
    de-identified/shifted dates (default 0); `extract.py` front-end (allowlist gazetteer +
    explicit-date regex + char-offset `source_span`) → canonical records → the existing 5 rules,
    untouched. ADR 0008 → IMPLEMENTED_UNVERIFIED.
-   **NEXT = free-text slice 2 (Scott's pick):** opt-in fuzzy/synonym gazetteer matching (reuse
-   the engine's v1 layer); relative-date anchoring; or multi-patient notes — now framed by the
-   **behavioral-health "pre-visit pattern digest"** direction from the 2026 audit (see open loops +
-   Drive `audit-2026-06-05/`). Treat the free-text extractor as the regulated boundary.
+5. **Free-text slice 2 — matching modes — IMPLEMENTED (ADR 0012; branch `claude/hopeful-albattani-sYkkR`,
+   draft PR pending):** synonym/fuzzy matching shipped as explicit, **must-be-chosen, guarded** modes
+   (strict/synonyms/fuzzy/both) — affix-antonym detector + look-alike denylist + drug-name exemption +
+   gazetteer-anchored fuzzy; vocabulary domain-agnostic/minimal (callers supply their own). Strict
+   default == slice 1, byte-for-byte. `make check` green (144 tests). Awaiting CONFIRMED_USER_SIDE.
+   **NEXT pick:** relative-date anchoring, or multi-patient notes — framed by the
+   **behavioral-health "pre-visit pattern digest"** direction (see open loops + Drive `audit-2026-06-05/`).
+   Treat the free-text extractor as the regulated boundary.
 
 ## Key facts
 - Branch: `main` is current (5 rules, **117 tests**; post #1/#3/#4/#7/#8/#9/#10/#13/#15–#18/#20/#21).
   Free-text **slice 1** (PR #20) and the librarian-rule rename + staleness audit (PR #21) are MERGED.
+  Active dev branch `claude/hopeful-albattani-sYkkR` carries free-text **slice 2** matching modes
+  (ADR 0012; **144 tests**) — draft PR pending, not yet on `main`.
   Per-session history + the free-text/legal-grounding design + the 2026 compliance/market audit live
   in Drive `health-prototype/` (`archive` + `freetext-design` + `audit-2026-06-05`).
 - Spec (contract): Drive `BUILD_SPEC_RecurrenceDetection_v0_2026-05-30.md`

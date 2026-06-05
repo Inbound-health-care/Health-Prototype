@@ -40,3 +40,4 @@ it — history is the point.
 - [0009 — Legal grounding: the allowlist + the librarian rule (HIPAA Safe Harbor + FDA Non-Device CDS)](0009-legal-grounding.md)
 - [0010 — Rename the "firewall" metaphor (librarian rule / allowlist / research gate)](0010-rename-firewall-metaphor.md)
 - [0011 — FDA CDS guidance refreshed (Jan 2026) + 2026 compliance audit](0011-fda-cds-guidance-refresh-2026.md)
+- [0012 — Free-text matching modes (strict/synonyms/fuzzy/both) + merge-safety guards](0012-freetext-matching-modes.md)
