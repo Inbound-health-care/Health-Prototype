@@ -26,6 +26,7 @@ import argparse
 import datetime
 import difflib
 import itertools
+import statistics
 import sys
 from collections import Counter
 from collections.abc import Callable
@@ -131,6 +132,25 @@ class CooccurrenceHit:
         ``+`` is provenance ("these two co-occurred"), never "these two relate".
         """
         return f"{self.item_a} + {self.item_b}"
+
+
+@dataclass
+class CadenceChangeHit:
+    """One surfaced cadence change: an item whose inter-event spacing shifted.
+
+    Provenance only: the record, the item, the typical interval (in days) before
+    and after a single located change point, the pivot date the new spacing
+    begins, and every dated occurrence. It states that the spacing changed and
+    where — never whether faster or slower is good or bad, and never why.
+    """
+
+    record_id: str
+    item: str
+    before_interval: int
+    after_interval: int
+    pivot_date: str
+    dates: list[str] = field(default_factory=list)
+    variants: list[str] = field(default_factory=list)
 
 
 # ---------------------------------------------------------------------------
@@ -687,6 +707,131 @@ def format_cooccurrence_hit(hit: CooccurrenceHit, with_record: bool = True) -> s
 
 
 # ---------------------------------------------------------------------------
+# Fifth rule — cadence change (an item's inter-event spacing shifted)
+# ---------------------------------------------------------------------------
+
+
+def _pettitt_pivot(values: list[float]) -> int:
+    """Locate the single most likely change point in a sequence (Pettitt, 1979).
+
+    Returns the split ``k`` (1 <= k < n) that maximizes Pettitt's rank statistic
+    ``|U_k|``, where ``U_k`` sums ``sign(values[i] - values[j])`` over ``i < k``
+    and ``j >= k`` — a nonparametric test for a shift in central tendency. Ties
+    are broken by the larger before/after median ratio, then the earliest ``k``.
+    Pure rank arithmetic: deterministic, no distribution assumption.
+    """
+    n = len(values)
+    best_k, best_key = 1, None
+    for k in range(1, n):
+        u = 0
+        for i in range(k):
+            for j in range(k, n):
+                diff = values[i] - values[j]
+                u += (diff > 0) - (diff < 0)
+        before_med = statistics.median(values[:k])
+        after_med = statistics.median(values[k:])
+        ratio = (
+            max(before_med / after_med, after_med / before_med)
+            if before_med and after_med
+            else 0.0
+        )
+        key = (abs(u), ratio, -k)  # max |U|, then max ratio, then earliest k
+        if best_key is None or key > best_key:
+            best_k, best_key = k, key
+    return best_k
+
+
+def detect_cadence_change(
+    records: list,
+    field: str = "item",
+    min_occurrences: int = 4,
+    ratio: float = 2.0,
+    normalize: bool = False,
+    synonyms: dict | None = None,
+    fuzzy_cutoff: float | None = None,
+) -> list[CadenceChangeHit]:
+    """Surface a cadence change: an item whose spacing between dated occurrences
+    shifted by ``ratio`` or more across a single change point.
+
+    For each item with at least ``min_occurrences`` distinct dated days, the
+    engine takes the consecutive inter-event intervals (days), locates the single
+    most likely change point with Pettitt's rank statistic, and compares the
+    median interval before vs after; when the larger-over-smaller ratio reaches
+    ``ratio`` it emits one :class:`CadenceChangeHit` citing both medians and the
+    pivot date the new spacing begins. Undated occurrences are excluded — they
+    have no interval. States that the spacing changed and where, never that
+    faster or slower means anything. Shares the same opt-in matching as the
+    other rules.
+    """
+    if min_occurrences < 2:
+        raise ValueError(f"min_occurrences must be >= 2, got {min_occurrences}")
+    if ratio <= 1.0:
+        raise ValueError(f"ratio must be > 1.0, got {ratio}")
+    _check_fuzzy_cutoff(fuzzy_cutoff)
+
+    hits: list[CadenceChangeHit] = []
+    if not records:
+        return hits
+
+    synonym_map = _build_synonym_map(synonyms, normalize)
+    for record in records:
+        record_id, groups = _record_groups(
+            record, field, synonym_map, normalize, fuzzy_cutoff
+        )
+        for key in sorted(groups):
+            occ = groups[key]
+            # Distinct dated days, chronological (one event per day; undated out).
+            days: list[tuple[datetime.date, str]] = []
+            for date, date_str in _dated_sorted(occ):
+                if not days or date != days[-1][0]:
+                    days.append((date, date_str))
+            if len(days) < min_occurrences:
+                continue
+            intervals = [
+                (days[i + 1][0] - days[i][0]).days for i in range(len(days) - 1)
+            ]
+            if len(intervals) < 2:  # need at least one interval on each side
+                continue
+            k = _pettitt_pivot(intervals)
+            before_med = statistics.median(intervals[:k])
+            after_med = statistics.median(intervals[k:])
+            if before_med <= 0 or after_med <= 0:
+                continue
+            if max(before_med / after_med, after_med / before_med) < ratio:
+                continue
+            hits.append(
+                CadenceChangeHit(
+                    record_id=record_id,
+                    item=_pick_label(occ),
+                    before_interval=round(before_med),
+                    after_interval=round(after_med),
+                    pivot_date=days[k][1],
+                    dates=[ds for _, ds in days],
+                    variants=sorted({o[1] for o in occ}),
+                )
+            )
+    return hits
+
+
+def format_cadence_change_hit(hit: CadenceChangeHit, with_record: bool = True) -> str:
+    """Render a cadence change as a single provenance-cited, neutral line.
+
+    Example:
+      Record R021: "insulin" interval changed from ~30d to ~7d at 2026-04-01 — <dates>
+
+    States the interval before and after and the date it changed; never whether
+    the change is faster/slower, accelerating, increasing, or a concern.
+    """
+    dates = ", ".join(hit.dates)
+    prefix = f"Record {hit.record_id}: " if with_record else ""
+    line = (
+        f'{prefix}"{hit.item}" interval changed from ~{hit.before_interval}d '
+        f"to ~{hit.after_interval}d at {hit.pivot_date} — {dates}"
+    )
+    return line + _merge_clause(hit.variants)
+
+
+# ---------------------------------------------------------------------------
 # Router — one dispatch over an expert registry into a per-record report
 # ---------------------------------------------------------------------------
 
@@ -708,14 +853,15 @@ class Expert:
 
 
 # Registry order IS the report's expert order: recurrence (the base lens), then
-# gap, then frequency, then co-occurrence — the order the rules were built and
-# documented in. Adding a further rule is appending one Expert here; the router
-# and the formatter need no other change.
+# gap, then frequency, then co-occurrence, then cadence change — the order the
+# rules were built and documented in. Adding a further rule is appending one
+# Expert here; the router and the formatter need no other change.
 EXPERTS: tuple[Expert, ...] = (
     Expert("recurrence", detect_recurrence, format_hit),
     Expert("gap", detect_gap, format_gap_hit),
     Expert("frequency", detect_frequency, format_frequency_hit),
     Expert("cooccurrence", detect_cooccurrence, format_cooccurrence_hit),
+    Expert("cadence_change", detect_cadence_change, format_cadence_change_hit),
 )
 
 
@@ -1034,6 +1180,22 @@ def _run_demo_cooccurrence_window() -> int:
     return 0
 
 
+def _run_demo_cadence_change() -> int:
+    """Surface cadence changes (an item's inter-event spacing shifted) across the
+    placeholder records."""
+    try:
+        from data.sample_records import SAMPLE_RECORDS
+    except ImportError:
+        SAMPLE_RECORDS = []
+    hits = detect_cadence_change(SAMPLE_RECORDS)
+    if not hits:
+        print("No cadence changes surfaced.")
+        return 0
+    for hit in hits:
+        print(format_cadence_change_hit(hit))
+    return 0
+
+
 def _run_report() -> int:
     """Surface the combined per-record report (all rules, v0 exact match)."""
     try:
@@ -1112,6 +1274,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Surface co-occurrences within a 7-day window (opt-in window_days)",
     )
     p.add_argument(
+        "--demo-cadence-change",
+        action="store_true",
+        help="Surface cadence changes (an item's interval shifted) in data/sample_records.py",
+    )
+    p.add_argument(
         "--report",
         action="store_true",
         help="Combined per-record report across all rules (v0 exact match)",
@@ -1140,6 +1307,8 @@ def main() -> int:
         return _run_demo_cooccurrence()
     if args.demo_cooccurrence_window:
         return _run_demo_cooccurrence_window()
+    if args.demo_cadence_change:
+        return _run_demo_cadence_change()
     if args.report:
         return _run_report()
     if args.report_v1:
