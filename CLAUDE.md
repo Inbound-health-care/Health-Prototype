@@ -25,6 +25,14 @@ file just points there and adds the Claude-specific bits below.
   specific PR. Never auto-merge; never merge without the per-PR ask. (Refines the
   older "Scott merges, nothing auto-merges" convention; relates to
   `SECURITY_AND_TOOL_POLICY.md` §B.)
+- **Operator knows the harness gates — stop narrating them (set 2026-06-05).** Scott
+  is aware of: the per-PR merge ask-gate; the PR webhook subscription (it delivers CI
+  *failures* + review comments, NOT CI-success or push/rebase/merge-conflict
+  transitions); and that `send_later`/auto-scheduling may be absent in a session.
+  These are intentional gates, not news. Verify state at session start if you must,
+  then act within them quietly — repeating "no send_later / webhooks won't report
+  success" every turn is the noise he asked to stop. The gate doesn't fully constrain
+  you, so stay careful; just lose the play-by-play.
 
 Everything else — operator rules, tone, the librarian rule,
 working limits, commands, where-to-find-things, scope — is in `AGENTS.md`.

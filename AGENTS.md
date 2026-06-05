@@ -28,6 +28,11 @@ disclosure) so this file cannot go stale._
   to real techniques; re-findable is fine.
 - **Token frugality:** copy/move files server-side; read+write only to synthesize
   genuinely new content.
+- **Don't re-explain known tooling as noise.** Scott already knows the safety gates
+  (CI, the per-PR merge ask, the webhook/scheduling quirks). If a caveat genuinely
+  matters, say it ONCE at session start, then drop it. We work as peers in a
+  feedback loop — flag real uncertainty or real risk, double-check at startup when
+  needed — but stop narrating the guardrails every turn.
 
 ## Working limits (true for any current model — design around these)
 - **You cannot reliably hold a rule across a long context; it worsens as the
