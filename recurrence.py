@@ -116,6 +116,11 @@ class CooccurrenceHit:
     dates: list[str] = field(default_factory=list)
     variants_a: list[str] = field(default_factory=list)
     variants_b: list[str] = field(default_factory=list)
+    # Window extension (opt-in). window_days == 0 is exact same-date (v0); when
+    # > 0, ``pairs`` holds the greedily matched (date_a, date_b, gap_days) one-to-
+    # one date pairings within the window, and ``count`` is the number of pairs.
+    window_days: int = 0
+    pairs: list[tuple[str, str, int]] = field(default_factory=list)
 
     @property
     def item(self) -> str:
@@ -510,14 +515,49 @@ def format_frequency_hit(hit: FrequencyHit, with_record: bool = True) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Fourth rule — co-occurrence (two items on the same dates)
+# Fourth rule — co-occurrence (two items on the same dates, or within a window)
 # ---------------------------------------------------------------------------
+
+
+def _match_within_window(
+    dates_a: set[str], dates_b: set[str], window_days: int
+) -> list[tuple[str, str, int]]:
+    """Greedily pair dates from two items that fall within ``window_days``.
+
+    One-to-one: each occurrence-day is used at most once, so a single date near
+    several on the other side is not double-counted. Candidates are consumed
+    smallest-gap first (ties: earlier date_a, then date_b) for determinism.
+    Unparseable dates are skipped — a gap needs two real dates — mirroring the
+    other date rules. Returns matched ``(date_a, date_b, gap_days)`` sorted
+    chronologically.
+    """
+    pa = sorted((d, s) for s in dates_a if (d := _parse_date(s)) is not None)
+    pb = sorted((d, s) for s in dates_b if (d := _parse_date(s)) is not None)
+    candidates: list[tuple[int, datetime.date, str, datetime.date, str]] = []
+    for da, sa in pa:
+        for db, sb in pb:
+            gap = abs((da - db).days)
+            if gap <= window_days:
+                candidates.append((gap, da, sa, db, sb))
+    candidates.sort(key=lambda t: (t[0], t[1], t[3]))
+    used_a: set[str] = set()
+    used_b: set[str] = set()
+    matched: list[tuple[str, str, int]] = []
+    for gap, da, sa, db, sb in candidates:
+        if sa in used_a or sb in used_b:
+            continue
+        used_a.add(sa)
+        used_b.add(sb)
+        matched.append((sa, sb, gap))
+    matched.sort(key=lambda t: (t[0], t[1]))
+    return matched
 
 
 def detect_cooccurrence(
     records: list,
     field: str = "item",
     min_count: int = 2,
+    window_days: int = 0,
     normalize: bool = False,
     synonyms: dict | None = None,
     fuzzy_cutoff: float | None = None,
@@ -531,9 +571,17 @@ def detect_cooccurrence(
     ``min_count`` emits one :class:`CooccurrenceHit` citing the shared dates.
     Undated occurrences are excluded — there is no date to share. Surfaces only:
     it reports that two items co-occurred N times, never that they are related.
+
+    ``window_days`` is OPT-IN and defaults to 0 = exact same-date (v0 behavior,
+    unchanged). When > 0, two items co-occur if their dates fall within
+    ``window_days`` of each other; dates are paired greedily one-to-one (smallest
+    gap first) so no occurrence is double-counted, and each matched pair + gap is
+    cited in ``hit.pairs``.
     """
     if min_count < 1:
         raise ValueError(f"min_count must be >= 1, got {min_count}")
+    if window_days < 0:
+        raise ValueError(f"window_days must be >= 0, got {window_days}")
     _check_fuzzy_cutoff(fuzzy_cutoff)
 
     hits: list[CooccurrenceHit] = []
@@ -559,19 +607,42 @@ def detect_cooccurrence(
                 variants_by_key[key] = sorted({o[1] for o in occ})
         # Deterministic: pairs in sorted-key order, each unordered pair once.
         for key_a, key_b in itertools.combinations(sorted(dates_by_key), 2):
-            shared = dates_by_key[key_a] & dates_by_key[key_b]
-            if len(shared) >= min_count:
-                hits.append(
-                    CooccurrenceHit(
-                        record_id=record_id,
-                        item_a=label_by_key[key_a],
-                        item_b=label_by_key[key_b],
-                        count=len(shared),
-                        dates=sorted(shared),
-                        variants_a=variants_by_key[key_a],
-                        variants_b=variants_by_key[key_b],
+            if window_days == 0:
+                # v0 exact same-date: intersect the two date sets (unchanged).
+                shared = dates_by_key[key_a] & dates_by_key[key_b]
+                if len(shared) >= min_count:
+                    hits.append(
+                        CooccurrenceHit(
+                            record_id=record_id,
+                            item_a=label_by_key[key_a],
+                            item_b=label_by_key[key_b],
+                            count=len(shared),
+                            dates=sorted(shared),
+                            variants_a=variants_by_key[key_a],
+                            variants_b=variants_by_key[key_b],
+                        )
                     )
+            else:
+                # Windowed: greedy one-to-one date pairing within window_days, so
+                # no occurrence is counted twice. count = number of matched pairs.
+                matched = _match_within_window(
+                    dates_by_key[key_a], dates_by_key[key_b], window_days
                 )
+                if len(matched) >= min_count:
+                    involved = sorted({s for pair in matched for s in pair[:2]})
+                    hits.append(
+                        CooccurrenceHit(
+                            record_id=record_id,
+                            item_a=label_by_key[key_a],
+                            item_b=label_by_key[key_b],
+                            count=len(matched),
+                            dates=involved,
+                            variants_a=variants_by_key[key_a],
+                            variants_b=variants_by_key[key_b],
+                            window_days=window_days,
+                            pairs=matched,
+                        )
+                    )
     return hits
 
 
@@ -599,12 +670,19 @@ def format_cooccurrence_hit(hit: CooccurrenceHit, with_record: bool = True) -> s
     Strictly a count of shared dates; it never says the two items are associated,
     linked, correlated, or that one explains the other.
     """
-    dates = ", ".join(hit.dates)
     prefix = f"Record {hit.record_id}: " if with_record else ""
-    line = (
-        f'{prefix}"{hit.item_a}" + "{hit.item_b}" co-occurred '
-        f"{hit.count} times — {dates}"
-    )
+    if hit.window_days > 0:
+        pairs = ", ".join(f"({a} ~ {b}: {g}d)" for a, b, g in hit.pairs)
+        line = (
+            f'{prefix}"{hit.item_a}" + "{hit.item_b}" co-occurred '
+            f"{hit.count} times within {hit.window_days} days — {pairs}"
+        )
+    else:
+        dates = ", ".join(hit.dates)
+        line = (
+            f'{prefix}"{hit.item_a}" + "{hit.item_b}" co-occurred '
+            f"{hit.count} times — {dates}"
+        )
     return line + _pair_merge_clause(hit)
 
 
@@ -939,6 +1017,23 @@ def _run_demo_cooccurrence() -> int:
     return 0
 
 
+def _run_demo_cooccurrence_window() -> int:
+    """Surface co-occurrences within a 7-day window (opt-in window_days) across
+    the records — the same lens as --demo-cooccurrence, but pairing dates that
+    fall within 7 days, not only the same day."""
+    try:
+        from data.sample_records import SAMPLE_RECORDS
+    except ImportError:
+        SAMPLE_RECORDS = []
+    hits = detect_cooccurrence(SAMPLE_RECORDS, window_days=7)
+    if not hits:
+        print("No windowed co-occurrences surfaced.")
+        return 0
+    for hit in hits:
+        print(format_cooccurrence_hit(hit))
+    return 0
+
+
 def _run_report() -> int:
     """Surface the combined per-record report (all rules, v0 exact match)."""
     try:
@@ -1012,6 +1107,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Surface co-occurrences (two items on the same dates) in data/sample_records.py",
     )
     p.add_argument(
+        "--demo-cooccurrence-window",
+        action="store_true",
+        help="Surface co-occurrences within a 7-day window (opt-in window_days)",
+    )
+    p.add_argument(
         "--report",
         action="store_true",
         help="Combined per-record report across all rules (v0 exact match)",
@@ -1038,6 +1138,8 @@ def main() -> int:
         return _run_demo_frequency()
     if args.demo_cooccurrence:
         return _run_demo_cooccurrence()
+    if args.demo_cooccurrence_window:
+        return _run_demo_cooccurrence_window()
     if args.report:
         return _run_report()
     if args.report_v1:

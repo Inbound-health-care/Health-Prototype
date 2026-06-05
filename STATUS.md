@@ -7,12 +7,12 @@ Last updated: 2026-06-04
 - **Engine: 4 surfacing rules on `main`, 68 tests green, `ruff` clean.**
   `detect_recurrence` / `detect_gap` / `detect_frequency` / `detect_cooccurrence`
   + v1 opt-in matching (normalize / synonyms / fuzzy) + router/registry combined
-  report (`--report` v0 and `--report-v1`). All merged — PRs #1, #3, #4, #7, #8.
+  report (`--report` v0 and `--report-v1`). All merged — PRs #1, #3, #4, #7, #8, #9.
 - **Back-end / workflow hardening — MERGED (PR #8).** Toolchain audit, handoff-loss
   guard (live), a drift sweep correcting STATUS + the cold-start handoff, a new
   **CI lint gate** (ruff, pinned 0.15.8) + `make check`, and the back-end hygiene
   extracted from PR #6 (CONTRIBUTING / PUBLISH_CHECKLIST / `.gitignore`).
-- **Control-doc hardening (PR #9, `claude/control-docs-hardening`) — rebased on main, ready for review.**
+- **Control-doc hardening — MERGED (PR #9).**
   `AGENTS.md` as the engine-agnostic **source of truth** (2026 AGENTS.md standard);
   `CLAUDE.md` slimmed to a pointer + Claude-specific notes (no content lost);
   `SECURITY_AND_TOOL_POLICY.md` (Drive doctrine + OWASP / least-privilege),
@@ -24,6 +24,12 @@ Last updated: 2026-06-04
   conversation resolution + linear history + no-bypass; required approvals 0).
   **FOLLOW-UP for Scott:** the `lint` CI check is not yet a *required* check —
   add it to branch protection (GitHub Settings → Branches) to gate merges on it.
+
+- **Co-occurrence window — engine increment 1 (PR pending, `claude/cooccurrence-window`).**
+  Opt-in `window_days` on `detect_cooccurrence` (default 0 = exact same-date, v0
+  unchanged); greedy one-to-one date pairing (no double-count); cites matched
+  pairs + gaps; adds `--demo-cooccurrence-window`. 74 tests on this branch (+6).
+  Engine extension — rule count stays 4.
 
 ## Open loops
 - [x] All 4 rules + v1 matching + combined report merged to `main`.
