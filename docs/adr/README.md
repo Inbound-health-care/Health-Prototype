@@ -35,3 +35,5 @@ it — history is the point.
 - [0004 — `--report-v1`: the combined report with v1 opt-in matching](0004-report-v1.md)
 - [0005 — Reconcile the stranded doc/harness stack; adopt Tier-1/Tier-3 split](0005-doc-harness-reconciliation.md)
 - [0006 — Adopt AGENTS.md as source of truth; slim CLAUDE.md; add control-doc layer](0006-agents-md-source-of-truth.md)
+- [0007 — Cadence change: the fifth surfacing rule (interval shifted)](0007-cadence-change-rule.md)
+- [0008 — Free-text extraction: design kickoff (deterministic front-end)](0008-freetext-extraction-kickoff.md)

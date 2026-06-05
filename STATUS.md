@@ -76,13 +76,19 @@ Last updated: 2026-06-05
       PROJECT_MAP / COLD_START / repo-onboard skill). Front door de-staled (COLD_START
       → 5 rules / 90 tests; PROJECT_MAP ADRs → 0001–0007; JOURNAL `(latest)` tag dropped).
       Docs-only; `make check` green.
+- [ ] **Free-text extraction — design kickoff (PR C) — RESEARCH_ONLY**: ADR 0008 +
+      Drive `health-prototype/freetext-design` (DESIGN / ORACLE / RESEARCH). No engine
+      code. **OPEN for Scott:** negation/context stance (A strict-literal vs B cue-tagged)
+      + approve the first-slice scope before any build.
 
 ## Next step — decided order (engine code phase)
 Both planned engine increments are MERGED to `main`:
 1. ~~**Co-occurrence within a window**~~ — DONE, MERGED (PR #10).
 2. ~~**Cadence change** (rule #5)~~ — DONE, MERGED (PR #13, Pettitt pivot + median-ratio).
-3. **Polish** — DONE (PR A): `--version` / `VERSION = "0.5.0"` / `tests/test_cli.py`
-   (90 tests, `make check` green). **Free-text extraction** is the next increment.
+3. **Polish** — DONE (PR A). **Free-text extraction — design kickoff IN FLIGHT (PR C,
+   RESEARCH_ONLY):** deterministic front-end design + hand-written oracle + cited
+   research in Drive `health-prototype/freetext-design`; ADR 0008 records it. Awaiting
+   Scott's go/no-go on the negation stance + first-slice scope (see ADR 0008).
 
 ## Key facts
 - Branch: `main` is current (5 rules, 90 tests; post #1/#3/#4/#7/#8/#9/#10/#13). This
