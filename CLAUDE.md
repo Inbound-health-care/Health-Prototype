@@ -19,6 +19,12 @@ file just points there and adds the Claude-specific bits below.
   - Hook `.claude/hooks/session_start.sh` — orientation + toolchain check at start.
   - Commands `.claude/commands/` — `handoff`, `drift-check`, `new-phase`,
     `audit-prompt`.
+- **Merging PRs (set 2026-06-05):** Scott controls merges. Claude MAY merge a PR
+  (GitHub MCP, squash — respecting branch protection: linear history + required
+  checks), but ONLY after asking Scott and getting his explicit OK for that
+  specific PR. Never auto-merge; never merge without the per-PR ask. (Refines the
+  older "Scott merges, nothing auto-merges" convention; relates to
+  `SECURITY_AND_TOOL_POLICY.md` §B.)
 
 Everything else — operator rules, tone, the librarian-not-interpreter firewall,
 working limits, commands, where-to-find-things, scope — is in `AGENTS.md`.
