@@ -60,6 +60,20 @@ Least-privilege rules (2026):
 - The engine has **no network egress** by design — do not add one.
 - If real PHI is ever pasted in or surfaced: STOP, do not persist it, tell Scott.
 
+### C.1 Firewall legal grounding (see ADR 0009 — NOT legal advice)
+The engine firewall is "the design principle and the legal firewall in one." Its legal
+half (web-sourced; re-confirm against primary HHS/FDA docs + counsel before any real-PHI
+use). Full cited write-up: Drive `health-prototype/freetext-design/FIREWALL_legal_grounding.md`.
+- **PHI (HIPAA Safe Harbor, 45 CFR §164.514):** free-text extraction is **allowlist** by
+  construction — only curated clinical concepts surface, so 17 of the 18 identifiers are
+  structurally un-extractable. **Dates** (identifier #3) are the one the engine needs;
+  de-identify via a **consistent per-record date shift** (intervals survive), or use on
+  identified data only for treatment by the treating provider.
+- **Interpretation (FDA Non-Device CDS, §520(o)(1)(E)):** the engine surfaces/cites and
+  makes **no recommendations**, sitting below the software-as-device line with the basis
+  fully exposed. The librarian rule (no score/rank/diagnose/recommend) is what keeps it
+  there — the moment it interprets, it risks becoming a regulated device.
+
 ## D. Source-conflict rule (what wins when sources disagree)
 Adapted from 00_CORE to this repo's reality (live code is the truth here, not a
 cloud doc). Highest wins; never silently pick — **flag the disagreement.**

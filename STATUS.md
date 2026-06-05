@@ -80,6 +80,13 @@ Last updated: 2026-06-05
       Drive `health-prototype/freetext-design` (DESIGN / ORACLE / RESEARCH). No engine
       code. **OPEN for Scott:** negation/context stance (A strict-literal vs B cue-tagged)
       + approve the first-slice scope before any build.
+- [x] **Firewall legal grounding (PR D) — DONE (RESEARCH_ONLY legal cites):** ADR 0009 +
+      `SECURITY_AND_TOOL_POLICY.md` §C.1 + Drive
+      `health-prototype/freetext-design/FIREWALL_legal_grounding.md`. Maps the firewall to
+      HIPAA Safe Harbor (45 CFR §164.514 — allowlist gazetteer; dates via consistent shift)
+      + FDA Non-Device CDS (§520(o)(1)(E) — surface/cite, no recommendations). Not legal
+      advice; re-confirm vs primary HHS/FDA + counsel before any real-PHI use. Docs-only;
+      `make check` green.
 
 ## Next step — decided order (engine code phase)
 Both planned engine increments are MERGED to `main`:
