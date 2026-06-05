@@ -7,6 +7,9 @@
 runs it. The design + research that preceded it (Drive) were RESEARCH_ONLY.
 **Type:** Architecture / kickoff
 
+**Update (2026-06-05):** slice-2 matching (synonyms/fuzzy) is specified in **ADR 0012** — explicit,
+must-be-chosen modes (strict/synonyms/fuzzy/both) + merge-safety guards.
+
 ## Context
 With the five rules + polish (ADR/PR history through #15) landed, the next increment
 Scott picked is **free-text extraction** — the long-deferred heavy one. `data/RECORDS.md`
