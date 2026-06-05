@@ -36,6 +36,10 @@ disclosure) so this file cannot go stale._
 - **No memory across sessions.** These repo files are the only persistence.
 - **"done / pushed" claims are not proof.** Verify against the real remote/state,
   not memory, before reporting completion.
+- **Without a direct pointer, the model wastes time on indirect search instead of the
+  source.** When the operator names a specific artifact (a file, a PR, a result, "my N
+  rules"), ASK for the pointer and go to ground truth FIRST — don't fan out across guesses.
+  (2026-06-05: a "golden rules" lookup took ~6 indirect fetches; the answer was one PR.)
 
 ## The librarian rule (the one rule that governs the engine)
 **Librarian, not interpreter.** Surface, count, and cite provenance — NEVER
