@@ -149,5 +149,73 @@ class TestCooccurrenceFirewall(unittest.TestCase):
         self.assertIn('"bp" [merged: "BP", "bp"]', line)
 
 
+class TestCooccurrenceWindow(unittest.TestCase):
+    """The opt-in ``window_days`` extension: two items co-occur if their dates
+    fall within N days, not only the same day. Default (0) stays exact v0."""
+
+    def test_window_zero_is_byte_identical_to_default(self):
+        # The whole point of the opt-in: window_days=0 reproduces v0 exactly.
+        self.assertEqual(
+            _reshape(detect_cooccurrence(SAMPLE_RECORDS, window_days=0)),
+            CO_OCCURRENCE_ANSWER_KEY,
+        )
+        self.assertEqual(
+            _reshape(detect_cooccurrence(SAMPLE_RECORDS, window_days=0)),
+            _reshape(detect_cooccurrence(SAMPLE_RECORDS)),
+        )
+
+    def test_near_date_pair_surfaces_within_window(self):
+        # R020: edema + back pain share 2026-01-12 (gap 0) AND are 4 days apart in
+        # March (03-18 vs 03-22). At window_days=4 that is two matched pairs -> it
+        # flags (count 2); at v0 same-date it shares only one date -> stays silent.
+        hits = detect_cooccurrence([_record("R020")], window_days=4)
+        self.assertEqual(len(hits), 1)
+        h = hits[0]
+        self.assertEqual((h.item_a, h.item_b), ("back pain", "edema"))
+        self.assertEqual(h.count, 2)
+        self.assertEqual(h.window_days, 4)
+        self.assertEqual(
+            h.pairs,
+            [("2026-01-12", "2026-01-12", 0), ("2026-03-22", "2026-03-18", 4)],
+        )
+        self.assertEqual(h.dates, ["2026-01-12", "2026-03-18", "2026-03-22"])
+
+    def test_boundary_inclusive_and_just_outside_is_silent(self):
+        # gap is exactly 4: included at window_days=4, excluded at window_days=3
+        # (only the same-date pair remains -> 1 < min_count 2 -> no hit).
+        self.assertEqual(len(detect_cooccurrence([_record("R020")], window_days=4)), 1)
+        self.assertEqual(detect_cooccurrence([_record("R020")], window_days=3), [])
+        # And v0 (same-date only) never surfaced R020 at all.
+        self.assertEqual(detect_cooccurrence([_record("R020")]), [])
+
+    def test_greedy_one_to_one_does_not_double_count(self):
+        # 'a' has one date; 'b' has two dates both within a's window. Greedy
+        # one-to-one matches a's single date to ONE of b's, not both: count 1.
+        rec = {
+            "id": "RW",
+            "entries": [
+                {"date": "2026-01-10", "item": "a"},
+                {"date": "2026-01-11", "item": "b"},
+                {"date": "2026-01-12", "item": "b"},
+            ],
+        }
+        hits = detect_cooccurrence([rec], window_days=5, min_count=1)
+        self.assertEqual(len(hits), 1)
+        self.assertEqual(hits[0].count, 1)
+        self.assertEqual(hits[0].pairs, [("2026-01-10", "2026-01-11", 1)])
+
+    def test_negative_window_days_raises(self):
+        with self.assertRaises(ValueError):
+            detect_cooccurrence(SAMPLE_RECORDS, window_days=-1)
+
+    def test_window_format_shows_window_and_stays_count_only(self):
+        hit = detect_cooccurrence([_record("R020")], window_days=4)[0]
+        line = format_cooccurrence_hit(hit)
+        self.assertIn("co-occurred 2 times within 4 days", line)
+        self.assertIn("(2026-03-22 ~ 2026-03-18: 4d)", line)
+        for banned in TestCooccurrenceFirewall.BANNED:
+            self.assertNotIn(banned, line.lower(), f"banned word: {banned!r}")
+
+
 if __name__ == "__main__":
     unittest.main()
