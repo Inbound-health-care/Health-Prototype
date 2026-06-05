@@ -4,7 +4,7 @@ _The front door. Read this first, update it last. One source of "where am I."_
 Last updated: 2026-06-05
 
 ## Current state
-- **Engine: 5 surfacing rules on `main`, 87 tests green, `ruff` clean.**
+- **Engine: 5 surfacing rules on `main`, 90 tests green, `ruff` clean.**
   `detect_recurrence` / `detect_gap` / `detect_frequency` / `detect_cooccurrence`
   (opt-in `window_days`) / `detect_cadence_change` + v1 opt-in matching (normalize /
   synonyms / fuzzy) + router/registry combined report (`--report` v0 and `--report-v1`).
@@ -55,9 +55,11 @@ Last updated: 2026-06-05
 - [x] **Cadence change — rule #5 (PR #13) — MERGED**: Pettitt pivot + median-ratio
       (ADR 0007); dedicated oracle; 87 tests, CI green, **CONFIRMED_USER_SIDE**
       (Scott ran it on Windows).
-- [ ] **DEFERRED to the code phase** (the engine bit of PR #6): `VERSION = "0.4.0"`
-      + a `--version` flag printing `Health-Prototype recurrence engine 0.4.0`
-      + `tests/test_cli.py`. Re-add when engine code unfreezes.
+- [x] **Polish — DONE (PR A, branch `claude/affectionate-dijkstra-DuWm3`).** The engine
+      bit deferred from PR #6: `VERSION = "0.5.0"` (bumped from the spec's 0.4.0 — 5 rules
+      now), a `--version` flag printing `Health-Prototype recurrence engine 0.5.0`, and
+      `tests/test_cli.py` (3 in-process CLI tests). CONFIRMED_ASSISTANT_SIDE: `make check`
+      green — 90 tests, self-test OK, ruff clean. Awaiting CONFIRMED_USER_SIDE.
 - [x] **Toolchain audit** (`docs/TOOLCHAIN_AUDIT_2026-05-31.md`): managed web env
       pre-installs the 2026 stack (pytest 9 / ruff 0.15.8 / mypy 1.19 / uv 0.8);
       coverage/bandit/ty `uvx`-on-demand. Optional Makefile targets added; engine
@@ -74,12 +76,11 @@ Last updated: 2026-06-05
 Both planned engine increments are MERGED to `main`:
 1. ~~**Co-occurrence within a window**~~ — DONE, MERGED (PR #10).
 2. ~~**Cadence change** (rule #5)~~ — DONE, MERGED (PR #13, Pettitt pivot + median-ratio).
-3. ~~Free-text extraction~~ — still deferred (Scott). **The next increment is OPEN** —
-   Scott to pick: free-text extraction, a 6th rule, or polish (e.g. the deferred
-   `--version` / `VERSION` / `tests/test_cli.py` from PR #6).
+3. **Polish** — DONE (PR A): `--version` / `VERSION = "0.5.0"` / `tests/test_cli.py`
+   (90 tests, `make check` green). **Free-text extraction** is the next increment.
 
 ## Key facts
-- Branch: `main` is current (5 rules, 87 tests; post #1/#3/#4/#7/#8/#9/#10/#13). This
+- Branch: `main` is current (5 rules, 90 tests; post #1/#3/#4/#7/#8/#9/#10/#13). This
   session's handoff lives on `claude/session-handoff-2026-06-05`.
 - Spec (contract): Drive `BUILD_SPEC_RecurrenceDetection_v0_2026-05-30.md`
 - Quick check: `make check` · `make test` · `python recurrence.py --self-test`
