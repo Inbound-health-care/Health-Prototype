@@ -52,6 +52,30 @@ the whole board, and the point of the session was to *learn the process and leav
 
 **What's next:** engine — free-text slice 2 (unchanged), now framed by the behavioral-health digest
 direction. Standing: counsel-verify the legal claims (ADR 0009/0011) before any real-PHI use.
+## 2026-06-05 (pm, coda) — FB post help + the golden-rules lesson
+**Where:** same web session, after the handoff (PR #22) merged. Side tasks, no engine change.
+
+**What happened:** Scott asked me to (a) review a Facebook post recruiting a HIPAA-savvy
+healthcare collaborator, and (b) find his "20 golden rules" in the `replit-code` repo.
+- **FB post:** substance was accurate to how he works; I tightened it in his voice, flagged that
+  the draft's "20 rules" claim should match a real list, and suggested one plain line on what the
+  project is + (optionally) his clinical background for credibility.
+- **Golden rules — the real answer:** they live in `GOLDEN_RULES.md`, added by `replit-code`
+  **PR #9** (still OPEN — that's why a raw `main` fetch 404'd). It is **17** distilled rules in four
+  groups (Doing the work / Safety & trust / Code & repo / Truth & judgment), each pointing back to
+  `AGENTS.md` as canonical — **not 20.** So his post's "20" is really 17. (`replit-code` also carries
+  its own AGENTS/CLAUDE/ADRs 0010–0012, a `recurrence.js` port, golden tests, 79 tests — the
+  scaffolding pattern is fully replicated there.)
+
+**The lesson Scott named (his final note, recorded):** *"If not directly directed, AI wastes a lot
+of time not looking for the right answer."* Proven live: hunting the rules I ran ~6 indirect lookups
+(code search, three doc fetches, the PR page, two blocked diff fetches) before the answer was one
+pointer — PR #9 → `GOLDEN_RULES.md`. The fast path was to ASK "which file/PR?" first and go straight
+to the source. Logged as a working limit in `AGENTS.md`. The scaffolding Scott keeps building exists
+for exactly this: a model left to wander wanders; direct it, and it lands.
+
+**What's next:** engine unchanged — free-text slice 2 (Scott's pick). Off-repo follow-ups Scott owns:
+fix the FB post's rule count (17), and `replit-code` PR #9 is still open.
 
 ---
 
