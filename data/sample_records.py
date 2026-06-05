@@ -686,3 +686,31 @@ FREETEXT_EXPECTED_RECORDS: list[dict] = [
         ],
     },
 ]
+
+# ---------------------------------------------------------------------------
+# Slice 2 (ADR 0012) — matching-mode fixtures (illustrative + minimal; real
+# deployments supply their own vetted vocabulary). The synonyms-mode oracle
+# reuses the SAME note and the SAME hand-verified spans as strict; only the
+# emitted item changes where a synonym applies. Here the literal "insomnia"
+# mention (itself a gazetteer term) is remapped to its canonical "poor sleep",
+# so the span [181, 189] now emits "poor sleep" and detect_recurrence surfaces
+# "poor sleep" 3x instead of 2x. The pairing is directional (variant ->
+# canonical), same-concept, and human-vetted (an affix-antonym pairing would be
+# refused by extract._validate_synonyms).
+# ---------------------------------------------------------------------------
+FREETEXT_SYNONYMS: dict = {"insomnia": "poor sleep"}
+
+FREETEXT_EXPECTED_RECORDS_SYNONYMS: list[dict] = [
+    {
+        "id": "EXAMPLE-001",
+        "entries": [
+            {"date": "2026-01-05", "item": "poor sleep", "source_span": [41, 51]},
+            {"date": "2026-01-05", "item": "chest pain", "source_span": [69, 79]},
+            {"date": "2026-02-10", "item": "poor sleep", "source_span": [92, 102]},
+            {"date": "2026-02-10", "item": "headache", "source_span": [114, 122]},
+            {"date": "2026-03-12", "item": "sleep", "source_span": [141, 146]},
+            # "insomnia" -> canonical "poor sleep" (synonyms mode remap).
+            {"date": "2026-03-12", "item": "poor sleep", "source_span": [181, 189]},
+        ],
+    },
+]
