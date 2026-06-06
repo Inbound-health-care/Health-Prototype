@@ -30,7 +30,7 @@ import argparse
 import datetime
 import sys
 
-from extract import extract_records
+from extract import MultiExtractResult, extract_records, extract_records_multi
 from recurrence import RecordReport, run_report
 
 # Shared, pure view helpers — one source of truth for span collection, neutral
@@ -46,7 +46,7 @@ from report_html import (
     _render_note,
 )
 
-VERSION = "0.1.0"
+VERSION = "0.2.0"
 
 # Lens label shown on each card: the engine's own neutral provenance name,
 # presented for the clinician. Never a ranking or a judgment.
@@ -252,6 +252,249 @@ def build_demo_html(reference_date: datetime.date) -> str:
     )
 
 
+# ---------------------------------------------------------------------------
+# Multi-patient rendering (ADR 0016 batch -> view). A batch note split by
+# extract_records_multi yields several ACCEPTED patient records (each carrying a
+# provenance.segment_span) plus QUARANTINED segments. We render one stacked block
+# per accepted patient, IN SEGMENT ORDER (never reordered — the librarian rule),
+# each with its OWN source segment so a click can only ever highlight within that
+# patient (structural no cross-patient bleed); a compact patient index jumps
+# between them; refused segments are surfaced in a neutral quarantine section,
+# never merged or guessed. Cognitive-load research (single-screen, scannable,
+# drill-down, minimal navigation) shaped the layout. ZERO interpretation added.
+# ---------------------------------------------------------------------------
+
+# Layout only for the multi view (colour/typography/.card/.chip/.note are shared).
+_MULTI_CSS = """\
+.patient-index { padding: 12px 28px; border-block-end: 1px solid var(--border);
+                 background: var(--surface); font-size: 13px; }
+.index-label { color: var(--muted); margin-inline-end: 8px; }
+.patient-index a { color: var(--accent); text-decoration: none; margin-inline-end: 12px;
+                   white-space: nowrap; border-block-end: 1px dotted var(--accent-line); }
+.patient { padding: 18px 28px; border-block-end: 1px solid var(--border); }
+.patient-id { color: var(--text); font-size: 14px; text-transform: none; letter-spacing: 0;
+              margin: 0 0 12px; }
+.patient-body { display: flex; gap: 24px; align-items: flex-start; }
+.patient-patterns { flex: 1 1 58%; }
+.patient-source { flex: 1 1 42%; }
+.quarantine { padding: 18px 28px; background: var(--surface); }
+.quarantine ul { list-style: none; margin: 0; padding: 0; }
+.quarantine li { font-size: 13px; color: var(--muted); padding: 6px 0;
+                 border-block-end: 1px solid var(--border); }
+.quarantine .seg { color: var(--text); font-weight: 600; margin-inline-end: 8px; }
+@media (max-width: 640px) {
+  .patient, .quarantine { padding: 14px 16px; }
+  .patient-index { padding: 12px 16px; }
+  .patient-body { flex-direction: column; gap: 14px; }
+  .patient-patterns, .patient-source { flex: 0 0 auto; inline-size: 100%; }
+}
+"""
+
+# Click-to-highlight, SCOPED per patient block: each .patient binds only its own
+# findings to its own marks, so two patients sharing an item can never light up
+# each other (the no-bleed guarantee, enforced in the view). Mirrors report_html's
+# _JS but scoped; avoids the banned `top` token (no stopPropagation; logical only).
+_MULTI_JS = """\
+(function () {
+  var blocks = document.querySelectorAll('.patient');
+  blocks.forEach(function (block) {
+    var findings = block.querySelectorAll('.finding');
+    var marks = block.querySelectorAll('mark.cite');
+    function clearMarks() { marks.forEach(function (m) { m.classList.remove('active'); }); }
+    findings.forEach(function (el) {
+      el.addEventListener('click', function (e) {
+        if (e.target.closest('details')) { return; }
+        var items = (el.getAttribute('data-items') || '').split('|').filter(Boolean);
+        var turningOn = !el.classList.contains('sel');
+        findings.forEach(function (o) { o.classList.remove('sel'); });
+        clearMarks();
+        if (!turningOn) { return; }
+        el.classList.add('sel');
+        var first = null;
+        marks.forEach(function (m) {
+          if (items.indexOf(m.getAttribute('data-item')) >= 0) {
+            m.classList.add('active');
+            if (!first) { first = m; }
+          }
+        });
+        if (first) { first.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+      });
+    });
+  });
+})();
+"""
+
+# Neutral, non-interpretive labels for each fail-closed reason (ADR 0016). The
+# engine's own reason code is shown too, so the wording adds nothing it didn't
+# already classify — surfacing, not interpreting.
+_QUARANTINE_LABELS = {
+    "missing_key": "no patient identifier in segment",
+    "ambiguous_key": "more than one patient identifier in segment",
+    "duplicate_key": "patient identifier shared with another segment",
+    "missing_shift": "no per-patient de-identification shift supplied",
+}
+
+
+def _anchor_id(patient_id: str) -> str:
+    """A safe in-page anchor for a patient id (alnum kept, anything else -> '-')."""
+    return "patient-" + "".join(c if c.isalnum() else "-" for c in patient_id)
+
+
+def _localized_note(note: str, record: dict) -> str:
+    """Render ONE patient's own source SEGMENT with segment-local marks.
+
+    The segment text is sliced from the whole note via the record's
+    ``provenance.segment_span``; the entries' whole-note spans are rebased to
+    segment-local offsets, so each patient's note stands alone — a click can only
+    ever highlight within this patient's own segment (no cross-patient bleed). A
+    record without multi provenance falls back to the whole-note render."""
+    prov = record.get("provenance") or {}
+    seg_span = prov.get("segment_span")
+    if not seg_span:
+        return _render_note(note, _collect_spans([record]))
+    start, end = seg_span
+    segment = note[start:end]
+    local = [
+        (s - start, e - start, label, kind)
+        for (s, e, label, kind) in _collect_spans([record])
+    ]
+    return _render_note(segment, local)
+
+
+def _render_patient_block(
+    note: str, record: dict, report: RecordReport | None
+) -> str:
+    """One accepted patient: lens cards beside that patient's OWN cited segment,
+    wrapped in an anchored section the patient index can jump to."""
+    patient_id = record.get("id", "")
+    cards_html = _render_cards([report] if report is not None else [])
+    note_html = _localized_note(note, record)
+    return (
+        f'<section class="patient" id="{_esc(_anchor_id(patient_id))}">'
+        f'<h2 class="patient-id">Patient {_esc(patient_id)}</h2>'
+        '<div class="patient-body">'
+        f'<div class="patient-patterns">{cards_html}</div>'
+        f'<div class="patient-source"><div class="note">{note_html}</div></div>'
+        "</div></section>"
+    )
+
+
+def _render_patient_index(records: list[dict]) -> str:
+    """A compact jump-list to each accepted patient (anchor links, no JS state) so
+    a clinician moves between patients without losing the single-page context. Only
+    shown when there is more than one patient."""
+    if len(records) <= 1:
+        return ""
+    links = " ".join(
+        f'<a href="#{_esc(_anchor_id(r.get("id", "")))}">{_esc(r.get("id", ""))}</a>'
+        for r in records
+    )
+    return (
+        '<nav class="patient-index">'
+        '<span class="index-label">Patients in this batch:</span> '
+        f"{links}</nav>"
+    )
+
+
+def _render_quarantine(quarantined: list) -> str:
+    """The refused segments, surfaced in segment order with their neutral reason —
+    never merged, guessed, or interpreted. Empty -> nothing (no 'all clean' claim)."""
+    if not quarantined:
+        return ""
+    rows = []
+    for q in quarantined:
+        label = _QUARANTINE_LABELS.get(q.reason, q.reason)
+        detail = f" &mdash; {_esc(q.detail)}" if getattr(q, "detail", "") else ""
+        rows.append(
+            f'<li><span class="seg">Segment {q.index}</span>'
+            f"{_esc(label)} ({_esc(q.reason)}){detail}</li>"
+        )
+    return (
+        '<section class="quarantine">'
+        "<h2>Quarantined segments (not rendered as patients)</h2>"
+        f'<ul>{"".join(rows)}</ul></section>'
+    )
+
+
+def render_digest_multi(
+    note: str,
+    result: MultiExtractResult,
+    reports: list[RecordReport],
+    *,
+    title: str = "Pre-visit Pattern Digest",
+    reference_date: datetime.date | None = None,
+) -> str:
+    """A single self-contained HTML document for a MULTI-patient batch: one stacked,
+    anchored block per accepted patient (cards + that patient's own cited segment),
+    a jump index, and a neutral quarantine section for refused segments. Patients
+    stay in segment order; nothing is ranked, merged, or interpreted."""
+    by_id = {rep.record_id: rep for rep in reports}
+    index_html = _render_patient_index(result.records)
+    if result.records:
+        blocks = "\n".join(
+            _render_patient_block(note, rec, by_id.get(rec.get("id", "")))
+            for rec in result.records
+        )
+    else:
+        blocks = '<p class="empty">No patient segments were accepted.</p>'
+    quarantine_html = _render_quarantine(result.quarantined)
+    meta_bits = [f"{len(result.records)} patients"]
+    if result.quarantined:
+        meta_bits.append(f"{len(result.quarantined)} quarantined")
+    if reference_date is not None:
+        meta_bits.append(f"Encounter {reference_date.isoformat()}")
+    meta_bits.append("de-identified")
+    meta = " &middot; ".join(_esc(b) for b in meta_bits)
+    return f"""<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{_esc(title)}</title>
+<style>
+{_THEME_CSS}{_CSS}{_MULTI_CSS}{_THEME_MEDIA_CSS}</style>
+<script>
+{_THEME_JS}</script>
+</head>
+<body>
+<header>
+<button class="theme-toggle" type="button">Dark</button>
+<h1>{_esc(title)}</h1>
+<p class="meta">{meta}</p>
+<p class="stance">Surfaced from each record and cited &mdash; never judged, ordered, or recommended.
+Each patient's source stands alone. The clinician decides.</p>
+</header>
+{index_html}
+<main class="patients">
+{blocks}
+</main>
+{quarantine_html}
+<footer>Health Prototype &middot; librarian layer &middot; synthetic data &middot;
+generated locally by digest_html.py {VERSION} &mdash; pure stdlib, no network.</footer>
+<script>
+{_MULTI_JS}</script>
+</body>
+</html>
+"""
+
+
+def build_demo_multi_html(reference_date: datetime.date) -> str:
+    """Render the synthetic multi-patient batch end to end: a batch note ->
+    fail-closed split -> per-patient reports -> one stacked HTML digest with a
+    quarantine section. Uses no per-patient shift (0, like the single demo) so the
+    cited dates stay hand-readable against each segment."""
+    from data.sample_records import FREETEXT_MULTI_DELIMITER, FREETEXT_MULTI_NOTE
+
+    gazetteer = ["poor sleep", "headache"]
+    result = extract_records_multi(
+        FREETEXT_MULTI_NOTE, gazetteer, delimiter=FREETEXT_MULTI_DELIMITER
+    )
+    reports = run_report(result.records)
+    return render_digest_multi(
+        FREETEXT_MULTI_NOTE, result, reports, reference_date=reference_date
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Render the clinician-facing Pre-visit Pattern Digest as a "
@@ -269,6 +512,15 @@ def main() -> int:
         metavar="OUTFILE",
         help="Write the all-five-lenses sample digest to OUTFILE (default digest_demo.html)",
     )
+    parser.add_argument(
+        "--demo-multi",
+        nargs="?",
+        const="digest_multi_demo.html",
+        default=None,
+        metavar="OUTFILE",
+        help="Write the multi-patient batch digest (stacked patients + quarantine) "
+        "to OUTFILE (default digest_multi_demo.html)",
+    )
     args = parser.parse_args()
     if args.version:
         print(f"Health-Prototype pre-visit digest {VERSION}")
@@ -277,6 +529,12 @@ def main() -> int:
         path = args.demo
         with open(path, "w", encoding="utf-8") as handle:
             handle.write(build_demo_html(datetime.date(2026, 3, 15)))
+        print(f"Wrote {path}")
+        return 0
+    if args.demo_multi is not None:
+        path = args.demo_multi
+        with open(path, "w", encoding="utf-8") as handle:
+            handle.write(build_demo_multi_html(datetime.date(2026, 3, 15)))
         print(f"Wrote {path}")
         return 0
     parser.print_help()

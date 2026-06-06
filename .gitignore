@@ -23,5 +23,6 @@ evidence/raw/
 # Generated HTML views (report_html.py / digest_html.py --demo); regenerate, never commit
 report_demo.html
 digest_demo.html
+digest_multi_demo.html
 *.report.html
 *.digest.html
