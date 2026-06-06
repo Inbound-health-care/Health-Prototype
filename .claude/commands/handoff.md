@@ -1,37 +1,34 @@
 ---
-description: End-of-session handoff — update STATUS.md and log what changed so the next (memory-less) Claude inherits it
+description: End-of-session protocol — check state + drift, close everything, list for Scott to audit, act on his calls; read-only + chat-only diary AFTER the session is fully closed
 ---
 
-Write the handoff so a FRESH Claude instance (zero memory of this session) can
-continue without loss. Do ALL THREE:
+End-session protocol (set by Scott, 2026-06-06). Sessions END this way — work the
+steps IN ORDER, do not skip ahead:
 
-1. **Append a `JOURNAL.md` entry (newest on top)** capturing the NARRATIVE of the
-   session — this is the part that makes invisible backend work visible:
-   - Where I worked (phone / computer, rough %).
-   - What I set out to do vs what it became.
-   - **What I learned and HOW I found it out** (the dead ends, the question that
-     unlocked it — the reasoning, not just the result).
-   - **WHY** key decisions were made (the trade-offs).
-   - What got hard / frustrating (name it honestly).
-   - What I built (CONFIRMED vs ASSISTANT-SIDE), and what's next.
-   Keep the voice plain and real. The struggle IS the deliverable here.
+1. **Check the current state of EVERYTHING + run a drift check.** Open PRs and their CI;
+   the working branch vs `main`; any unmerged/orphaned branches; STATUS open loops;
+   uncommitted work. Run the drift sweep (Scott's METHOD-003 / `/drift-check`): stale
+   claims, wrong numbers, source-of-truth conflicts, evidence-level overclaims.
 
-2. **Update `STATUS.md`** — current state, open loops, the single next step.
-   Accurate: no stale claims, real counts, correct evidence levels.
+2. **Make sure everything is closed — blocking AND non-blocking.** Every open PR merged
+   or closed; CI green; no orphaned branches; STATUS + docs reconciled to `main`; nothing
+   left dangling. If something genuinely can't close, say why.
 
-3. **Log durable changes** — new behavior rule → `CLAUDE.md`; "what happened" →
-   STATUS open loops. Don't let an improvement live only in chat — it dies at
-   session end. State access/build status plainly (pushed? blocked? PR open?).
+3. **List everything you find, for Scott to audit.** One scannable list: PRs (state + CI),
+   branches, open loops, drift findings, anything pending. SURFACE — don't decide for him.
 
-4. **Commit AND push — non-optional, do it last.** A handoff that lives only in
-   the working tree (or only in chat) DIES when the web container is reclaimed —
-   it never reaches the remote. `git add` the handoff/STATUS/JOURNAL, commit with
-   a clear message, and push to the working branch. If `git push` is blocked, fall
-   back to the GitHub API write tool (`create_or_update_file`). Then verify against
-   the remote — "pushed" is not proof until you see it on origin.
-   (A `Stop` hook, `stop_handoff_guard.py`, backstops this: it refuses to end the
-   session while a `*handoff*.md` file is still uncommitted.)
+4. **Do whatever Scott says.** He reviews the list and directs (merge / close / fix /
+   leave). Act on his calls. The per-PR merge ask-gate still applies (CLAUDE.md).
 
-Keep STATUS + CLAUDE tight; let JOURNAL be the longer narrative.
+5. **ONLY AFTER the final push/merge (his or yours), switch to READ-ONLY.** No more repo
+   writes, commits, or pushes. Then write the session **diary in CHAT only** — never a
+   committed `JOURNAL.md` / `*handoff*.md` file. Scott logs his own thoughts as he sees fit.
+
+NOTE — this REPLACES the old "write JOURNAL.md + STATUS + commit + push" handoff. The
+reflective diary is now CHAT-ONLY and happens AFTER closure. The session's actual WORK
+(code, STATUS/doc reconciliation) is still committed/pushed as part of step 2's closing —
+read-only kicks in only once everything is closed. The `Stop` hook
+(`.claude/hooks/stop_handoff_guard.py`) stays as a dormant safety net: it fires only on an
+uncommitted `*handoff*.md`, which this protocol never creates.
 
 Extra notes to capture: $ARGUMENTS
