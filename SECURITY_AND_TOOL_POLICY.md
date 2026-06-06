@@ -44,6 +44,10 @@ Match caution to the action. "Ask first" = explicit Scott approval before acting
 | PHI / real data | load, generate, or transmit real patient data | **Forbidden** (§C). |
 
 Least-privilege rules (2026):
+- **OWASP Top 10 for Agentic Applications (2026)** (released Dec 2025; distinct from the OWASP LLM
+  Top 10 cited above) endorses this repo's posture — sandboxed exec with no network + limited FS,
+  no implicit trust between agents, and watch for long-term-memory poisoning. RESEARCH_ONLY,
+  web-sourced 2026-06-06 (genai.owasp.org); no behavior change — recorded as the agentic-security basis.
 - An agent must **never modify its own instructions or permissions, escalate its
   own access, or provision/rotate credentials.**
 - **Prompt-level policy is necessary but NOT sufficient.** Real enforcement is the
