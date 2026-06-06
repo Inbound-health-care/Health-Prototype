@@ -142,4 +142,71 @@ Extracted entries (literal mentions, cited — not interpreted):
 Fed to the engine (detect_recurrence), it surfaces:
   "poor sleep" appears 2x — 2026-01-05, 2026-02-10
 ```
+
+---
+
+## `python extract.py --demo-multi`
+
+A synthetic **multi-patient batch** split on an explicit delimiter (`\n---\n`), extracted
+**fail-closed on identity** (ADR 0016): a segment is accepted only when it carries exactly one
+distinct `Patient:` key that no other segment shares — everything else is **quarantined
+(refused), never merged or guessed**. Accepted records are de-identified by a per-patient date
+shift (EXAMPLE-002's dates are shifted here); the quarantined segments **never reach the
+engine**. Quarantine reasons are fixed neutral tokens — the librarian rule holds in the refusal output.
+
+```text
+Source note (multi-patient batch):
+2026-01-01 headache noted in triage.
+
+---
+Patient: EXAMPLE-001
+2026-01-05 poor sleep.
+2026-02-10 poor sleep.
+
+---
+Patient: EXAMPLE-002
+2026-01-06 poor sleep.
+2026-02-12 poor sleep.
+2026-02-20 headache.
+
+---
+2026-03-01 headache.
+
+---
+Patient: EXAMPLE-003
+Patient: EXAMPLE-004
+2026-03-05 poor sleep.
+
+---
+Patient: EXAMPLE-005
+2026-03-08 poor sleep.
+
+---
+Patient: EXAMPLE-005
+2026-03-09 headache.
+
+Explicit delimiter: '\n---\n'
+
+Accepted records (cited, de-identified, fail-closed on identity):
+  EXAMPLE-001  (segment 1)
+    2026-01-05  "poor sleep"  @[74, 84]
+    2026-02-10  "poor sleep"  @[97, 107]
+  EXAMPLE-002  (segment 2)
+    2053-05-24  "poor sleep"  @[146, 156]
+    2053-06-30  "poor sleep"  @[169, 179]
+    2053-07-08  "headache"  @[192, 200]
+
+Quarantined segments (refused — neutral provenance only):
+  segment 0 @offset 0: missing_key (no Patient: header)
+  segment 3 @offset 207: missing_key (no Patient: header)
+  segment 4 @offset 233: ambiguous_key (2 distinct headers)
+  segment 5 @offset 303: duplicate_key (key shared across segments)
+  segment 6 @offset 352: duplicate_key (key shared across segments)
+
+Fed to the engine (run_report) — quarantined segments never reach it:
+Record EXAMPLE-001:
+  [recurrence] "poor sleep" recurred 2 times — 2026-01-05, 2026-02-10
+
+Record EXAMPLE-002:
+  [recurrence] "poor sleep" recurred 2 times — 2053-05-24, 2053-06-30
 ```

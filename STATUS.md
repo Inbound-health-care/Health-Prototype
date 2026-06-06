@@ -4,22 +4,18 @@ _The front door. Read this first, update it last. One source of "where am I."_
 Last updated: 2026-06-06
 
 ## Current state
-- **Session 2026-06-06 — MERGED #27 (digest) + #29 (review hardening) to `main`; `main` now 177 tests.**
-  - **#27 — UI slice 2, clinician Pre-visit Pattern Digest (ADR 0015):** `digest_html.py` renders all five
-    lenses as cited cards from REAL engine output (`extract -> run_report`), dependency-free, grayscale,
-    banned-words-clean; one synthetic patient (EXAMPLE-009) trips all five lenses once each. Figma mock
-    approved. `python digest_html.py --demo`.
-  - **#29 — review hardening (docs/CI/wording only, no engine change):** CI↔Makefile parity (new `make
-    compile` holds the one canonical file list; CI delegates `make compile`/`test`/`selftest`, so it can't
-    drift again — now byte-compiles all 4 modules + runs BOTH self-tests); README pipeline diagram +
-    "what this deliberately does not do" non-goals; softened/honest compliance wording (README, docstrings,
-    SECURITY §C.1); new `docs/DEMO_OUTPUT.md` (captured real stdout). STATUS reconciled in this PR.
-- **>>> NEXT — waiting on Scott: run #28 on your laptop, then just say you did it. <<<** PR #28 — multi-patient
-  fail-closed extractor (ADR 0016, `extract.extract_records_multi`), branch `claude/dazzling-shannon-jPWz2` —
-  is OPEN, CI-green (4 `test` + lint), **CONFIRMED_ASSISTANT_SIDE only**. Held back this session at Scott's
-  call pending **CONFIRMED_USER_SIDE**. Action: `python extract.py --demo-multi` (+ `make check`) on the
-  laptop; if it runs as expected, just confirm — the next session marks #28 CONFIRMED_USER_SIDE and merges it
-  (squash). It brings `main` 177 → **207 tests** and VERSION 0.3.0 → 0.4.0.
+- **Session 2026-06-06 — MERGED #28 (multi-patient fail-closed extractor, ADR 0016) to `main`; `main` now 207 tests, VERSION 0.4.0.**
+  - **#28 — multi-patient fail-closed extractor (ADR 0016):** `extract.extract_records_multi` splits a
+    multi-patient batch on an EXPLICIT delimiter and accepts a segment only when identity is unambiguous;
+    missing/ambiguous/duplicate keys are QUARANTINED (never merged or guessed), per-patient date-shift with a
+    fail-closed `require_shift`, whole-note `provenance` on every record. "No-bleed" tested by hand oracle +
+    **Hypothesis** (dev-only, `make proptest`). Synthetic data only; real-PHI counsel/Expert-Determination gate
+    unchanged. **CONFIRMED_USER_SIDE** (Scott ran `python extract.py --demo-multi` on his laptop, 2026-06-06).
+    `make check` green — **207 tests** (+3 Hypothesis properties), self-test 6+10, `ruff`.
+  - **Already on `main` this session:** #27 clinician Pre-visit Pattern Digest (ADR 0015, `digest_html.py`)
+    + #29 review hardening (CI↔Makefile parity via `make compile`; README pipeline diagram + non-goals; honest
+    compliance wording; `docs/DEMO_OUTPUT.md`) + #26 relative-date anchoring (ADR 0013) + counsel checklist +
+    `report_html.py` inspection view (ADR 0014). `main` carries both HTML views.
 - **Engine: 5 surfacing rules on `main`, 144 tests green (engine 90 + free-text slice-1 27 + matching-modes 27), `ruff` clean.**
   `detect_recurrence` / `detect_gap` / `detect_frequency` / `detect_cooccurrence`
   (opt-in `window_days`) / `detect_cadence_change` + v1 opt-in matching (normalize /
@@ -209,24 +205,24 @@ Both planned engine increments are MERGED to `main`:
    dependency-free, grayscale, banned-words-clean. `python digest_html.py --demo`.
 9. ~~**Review hardening**~~ — DONE (**MERGED PR #29**; docs/CI/wording only): CI↔Makefile parity (anti-drift
    `make compile`), README pipeline diagram + non-goals, honest compliance wording, `docs/DEMO_OUTPUT.md`.
-10. **Multi-patient extractor (ADR 0016, PR #28)** — IMPLEMENTED, CI-green, **CONFIRMED_ASSISTANT_SIDE**;
-    held this session at Scott's call. **IMMEDIATE NEXT — waiting on Scott:** run `python extract.py
-    --demo-multi` (+ `make check`) on the laptop; if it runs as expected, just say so → the next session marks
-    it CONFIRMED_USER_SIDE and merges (squash), bringing `main` to 207 tests + VERSION 0.4.0, then folds the
-    deferred `--demo-multi` snapshot into `docs/DEMO_OUTPUT.md`.
-11. **NEXT pick after #28 (open — Scott's call):** mid-line temporal expressions / partial-date normalization,
-    or building out the digest UI further — framed by the **behavioral-health "pre-visit pattern digest"**
-    direction. Treat the free-text extractor as the regulated boundary.
+10. ~~**Multi-patient extractor (ADR 0016, PR #28)**~~ — DONE, **MERGED (squash)**, **CONFIRMED_USER_SIDE**
+    (Scott ran `python extract.py --demo-multi` on his laptop, 2026-06-06). Brought `main` to **207 tests** +
+    VERSION 0.4.0; the deferred `--demo-multi` snapshot is folded into `docs/DEMO_OUTPUT.md` in the same PR.
+11. **NEXT — UI phase (Scott, 2026-06-06): calm / eye-comfort, NOT "poppin".** First increment = a research-grounded
+    visual pass (warm off-white base, light-first + optional warm dark toggle, ONE faint de-saturated non-semantic
+    accent, WCAG-AA contrast enforced by a new test; ADR 0017) on `report_html`/`digest_html`; then **multi-patient
+    digest RENDERING** over `extract_records_multi`. Framed by the behavioral-health pre-visit digest direction;
+    the free-text extractor stays the regulated boundary.
 
 ## Key facts
 - Branch: `main` has 5 rules + free-text slices 1–2 + **relative-date anchoring (ADR 0013)** + the
   **`report_html.py` inspection view (ADR 0014)** + the **`digest_html.py` clinician digest (ADR 0015)** +
-  the counsel checklist + **review hardening** (CI/Makefile parity, DEMO_OUTPUT, honest wording),
-  **177 tests** (post #1–#27, #29).
-  Active dev branch **`claude/dazzling-shannon-jPWz2`** = **open PR #28** (multi-patient fail-closed extractor,
-  ADR 0016): CI-green, CONFIRMED_ASSISTANT_SIDE, **awaiting Scott's CONFIRMED_USER_SIDE** — would take `main`
-  to **207 tests** + VERSION 0.4.0.
-  `claude/hopeful-albattani-sYkkR` is merged via #25 (retire-able); `claude/review-hardening` merged via #29 (retire-able).
+  the counsel checklist + **review hardening** (CI/Makefile parity, DEMO_OUTPUT, honest wording) + the
+  **multi-patient fail-closed extractor (ADR 0016, `extract_records_multi`)**, **207 tests**, VERSION 0.4.0
+  (post #1–#29).
+  Active dev branch **`claude/exciting-fermat-lztQq`** = the UI phase (calm visual pass, ADR 0017).
+  `claude/dazzling-shannon-jPWz2` is merged via #28 (retire-able); `claude/hopeful-albattani-sYkkR` via #25
+  (retire-able); `claude/review-hardening` merged via #29 (retire-able).
   Per-session history + the free-text/legal-grounding design + the 2026 compliance/market audit live
   in Drive `health-prototype/` (`archive` + `freetext-design` + `audit-2026-06-05`).
 - Spec (contract): Drive `BUILD_SPEC_RecurrenceDetection_v0_2026-05-30.md`

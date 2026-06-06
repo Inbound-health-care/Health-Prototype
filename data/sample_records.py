@@ -813,3 +813,66 @@ DIGEST_SAMPLE_NOTE: str = (
 DIGEST_SAMPLE_GAZETTEER: list[str] = ["poor sleep", "anxiety", "lithium level"]
 
 DIGEST_SAMPLE_REFERENCE_DATE: str = "2026-03-15"  # encounter date (digest meta)
+
+# ---------------------------------------------------------------------------
+# Multi-patient extraction (ADR 0016) — a synthetic BATCH note holding several
+# patients, split on an EXPLICIT delimiter. Authored so the fail-closed extractor
+# (extract.extract_records_multi) exercises every path: two clean patients who
+# SHARE an item (for the no-bleed test), a header-less preamble, a header-less
+# body segment, an ambiguous two-header segment, and a duplicate-key pair. ZERO
+# PHI — all EXAMPLE- ids; demo/test input, not an engine oracle. The expected
+# ACCEPTED records below are at NO shift (literal dates, hand-readable); per-patient
+# shift behavior is checked separately with FREETEXT_MULTI_SHIFTS.
+# ---------------------------------------------------------------------------
+FREETEXT_MULTI_DELIMITER: str = "\n---\n"  # explicit, newline-fenced operator delimiter
+
+# Segments in order (each ends in a newline; joined by the delimiter). The trailing
+# comment on each line states its expected fate.
+FREETEXT_MULTI_NOTE: str = FREETEXT_MULTI_DELIMITER.join(
+    [
+        "2026-01-01 headache noted in triage.\n",  # 0: no header -> missing_key
+        "Patient: EXAMPLE-001\n2026-01-05 poor sleep.\n2026-02-10 poor sleep.\n",  # 1: accept
+        "Patient: EXAMPLE-002\n2026-01-06 poor sleep.\n2026-02-12 poor sleep.\n2026-02-20 headache.\n",  # 2: accept
+        "2026-03-01 headache.\n",  # 3: no header -> missing_key
+        "Patient: EXAMPLE-003\nPatient: EXAMPLE-004\n2026-03-05 poor sleep.\n",  # 4: ambiguous_key
+        "Patient: EXAMPLE-005\n2026-03-08 poor sleep.\n",  # 5: duplicate_key
+        "Patient: EXAMPLE-005\n2026-03-09 headache.\n",  # 6: duplicate_key
+    ]
+)
+
+# Distinct per-patient de-identifying day offsets (ADR 0009): a consistent shift
+# preserves each patient's intervals while moving their calendar independently.
+FREETEXT_MULTI_SHIFTS: dict = {"EXAMPLE-001": 0, "EXAMPLE-002": 10000}
+
+# Hand-written oracle (structural): the two accepted records at NO shift, as
+# {id, segment_index, entries:[{date,item}]} in document order. source_span /
+# provenance spans are whole-note offsets verified separately by span-recovery,
+# so they are not pinned here.
+FREETEXT_EXPECTED_MULTI_RECORDS: list[dict] = [
+    {
+        "id": "EXAMPLE-001",
+        "segment_index": 1,
+        "entries": [
+            {"date": "2026-01-05", "item": "poor sleep"},
+            {"date": "2026-02-10", "item": "poor sleep"},
+        ],
+    },
+    {
+        "id": "EXAMPLE-002",
+        "segment_index": 2,
+        "entries": [
+            {"date": "2026-01-06", "item": "poor sleep"},
+            {"date": "2026-02-12", "item": "poor sleep"},
+            {"date": "2026-02-20", "item": "headache"},
+        ],
+    },
+]
+
+# Hand-written oracle: refused segments as (segment_index, reason), in index order.
+FREETEXT_EXPECTED_MULTI_QUARANTINE: list = [
+    (0, "missing_key"),
+    (3, "missing_key"),
+    (4, "ambiguous_key"),
+    (5, "duplicate_key"),
+    (6, "duplicate_key"),
+]
