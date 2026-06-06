@@ -37,7 +37,7 @@ sync with the code (see ADR 0005)._
   canonical record shape the 5 rules consume unchanged (allowlist gazetteer + explicit-date
   regex + char-offset `source_span`; de-identified date shift). A front door to the librarian,
   not part of it — imports `recurrence.py`, never the reverse. See ADR 0008.
-- `tests/` — 10 test files, 117 tests (engine 90 + extract 27). CI: `.github/workflows/ci.yml` (Py 3.10-3.13).
+- `tests/` — 16 test files, 221 tests (engine 90 + free-text slices + multi-patient + both HTML views + theme). CI: `.github/workflows/ci.yml` (Py 3.10-3.13).
 
 ## Engine hard rules
 - Pure Python STDLIB ONLY at runtime. No network egress. Zero real PHI, ever.
