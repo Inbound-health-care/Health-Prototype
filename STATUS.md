@@ -4,17 +4,18 @@ _The front door. Read this first, update it last. One source of "where am I."_
 Last updated: 2026-06-06
 
 ## Current state
-- **Session 2026-06-06 — multi-patient fail-closed extractor IN PROGRESS** on
-  `claude/dazzling-shannon-jPWz2` (new draft PR): `extract.extract_records_multi` (ADR 0016) splits a
-  multi-patient batch on an EXPLICIT delimiter and accepts a segment only when identity is unambiguous;
-  missing/ambiguous/duplicate keys are QUARANTINED (never merged or guessed), per-patient date-shift with
-  a fail-closed `require_shift`, whole-note `provenance` on every record. The "no-bleed" invariant is
-  tested by hand oracle + **Hypothesis** (folded in per the freshness check; dev-only, `make proptest`).
-  Synthetic data only; real-PHI counsel/Expert-Determination gate unchanged. `make check` green —
-  **207 tests** (+3 Hypothesis properties), self-test 6+10, `ruff`. `python extract.py --demo-multi`.
-- **PRs #26 and #27 MERGED to `main`:** relative-date anchoring (ADR 0013) + counsel checklist +
-  `report_html.py` inspection view (ADR 0014) + the clinician **Pre-visit Pattern Digest**
-  `digest_html.py` (ADR 0015). `main` now carries both HTML views; **177 tests** on `main`.
+- **Session 2026-06-06 — MERGED #28 (multi-patient fail-closed extractor, ADR 0016) to `main`; `main` now 207 tests, VERSION 0.4.0.**
+  - **#28 — multi-patient fail-closed extractor (ADR 0016):** `extract.extract_records_multi` splits a
+    multi-patient batch on an EXPLICIT delimiter and accepts a segment only when identity is unambiguous;
+    missing/ambiguous/duplicate keys are QUARANTINED (never merged or guessed), per-patient date-shift with a
+    fail-closed `require_shift`, whole-note `provenance` on every record. "No-bleed" tested by hand oracle +
+    **Hypothesis** (dev-only, `make proptest`). Synthetic data only; real-PHI counsel/Expert-Determination gate
+    unchanged. **CONFIRMED_USER_SIDE** (Scott ran `python extract.py --demo-multi` on his laptop, 2026-06-06).
+    `make check` green — **207 tests** (+3 Hypothesis properties), self-test 6+10, `ruff`.
+  - **Already on `main` this session:** #27 clinician Pre-visit Pattern Digest (ADR 0015, `digest_html.py`)
+    + #29 review hardening (CI↔Makefile parity via `make compile`; README pipeline diagram + non-goals; honest
+    compliance wording; `docs/DEMO_OUTPUT.md`) + #26 relative-date anchoring (ADR 0013) + counsel checklist +
+    `report_html.py` inspection view (ADR 0014). `main` carries both HTML views.
 - **Engine: 5 surfacing rules on `main`, 144 tests green (engine 90 + free-text slice-1 27 + matching-modes 27), `ruff` clean.**
   `detect_recurrence` / `detect_gap` / `detect_frequency` / `detect_cooccurrence`
   (opt-in `window_days`) / `detect_cadence_change` + v1 opt-in matching (normalize /
@@ -157,11 +158,22 @@ Last updated: 2026-06-06
 - [x] **UI slice 1 — HTML report view (ADR 0014) — MERGED (PR #26).** `report_html.py`: dependency-free
       single-file HTML (cited spans ↔ surfaced patterns, click-to-highlight); grayscale / document-order /
       banned-words-clean (librarian rule in the view). On `main`.
-- [ ] **UI slice 2 — clinician Pre-visit Pattern Digest (ADR 0015) — IMPLEMENTED on `claude/dazzling-shannon-jPWz2` (new draft PR).**
+- [x] **UI slice 2 — clinician Pre-visit Pattern Digest (ADR 0015) — MERGED (PR #27).**
       `digest_html.py`: the product view from the (approved) Figma mock — five lenses as cited cards beside the
       source note, click-to-highlight, all from real `run_report` output; dependency-free, grayscale, banned-words-clean.
-      One synthetic patient surfaces all five lenses. `make check` green (**177 tests**, self-test 6+10, ruff).
-      Awaiting CONFIRMED_USER_SIDE; not yet on `main`.
+      One synthetic patient surfaces all five lenses. On `main` (177 tests).
+- [x] **Review hardening — MERGED (PR #29) (docs/CI/wording only).** CI↔Makefile parity (`make compile` =
+      the one canonical file list; CI delegates to make → byte-compiles all 4 modules + runs BOTH self-tests,
+      so it can't drift again); README pipeline diagram + non-goals ("what this deliberately does not do");
+      honest/softened compliance wording (README, docstrings, SECURITY §C.1); new `docs/DEMO_OUTPUT.md`
+      (captured stdout). The `--demo-multi` snapshot in DEMO_OUTPUT stays deferred until #28 lands. On `main`.
+- [ ] **Multi-patient extractor — slice (ADR 0016) — OPEN (PR #28), awaiting Scott's CONFIRMED_USER_SIDE.**
+      `extract.extract_records_multi`: fail-closed identity — explicit operator delimiter; quarantine (never
+      merge/guess) on missing/ambiguous/duplicate key or missing per-patient shift; spans rebased to whole-note
+      offsets; engine + single-note `extract_records` untouched. +Hypothesis property tests (skip if absent;
+      `make proptest`). CI-green, **CONFIRMED_ASSISTANT_SIDE**. Branch `claude/dazzling-shannon-jPWz2`; would
+      bring `main` to **207 tests** + VERSION 0.4.0. **NEXT: Scott runs `extract.py --demo-multi` on his
+      laptop and confirms; then the next session merges it.**
 - [x] **Free-text slice 2 — matching modes + merge-safety guards (ADR 0012) — MERGED (PR #25).** `extract.py`
       gained an explicit, must-be-chosen `MatchConfig`: **strict** (default = slice-1 behavior) / **synonyms** /
       **fuzzy** / **both**. Fuzzy is guarded (domain-agnostic affix-antonym detector + look-alike
@@ -186,21 +198,31 @@ Both planned engine increments are MERGED to `main`:
 6. ~~**Relative-date anchoring**~~ — DONE this session (ADR 0013; branch `claude/dazzling-shannon-jPWz2`,
    draft PR #26): opt-in, conservative, default-off byte-for-byte; explicitly-anchored relatives resolve,
    partial/frequency/unresolved surfaced cited-but-undated. Awaiting CONFIRMED_USER_SIDE; not yet on `main`.
-7. ~~**UI slice 1 — HTML report view**~~ — DONE this session (ADR 0014; branch `claude/dazzling-shannon-jPWz2`,
-   draft PR #26): dependency-free self-contained HTML making provenance visible (cited spans ↔ findings);
-   librarian rule holds in the view. Clinician-facing pre-visit digest being mocked in Figma. Awaiting CONFIRMED_USER_SIDE.
-8. **Multi-patient notes — IMPLEMENTED this session (ADR 0016, `extract_records_multi`, synthetic data;
-   new draft PR), with Hypothesis property tests folded in.** Remaining open picks (Scott's call):
-   mid-line temporal expressions / partial-date normalization; multi-patient RENDERING in the views
-   (`report_html`/`digest_html` are single-note today); the next "freshness" batch (mutation testing,
-   the required-lint CI check, plugin-bundling). Treat the free-text extractor as the regulated boundary.
+7. ~~**UI slice 1 — HTML report view**~~ — DONE (ADR 0014; **MERGED PR #26**): dependency-free self-contained
+   HTML making provenance visible (cited spans ↔ findings); librarian rule holds in the view.
+8. ~~**UI slice 2 — clinician Pre-visit Pattern Digest**~~ — DONE (ADR 0015; **MERGED PR #27**): the product
+   view from the approved Figma mock — five lenses as cited cards from real `run_report` output;
+   dependency-free, grayscale, banned-words-clean. `python digest_html.py --demo`.
+9. ~~**Review hardening**~~ — DONE (**MERGED PR #29**; docs/CI/wording only): CI↔Makefile parity (anti-drift
+   `make compile`), README pipeline diagram + non-goals, honest compliance wording, `docs/DEMO_OUTPUT.md`.
+10. ~~**Multi-patient extractor (ADR 0016, PR #28)**~~ — DONE, **MERGED (squash)**, **CONFIRMED_USER_SIDE**
+    (Scott ran `python extract.py --demo-multi` on his laptop, 2026-06-06). Brought `main` to **207 tests** +
+    VERSION 0.4.0; the deferred `--demo-multi` snapshot is folded into `docs/DEMO_OUTPUT.md` in the same PR.
+11. **NEXT — UI phase (Scott, 2026-06-06): calm / eye-comfort, NOT "poppin".** First increment = a research-grounded
+    visual pass (warm off-white base, light-first + optional warm dark toggle, ONE faint de-saturated non-semantic
+    accent, WCAG-AA contrast enforced by a new test; ADR 0017) on `report_html`/`digest_html`; then **multi-patient
+    digest RENDERING** over `extract_records_multi`. Framed by the behavioral-health pre-visit digest direction;
+    the free-text extractor stays the regulated boundary.
 
 ## Key facts
-- Branch: `main` has 5 rules + free-text slices 1–2 + **relative-date anchoring (ADR 0013)** + both HTML
-  views (**`report_html.py`** ADR 0014, **`digest_html.py`** ADR 0015) + the counsel checklist,
-  **177 tests** (post #1–#27). Active dev branch **`claude/dazzling-shannon-jPWz2`** (new draft PR)
-  carries the **multi-patient fail-closed extractor** (`extract_records_multi`, ADR 0016) + Hypothesis
-  property tests — **207 tests**, not yet on `main`. `claude/hopeful-albattani-sYkkR` is merged via #25.
+- Branch: `main` has 5 rules + free-text slices 1–2 + **relative-date anchoring (ADR 0013)** + the
+  **`report_html.py` inspection view (ADR 0014)** + the **`digest_html.py` clinician digest (ADR 0015)** +
+  the counsel checklist + **review hardening** (CI/Makefile parity, DEMO_OUTPUT, honest wording) + the
+  **multi-patient fail-closed extractor (ADR 0016, `extract_records_multi`)**, **207 tests**, VERSION 0.4.0
+  (post #1–#29).
+  Active dev branch **`claude/exciting-fermat-lztQq`** = the UI phase (calm visual pass, ADR 0017).
+  `claude/dazzling-shannon-jPWz2` is merged via #28 (retire-able); `claude/hopeful-albattani-sYkkR` via #25
+  (retire-able); `claude/review-hardening` merged via #29 (retire-able).
   Per-session history + the free-text/legal-grounding design + the 2026 compliance/market audit live
   in Drive `health-prototype/` (`archive` + `freetext-design` + `audit-2026-06-05`).
 - Spec (contract): Drive `BUILD_SPEC_RecurrenceDetection_v0_2026-05-30.md`
