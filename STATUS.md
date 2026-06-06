@@ -4,6 +4,13 @@ _The front door. Read this first, update it last. One source of "where am I."_
 Last updated: 2026-06-06
 
 ## Current state
+- **Session 2026-06-06 (cont.) — view review refinements (ADR 0019) on branch `claude/repo-settings-loading-WdwbB` (draft PR; NOT yet on `main`); 214 tests.**
+  Acted on an external (ChatGPT) screenshot review — each claim checked against the code first (librarian: confirm/cite, not interpret); four were real and Scott picked them:
+  (1) the **theme toggle** moved into `<header>` (`position: absolute` in a `relative` header, shared `_THEME_CSS`) so it no longer floats over the cards;
+  (2) **long citation lists collapse in the digest only** — a recurrence/co-occurrence chip with >3 dates becomes a `<details>` `cited: N dates` (tap to expand); audit view keeps full dates inline; **every cited date stays in the document**;
+  (3) co-occurrence wording **"co-noted" → "appeared together"**;
+  (4) the audit view title **"Pattern digest" → "Pattern Inspection Report"** (the clinician view stays "Pre-visit Pattern Digest") so the two views no longer collide on "digest".
+  Banned-words note: the disclosure guard uses `e.target.closest('details')` in the shared `_JS` (NOT `stopPropagation`, which contains the banned `top`). `make check` green — **214 tests** (+1 collapse test), self-test 6+10, `ruff`. Engine untouched. ADR 0019. **Awaiting CONFIRMED_USER_SIDE.**
 - **Session 2026-06-06 (cont.) — MERGED PR #30 to `main` — calm theme (ADR 0017) + Android responsive (ADR 0018); `main` now 213 tests.**
   Scott's direction: calm, easy on the eyes, **NOT "poppin".** Web-researched (eye comfort, healthcare/BH palettes, WCAG 2.2; Android devices).
   Both views (`report_html.py` + `digest_html.py`) share ONE theme via CSS design tokens (`THEME` in `report_html`):
@@ -43,8 +50,8 @@ Last updated: 2026-06-06
 - Repo on **`Inbound-health-care/health-prototype`** (org on Team).
   **Branch protection ACTIVE** on `main` (4 `test` checks + up-to-date +
   conversation resolution + linear history + no-bypass; required approvals 0).
-  **FOLLOW-UP for Scott:** the `lint` CI check is not yet a *required* check —
-  add it to branch protection (GitHub Settings → Branches) to gate merges on it.
+  **RESOLVED (Scott, 2026-06-06):** `lint` + the `test (3.x)` checks are now *required*
+  checks in branch protection (Settings → Branches) — the prior follow-up is closed.
 
 - **Co-occurrence window — MERGED (PR #10, `claude/cooccurrence-window`).**
   Opt-in `window_days` on `detect_cooccurrence` (default 0 = exact same-date, v0

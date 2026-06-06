@@ -70,7 +70,8 @@ _THEME_CSS = (
 * { box-sizing: border-box; }
 body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
        margin: 0; color: var(--text); background: var(--bg); line-height: 1.5; }
-header { padding: 22px 28px; border-block-end: 1px solid var(--border); background: var(--surface); }
+header { position: relative; padding: 22px 28px; padding-inline-end: 96px;
+         border-block-end: 1px solid var(--border); background: var(--surface); }
 header h1 { font-size: 22px; margin: 0; font-weight: 600; letter-spacing: -.01em; }
 .meta { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
 .stance { margin: 8px 0 0; color: var(--muted); font-size: 13px; max-width: 80ch; }
@@ -87,7 +88,7 @@ mark.cite.active { background: var(--accent-weak); outline: 2px solid var(--acce
 .empty { color: var(--muted); font-size: 13px; }
 footer { padding: 14px 28px; border-block-start: 1px solid var(--border);
          color: var(--muted); font-size: 12px; background: var(--surface); }
-.theme-toggle { position: fixed; inset-block-start: 14px; inset-inline-end: 16px; z-index: 10;
+.theme-toggle { position: absolute; inset-block-start: 14px; inset-inline-end: 16px; z-index: 10;
                 background: var(--surface); color: var(--text); border: 1px solid var(--border);
                 border-radius: 999px; padding: 6px 14px; font-size: 13px; cursor: pointer; }
 .theme-toggle:hover { border-color: var(--accent-line); }
@@ -237,7 +238,8 @@ _JS = """\
   var marks = document.querySelectorAll('mark.cite');
   function clearMarks() { marks.forEach(function (m) { m.classList.remove('active'); }); }
   findings.forEach(function (el) {
-    el.addEventListener('click', function () {
+    el.addEventListener('click', function (e) {
+      if (e.target.closest('details')) { return; }
       var items = (el.getAttribute('data-items') || '').split('|').filter(Boolean);
       var turningOn = !el.classList.contains('sel');
       findings.forEach(function (o) { o.classList.remove('sel'); });
@@ -263,7 +265,7 @@ def render_html(
     records: list[dict],
     reports: list[RecordReport],
     *,
-    title: str = "Pattern digest",
+    title: str = "Pattern Inspection Report",
     reference_date: datetime.date | None = None,
 ) -> str:
     """A single self-contained HTML document: the source note with cited spans
@@ -291,8 +293,8 @@ def render_html(
 {_THEME_JS}</script>
 </head>
 <body>
-<button class="theme-toggle" type="button">Dark</button>
 <header>
+<button class="theme-toggle" type="button">Dark</button>
 <h1>{_esc(title)}</h1>
 <p class="stance">Surfaced from the record and cited &mdash; never judged, ordered, or recommended.
 Verify each surfaced line against its highlighted source.</p>

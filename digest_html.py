@@ -59,20 +59,25 @@ _LENS_LABELS = {
 }
 
 
-def _card_parts(finding: object) -> tuple[str, str, str, list[str]]:
-    """Return ``(lens_label, neutral_line, cited_chip, item_labels)`` for one
-    finding, built straight from its typed hit.
+def _card_parts(finding: object) -> tuple[str, str, str, list[str], list[str] | None]:
+    """Return ``(lens_label, neutral_line, cited_chip, item_labels, cited_dates)``
+    for one finding, built straight from its typed hit.
 
     The line states only what was surfaced; the chip cites the provenance dates.
     No severity, no direction (faster/slower), no ranking, no interpretation.
     ``item_labels`` link the card to its highlighted source spans (co-occurrence
-    carries two)."""
+    carries two). ``cited_dates`` is the bare list of provenance dates for the
+    list-of-dates lenses (recurrence, co-occurrence) so the view can collapse a
+    long list to a count; it is ``None`` for lenses whose chip is already short
+    (gap brackets, a frequency window, a cadence pivot)."""
     hit = finding.hit  # type: ignore[attr-defined]
     lens = finding.expert  # type: ignore[attr-defined]
     label = _LENS_LABELS.get(lens, lens.upper())
+    dates: list[str] | None = None
     if lens == "recurrence":
         line = f"{hit.item} — surfaced on {hit.count} dates"
-        chip = "cited: " + ", ".join(hit.dates)
+        dates = list(hit.dates)
+        chip = "cited: " + ", ".join(dates)
         items = [hit.item]
     elif lens == "gap":
         line = f"{hit.item} — {hit.gap_days}-day gap before it surfaced again"
@@ -87,8 +92,9 @@ def _card_parts(finding: object) -> tuple[str, str, str, list[str]]:
         chip = f"cited: {hit.window_start} … {hit.window_end}"
         items = [hit.item]
     elif lens == "cooccurrence":
-        line = f"{hit.item_a} + {hit.item_b} — co-noted on {hit.count} dates"
-        chip = "cited: " + ", ".join(hit.dates)
+        line = f"{hit.item_a} + {hit.item_b} — appeared together on {hit.count} dates"
+        dates = list(hit.dates)
+        chip = "cited: " + ", ".join(dates)
         items = [hit.item_a, hit.item_b]
     elif lens == "cadence_change":
         line = (
@@ -101,7 +107,29 @@ def _card_parts(finding: object) -> tuple[str, str, str, list[str]]:
         line = getattr(finding, "line", "")
         chip = ""
         items = []
-    return label, line, chip, items
+    return label, line, chip, items, dates
+
+
+# A list of cited dates longer than this is collapsed to a "cited: N dates"
+# summary (tap/click to expand) so the clinician card stays scannable; the full
+# dates are still in the document, one click away. Short lists render inline.
+_CITES_COLLAPSE_OVER = 3
+
+
+def _chip_html(chip: str, dates: list[str] | None) -> str:
+    """The cited-provenance pill. A long list of dates (recurrence / co-occurrence)
+    collapses to a ``cited: N dates`` summary that expands on tap; everything else
+    — and any short list — renders as a plain inline pill. Counting and citing
+    only; no judgment."""
+    if dates is not None and len(dates) > _CITES_COLLAPSE_OVER:
+        full = _esc(", ".join(dates))
+        return (
+            '<details class="chip cites">'
+            f"<summary>cited: {len(dates)} dates</summary>"
+            f'<div class="cites-full">{full}</div>'
+            "</details>"
+        )
+    return f'<div class="chip">{_esc(chip)}</div>' if chip else ""
 
 
 def _render_cards(reports: list[RecordReport]) -> str:
@@ -112,9 +140,9 @@ def _render_cards(reports: list[RecordReport]) -> str:
     cards: list[str] = []
     for report in reports:
         for finding in report.findings:
-            label, line, chip, items = _card_parts(finding)
+            label, line, chip, items, dates = _card_parts(finding)
             data_items = _esc("|".join(items))
-            chip_html = f'<div class="chip">{_esc(chip)}</div>' if chip else ""
+            chip_html = _chip_html(chip, dates)
             cards.append(
                 f'<div class="card finding" data-items="{data_items}">'
                 f'<div class="lens">{_esc(label)}</div>'
@@ -142,6 +170,13 @@ section { padding: 20px 28px; }
 .chip { display: inline-block; margin: 10px 0 0; padding: 2px 9px; font-size: 11px;
         color: var(--muted); background: var(--mark-rest); border: 1px solid var(--border);
         border-radius: 999px; }
+.chip.cites { padding: 0; border: none; background: none; }
+.chip.cites > summary { display: inline-block; cursor: pointer; list-style: none;
+        padding: 4px 11px; min-block-size: 28px; color: var(--muted); background: var(--mark-rest);
+        border: 1px solid var(--border); border-radius: 999px; }
+.chip.cites > summary::-webkit-details-marker { display: none; }
+.chip.cites > summary:hover, .chip.cites[open] > summary { border-color: var(--accent-line); }
+.cites-full { margin: 8px 0 0; font-size: 11px; color: var(--muted); line-height: 1.7; }
 """
 
 
@@ -179,8 +214,8 @@ def render_digest(
 {_THEME_JS}</script>
 </head>
 <body>
-<button class="theme-toggle" type="button">Dark</button>
 <header>
+<button class="theme-toggle" type="button">Dark</button>
 <h1>{_esc(title)}</h1>
 <p class="meta">{meta}</p>
 <p class="stance">Surfaced from the record and cited &mdash; never judged, ordered, or recommended.
