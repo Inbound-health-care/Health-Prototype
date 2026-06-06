@@ -12,12 +12,53 @@ occurrence came from.
 
 It is a **librarian, not an interpreter**. It surfaces, counts, and cites
 provenance — it never scores, ranks, or diagnoses, and it never says what a
-pattern *means*. That separation is the design principle and the legal grounding
-in one.
+pattern *means*. That separation is the design principle and the main risk
+boundary: it reduces interpretive and clinical-decision-support risk, but it is
+not a compliance determination.
 
 Domain-agnostic by design: a record can be a patient, a pharmacy profile, or a
 session log — the engine does not care. Pure stdlib, local-only, placeholder
 data only (zero real PHI).
+
+## Pipeline
+
+```text
+Free-text note
+    │
+    ▼
+extract.py            deterministic allowlist extraction + char-offset provenance
+    │
+    ▼
+canonical records     {id, entries: [{date, item, source_span}]}
+    │
+    ▼
+recurrence.py         five surfacing rules, each per-record
+    │
+    ▼
+surfaced findings     recurrence · gap · frequency (burst) · co-occurrence · cadence change
+    │
+    ▼
+text or HTML report   recurrence.py --report · report_html.py · digest_html.py
+```
+
+Every step is deterministic and cites its source; no step interprets.
+
+## What this system deliberately does not do
+
+The value is in the refusal to interpret. It does **not**:
+
+- diagnose, triage, or assign severity
+- infer causation — co-occurrence means "appeared together," never "caused"
+- interpret negation or context
+- decide whether a finding matters, or rank patients
+- produce clinical recommendations
+- assign a confidence or probability score
+
+A finding is either surfaced by a deterministic rule or absent under that rule —
+there is no model judgment in between, and nothing is generated. Example: the note
+*"Denies chest pain"* still surfaces `chest pain` if that term is in the gazetteer
+(strict-literal, Stance A). The system cites the exact source span; a human decides
+whether the mention is clinically relevant. That is the design, not a bug.
 
 ## Record shape
 
@@ -62,6 +103,10 @@ python recurrence.py --report                        # combined per-record repor
 make check                                           # full local verification (tests + self-test + lint)
 python -m unittest discover -s tests -t .          # full test suite (from repo root)
 ```
+
+Exact captured output of the main commands lives in
+[`docs/DEMO_OUTPUT.md`](docs/DEMO_OUTPUT.md) — read it to see the value without
+running anything.
 
 The placeholder record set lives in `data/sample_records.py` (records +
 hand-written `ANSWER_KEY`, side by side). Each record exists for one documented

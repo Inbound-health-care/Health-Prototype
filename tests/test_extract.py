@@ -6,8 +6,8 @@ recurrence.py's five rules then consume it UNCHANGED. These tests assert the
 hand-written FREETEXT oracle (items, dates, and exact char-offset spans), the
 longest-match / word-boundary matching, case-insensitivity, the three explicit
 date formats and the de-identifying date shift (intervals preserved), the
-allowlist (identifiers are structurally un-extractable), the librarian rule in
-output (Stance A: literal mentions, no interpretation, no context_cue), input
+allowlist (only curated concepts can surface through matching), the librarian rule
+in output (Stance A: literal mentions, no interpretation, no context_cue), input
 validation, and the end-to-end bridge into detect_recurrence.
 
 Run from the repo root:

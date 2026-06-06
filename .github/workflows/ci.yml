@@ -26,12 +26,12 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Byte-compile (syntax check)
-        run: python -m compileall -q recurrence.py tests data scripts
+      - name: Byte-compile every project file (delegates to the Makefile)
+        run: make compile
       - name: Run test suite
-        run: python -m unittest discover -s tests -t . -v
-      - name: Self-test (the six spec cases)
-        run: python recurrence.py --self-test
+        run: make test
+      - name: Self-tests (engine + extractor)
+        run: make selftest
 
   # Lint gate. The engine itself is stdlib-only; ruff is a dev tool, so this is
   # the one job that installs a dependency (pinned to match local). Lint only —

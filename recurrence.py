@@ -10,7 +10,9 @@ multiple dated entries, and cite exactly where each occurrence came from.
 
 This is a LIBRARIAN, not an interpreter. It surfaces, counts, and cites
 provenance. It never scores, ranks, diagnoses, or says what a pattern *means*.
-That separation is the design principle and the legal grounding in one.
+That separation is the design principle and the main risk boundary. It reduces
+interpretive and clinical-decision-support risk, but it is not a compliance
+determination.
 
 Domain-agnostic by design: a record can be a patient, a pharmacy profile, a
 session log — the engine does not care. v0 matches EXACTLY; fuzzy / synonym
