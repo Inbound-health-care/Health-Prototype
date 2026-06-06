@@ -84,7 +84,7 @@ class TestAllFiveLensesSurface(unittest.TestCase):
     def test_cooccurrence_is_a_pair_not_a_link(self):
         html = build_demo_html(REF)
         # The pair is presented as co-occurrence (counting), never as a relationship.
-        self.assertIn("anxiety + poor sleep — co-noted on 2 dates", html)
+        self.assertIn("anxiety + poor sleep — appeared together on 2 dates", html)
 
 
 class TestProvenanceIsVisible(unittest.TestCase):
@@ -94,6 +94,20 @@ class TestProvenanceIsVisible(unittest.TestCase):
         self.assertIn("cited: 2025-10-24 → 2026-03-15", html)   # gap brackets
         self.assertIn("cited: 2026-02-02 … 2026-03-02", html)   # frequency window
         self.assertIn("cited: pivot 2026-01-29", html)          # cadence pivot
+
+    def test_long_date_list_collapses_but_keeps_every_date(self):
+        # A long list of cited dates is summarized to a count (scannable card),
+        # but the full provenance stays in the document, one tap away — never
+        # dropped or summarized away.
+        html = build_demo_html(REF)
+        self.assertIn('<details class="chip cites"><summary>cited: 6 dates</summary>', html)
+        self.assertIn(
+            "2025-10-01, 2025-11-10, 2025-12-20, 2026-01-29, 2026-02-14, 2026-03-02", html
+        )
+        # Short lists are not collapsed — a 2- or 3-date chip renders inline.
+        self.assertNotIn("cited: 2 dates", html)
+        self.assertNotIn("cited: 3 dates", html)
+        self.assertIn("cited: 2026-02-14, 2026-03-02", html)    # co-occurrence inline
 
     def test_cards_link_to_concept_spans(self):
         html = build_demo_html(REF)

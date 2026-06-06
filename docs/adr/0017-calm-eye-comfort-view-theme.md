@@ -36,6 +36,11 @@ A single **shared, calm, low-stimulation theme** for both views, expressed as **
 - **WCAG 2.2 contrast, enforced by test.** Text/affordance pairs ≥ 4.5:1; UI indicators (outlines,
   borders) ≥ 3:1 — in **both** light and dark. `tests/test_view_theme.py` imports `THEME` and computes
   relative luminance, so changing any token re-checks automatically.
+  - **Standards re-verify (2026-06-06, RESEARCH_ONLY):** WCAG 2.2 AA stays the operative benchmark; we
+    are **not** adopting APCA / WCAG 3.0 yet. WCAG 3.0 is still a W3C Working Draft (Recommendation ~2028–2030)
+    and its contrast algorithm is officially TBD — APCA was pulled from the draft in 2023. No change; the
+    relative-luminance (WCAG 2.x) test above is correct to keep. (Source: adrianroselli.com WCAG3-contrast,
+    Apr 2026; W3C WCAG 3 working draft.)
 - **All prior rails hold:** pure stdlib, single self-contained HTML, no network/deps, document order,
   HTML-escaped, **banned-words** (still dodging `top` via logical properties — `inset-block-start`,
   `border-block-*`).
