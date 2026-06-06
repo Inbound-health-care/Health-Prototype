@@ -72,8 +72,9 @@ Last updated: 2026-06-05
   `report_html.py` (pure stdlib, no deps, no network): the source note with cited spans highlighted
   (item `source_span` + relative-date `date_span`) beside the `run_report` findings; click a finding →
   highlight its cited source. Grayscale-only, document order, banned-words-clean — the librarian rule
-  holds in the view. `python report_html.py --demo`. The clinician-facing **pre-visit digest** is being
-  mocked in **Figma** (design-first, separate from the repo).
+  holds in the view. `python report_html.py --demo`. The clinician-facing **pre-visit digest** is
+  mocked in **Figma** (design-first; grayscale, 5 lenses + cited-source panel):
+  https://www.figma.com/design/BcT7yhsMHAZl2AeJD9fAAK
 
 ## Open loops
 - [x] All 4 rules + v1 matching + combined report merged to `main`.

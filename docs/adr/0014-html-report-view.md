@@ -35,7 +35,8 @@ CDN, no `src=`, no server, no network) via pure `html.escape` + string templatin
   regenerate, never commit).
 - This is the **working / inspection** view. The clinician-facing **pre-visit pattern digest** is
   mocked separately in **Figma** (design-first), so the product surface and the engineering aren't
-  entangled.
+  entangled. **Figma mock:** https://www.figma.com/design/BcT7yhsMHAZl2AeJD9fAAK (Scott's Drafts —
+  grayscale, all five lenses + a cited-source panel; design-only, off-repo).
 
 **Rejected:** any JS framework / bundler / server (contradicts pure-stdlib + local; the pygame
 precedent); color-coding by type or severity (interpretation); committing the generated HTML.
