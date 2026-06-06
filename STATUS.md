@@ -4,13 +4,9 @@ _The front door. Read this first, update it last. One source of "where am I."_
 Last updated: 2026-06-06
 
 ## Current state
-- **Session 2026-06-06 (cont.) — view review refinements (ADR 0019) on branch `claude/repo-settings-loading-WdwbB` (draft PR; NOT yet on `main`); 214 tests.**
-  Acted on an external (ChatGPT) screenshot review — each claim checked against the code first (librarian: confirm/cite, not interpret); four were real and Scott picked them:
-  (1) the **theme toggle** moved into `<header>` (`position: absolute` in a `relative` header, shared `_THEME_CSS`) so it no longer floats over the cards;
-  (2) **long citation lists collapse in the digest only** — a recurrence/co-occurrence chip with >3 dates becomes a `<details>` `cited: N dates` (tap to expand); audit view keeps full dates inline; **every cited date stays in the document**;
-  (3) co-occurrence wording **"co-noted" → "appeared together"**;
-  (4) the audit view title **"Pattern digest" → "Pattern Inspection Report"** (the clinician view stays "Pre-visit Pattern Digest") so the two views no longer collide on "digest".
-  Banned-words note: the disclosure guard uses `e.target.closest('details')` in the shared `_JS` (NOT `stopPropagation`, which contains the banned `top`). `make check` green — **214 tests** (+1 collapse test), self-test 6+10, `ruff`. Engine untouched. ADR 0019. **Awaiting CONFIRMED_USER_SIDE.**
+- **Session 2026-06-06 (cont.) — multi-patient digest RENDERING (ADR 0020) on branch `claude/repo-settings-loading-WdwbB` (draft PR; NOT yet on `main`); 221 tests.**
+  Realizes STATUS step 11c, rendering the batch output of `extract_records_multi` (ADR 0016) in the clinician digest. Layout was research-led: a 2024–2026 web sweep (RESEARCH_ONLY) on clinician chart-review needs — documentation burden is the #1 pain (worst in behavioral health), clinicians want **scannable/less-is-more**, **citation/provenance is the trust lever** (our thesis, externally confirmed), and cognitive-load research says **minimize navigation, single-screen at-a-glance + drill-down**. So: **stacked per-patient blocks** (segment order, never reordered) + a compact **patient jump-index** (anchor links, no JS state) + a neutral **quarantine section** for refused segments (engine reason codes, never merged/guessed). **No cross-patient highlight bleed** — each block renders its OWN segment (spans rebased segment-local) AND `_MULTI_JS` scopes findings↔marks per `.patient` block. New `python digest_html.py --demo-multi`; `digest_html` VERSION 0.2.0; engine + shared helpers untouched; banned-words-clean. `report_html` (inspection) stays single-note (later follow-up). `make check` green — **221 tests** (+7), self-test 6+10, `ruff` (local + CI-pinned 0.15.16). **Awaiting CONFIRMED_USER_SIDE.**
+- **Session 2026-06-06 (cont.) — MERGED PR #31 to `main` — view review refinements (ADR 0019) + CI ruff pin 0.15.16 + 2026 standards re-verify; `main` 214 tests.** ADR 0019 **CONFIRMED_USER_SIDE** (Scott confirmed the toggle placement, citation collapse, wording, and view names on his phone, 2026-06-06). Same PR bumped the CI `ruff` pin 0.15.8 → 0.15.16 (CI-verified green) and recorded a dated standards re-verify (WCAG 2.2 AA kept / APCA not adopted, ADR 0017; OWASP Top 10 for Agentic Applications 2026 cross-ref, SECURITY §B).
 - **Session 2026-06-06 (cont.) — MERGED PR #30 to `main` — calm theme (ADR 0017) + Android responsive (ADR 0018); `main` now 213 tests.**
   Scott's direction: calm, easy on the eyes, **NOT "poppin".** Web-researched (eye comfort, healthcare/BH palettes, WCAG 2.2; Android devices).
   Both views (`report_html.py` + `digest_html.py`) share ONE theme via CSS design tokens (`THEME` in `report_html`):
@@ -228,8 +224,11 @@ Both planned engine increments are MERGED to `main`:
        light-first + optional dark toggle, ONE non-semantic accent, WCAG-AA contrast enforced by `tests/test_view_theme.py`. Color locked.
     b. ~~Android responsive pass~~ — DONE (ADR 0018): shared `_THEME_MEDIA_CSS` stacks the columns below **640 px** (primary **360 px**;
        Samsung A/S); foldable/desktop keep two columns; tap targets + note overflow handled. CSS-only. `make check` 213 green.
-    c. **NEXT in-phase: multi-patient digest RENDERING** over `extract_records_multi` (patient index in segment order,
-       per-patient cards, per-patient span scoping = no cross-patient highlight bleed, neutral quarantine section).
+    c. ~~**multi-patient digest RENDERING**~~ — DONE (ADR 0020; branch `claude/repo-settings-loading-WdwbB`, draft PR;
+       NOT yet on `main`): stacked per-patient blocks in segment order + patient jump-index + neutral quarantine
+       section; no cross-patient highlight bleed (own-segment render + per-block-scoped JS). Layout research-led
+       (clinician chart-review needs 2024–2026: scannable/less-is-more, citation-as-trust, minimize navigation).
+       `python digest_html.py --demo-multi`. Awaiting CONFIRMED_USER_SIDE. `report_html` multi is a later follow-up.
     Framed by the behavioral-health pre-visit digest direction; the free-text extractor stays the regulated boundary.
 
 ## Key facts
