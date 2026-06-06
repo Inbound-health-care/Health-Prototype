@@ -1,10 +1,11 @@
 # 0020 — Multi-patient digest rendering (stacked, per-patient scoped, quarantine surfaced)
 
 **Date:** 2026-06-06
-**Evidence level:** IMPLEMENTED_UNVERIFIED — CONFIRMED_ASSISTANT_SIDE (`make check` green: 221 tests /
-self-test 6+10 / `ruff` clean, incl. CI-pinned ruff 0.15.16); promotes to CONFIRMED_USER_SIDE when
-Scott opens the multi demo on his phone. The 2024–2026 clinician-needs research below is **RESEARCH_ONLY**
-(web-sourced this session).
+**Evidence level:** CONFIRMED_USER_SIDE — Scott opened the `--demo-multi` output on his phone
+(2026-06-06) and confirmed it looks right (stacked patients, jump-index, quarantine, scoped highlight,
+light/dark, narrow-width stack). `make check` green: 221 tests / self-test 6+10 / `ruff` clean (local +
+CI-pinned ruff 0.15.16); PR #32 CI green (lint + test 3.10–3.13). The 2024–2026 clinician-needs research
+below is **RESEARCH_ONLY** (web-sourced this session).
 **Type:** UI / front-end
 **Realizes:** STATUS step 11c (the deferred "multi-patient digest RENDERING" pick); renders the batch
 output of **ADR 0016** (`extract.extract_records_multi`). Builds on ADR 0015 (digest), 0017 (theme),
@@ -74,4 +75,4 @@ ranking patients (the librarian rule — segment order only); multi-patient in `
   with their reason codes; **no cross-patient bleed** (each block carries only its own dates, both blocks
   keep the shared concept mark scoped to their own note); self-contained; deterministic; banned-words-clean.
 - Manual: `python digest_html.py --demo-multi` — two stacked patients, jump-index, quarantine section;
-  clicking a card highlights only within that patient. CONFIRMED_USER_SIDE pending Scott's phone check.
+  clicking a card highlights only within that patient. CONFIRMED_USER_SIDE — Scott confirmed on his phone (2026-06-06).
