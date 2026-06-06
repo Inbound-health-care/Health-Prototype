@@ -682,6 +682,18 @@ class MultiExtractResult:
     quarantined: list[QuarantinedSegment]
 
 
+@dataclass
+class _Candidate:
+    """A segment with exactly one distinct Patient key — a provisional accept,
+    held until the cross-segment duplicate check (pass 2) clears it."""
+
+    index: int
+    start: int
+    text: str
+    key: str
+    key_span: list[int]
+
+
 def _validate_delimiter(delimiter: str) -> None:
     """The segment delimiter must be an explicit, non-empty, non-whitespace string
     — segment boundaries are never guessed (fail loudly on bad config)."""
@@ -725,6 +737,19 @@ def _segment_note(note: str, delimiter: str) -> list[tuple[int, str]]:
         segments.append((pos, note[pos:hit]))
         pos = hit + len(delimiter)
     return segments
+
+
+def _rebase_spans(entries: list[dict], offset: int) -> None:
+    """Shift every span field of ``entries`` by ``offset`` IN PLACE — turning the
+    segment-relative offsets extract_entries returns into WHOLE-NOTE offsets (the
+    base every span in the repo uses, so they recover text against the whole note
+    and drop into report_html unchanged). Every span-bearing field is listed here,
+    so adding one is a one-line change in a single place."""
+    for entry in entries:
+        for span_field in ("source_span", "date_span"):
+            span = entry.get(span_field)
+            if span is not None:
+                entry[span_field] = [span[0] + offset, span[1] + offset]
 
 
 def extract_records_multi(
@@ -773,10 +798,10 @@ def extract_records_multi(
     shifts = shift_by_id or {}
     config = config or MatchConfig()
 
-    # Pass 1: classify each segment. Candidates (exactly one distinct key) are
-    # collected as (index, start, text, key, key_span) so a cross-segment duplicate
-    # key can be detected before anything is accepted.
-    candidates: list[tuple[int, int, str, str, list[int]]] = []
+    # Pass 1: classify each segment. A segment with exactly one distinct key is a
+    # _Candidate (provisional accept); the rest are quarantined now. Candidates are
+    # held so a cross-segment duplicate key can be caught before anything is accepted.
+    candidates: list[_Candidate] = []
     quarantined: list[QuarantinedSegment] = []
     for index, (start, text) in enumerate(_segment_note(note, delimiter)):
         headers = parse_patient_ids(text, base_offset=start)
@@ -793,47 +818,43 @@ def extract_records_multi(
             )
         else:
             value, value_start = headers[0]
-            key_span = [value_start, value_start + len(value)]
-            candidates.append((index, start, text, value, key_span))
+            candidates.append(
+                _Candidate(index, start, text, value, [value_start, value_start + len(value)])
+            )
 
     # Pass 2: a key shared by >1 candidate is a collision — quarantine ALL colliding
     # segments (run_report groups by record_id, so a shared id would merge two
     # patients = the bleed we refuse). Then apply the per-patient shift policy.
-    key_counts = Counter(key for _, _, _, key, _ in candidates)
+    key_counts = Counter(c.key for c in candidates)
     records: list[dict] = []
-    for index, start, text, key, key_span in candidates:
-        if key_counts[key] > 1:
+    for c in candidates:
+        if key_counts[c.key] > 1:
             quarantined.append(
-                QuarantinedSegment(index, "duplicate_key", start, "key shared across segments")
+                QuarantinedSegment(c.index, "duplicate_key", c.start, "key shared across segments")
             )
             continue
-        if require_shift and key not in shifts:
+        if require_shift and c.key not in shifts:
             quarantined.append(
-                QuarantinedSegment(index, "missing_shift", start, "no per-patient shift supplied")
+                QuarantinedSegment(c.index, "missing_shift", c.start, "no per-patient shift supplied")
             )
             continue
         seg_entries = extract_entries(
-            text,
+            c.text,
             gazetteer,
-            date_shift_days=shifts.get(key, 0),
+            date_shift_days=shifts.get(c.key, 0),
             config=config,
             resolve_relative=resolve_relative,
             reference_date=reference_date,
         )
-        for entry in seg_entries:  # rebase spans to whole-note offsets
-            s, e = entry["source_span"]
-            entry["source_span"] = [s + start, e + start]
-            if "date_span" in entry:
-                ds, de = entry["date_span"]
-                entry["date_span"] = [ds + start, de + start]
+        _rebase_spans(seg_entries, c.start)  # segment-relative -> whole-note offsets
         records.append(
             {
-                "id": f"{record_id_prefix}{key}",
+                "id": f"{record_id_prefix}{c.key}",
                 "entries": seg_entries,
                 "provenance": {
-                    "segment_index": index,
-                    "segment_span": [start, start + len(text)],
-                    "patient_key_span": key_span,
+                    "segment_index": c.index,
+                    "segment_span": [c.start, c.start + len(c.text)],
+                    "patient_key_span": c.key_span,
                 },
             }
         )
