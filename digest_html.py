@@ -16,8 +16,8 @@ provenance dates; clicking a card highlights its cited spans in the note. The
 cards come from run_report() over real extracted records — never hand-written —
 so the view can only ever show what the engine actually surfaced.
 
-Like the engine, it honors the librarian rule in the VIEW layer: a calm warm theme
-with a single NON-semantic accent (the same for every lens — no per-lens or severity
+Like the engine, it honors the librarian rule in the VIEW layer: a calm, low-stimulation
+theme with a single NON-semantic accent (the same for every lens — no per-lens or severity
 colors), light-first with an optional dark toggle, document order, surfaces/counts/
 cites. It does NOT score, rank, judge, order by importance, or say what a pattern means.
 

@@ -12,8 +12,8 @@ ADR 0013's relative-date pass) beside the patterns the five rules surface
 in the note: "every line traces to source" made visible — i.e. FDA Non-Device CDS
 criterion 4 (the basis is reviewable) on screen.
 
-It honors the librarian rule in the VIEW layer too: a calm, warm theme with a single
-NON-semantic accent (the same for every lens — no per-lens or severity colors),
+It honors the librarian rule in the VIEW layer too: a calm, low-stimulation theme with a
+single NON-semantic accent (the same for every lens — no per-lens or severity colors),
 light-first with an optional dark toggle, document order only — it surfaces and cites,
 it does NOT rank, score, flag, judge, or interpret. See ADR 0014 (view) + ADR 0017 (theme).
 
@@ -42,14 +42,14 @@ VERSION = "0.1.0"
 # tests/test_view_theme.py, which imports THEME directly.
 THEME = {
     "light": {
-        "bg": "#FBF8F2", "surface": "#FFFDF8", "text": "#232825",
-        "muted": "#5E625A", "border": "#DFDCCF", "mark-rest": "#EEEAE0",
-        "accent": "#3F6B4E", "accent-weak": "#E4EEE4", "accent-line": "#638B6C",
+        "bg": "#FAF6FB", "surface": "#FFFDFF", "text": "#291E2E",
+        "muted": "#675A6E", "border": "#E6DDEA", "mark-rest": "#F1E8F4",
+        "accent": "#7A3A86", "accent-weak": "#F0E1F4", "accent-line": "#8A4F96",
     },
     "dark": {
-        "bg": "#181A16", "surface": "#20231D", "text": "#E7EAE2",
-        "muted": "#9AA092", "border": "#2F3329", "mark-rest": "#262A20",
-        "accent": "#93C39C", "accent-weak": "#283426", "accent-line": "#5E8466",
+        "bg": "#221026", "surface": "#2C1730", "text": "#ECE4EF",
+        "muted": "#B4A3B8", "border": "#3E2A44", "mark-rest": "#34203A",
+        "accent": "#D7A0DE", "accent-weak": "#3C2244", "accent-line": "#B074BA",
     },
 }
 

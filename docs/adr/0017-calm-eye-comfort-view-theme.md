@@ -1,4 +1,4 @@
-# 0017 — Calm, eye-comfort view theme (warm neutrals + one non-semantic accent)
+# 0017 — Calm, eye-comfort view theme (one non-semantic accent, light + dark)
 
 **Date:** 2026-06-06
 **Evidence level:** IMPLEMENTED_UNVERIFIED — CONFIRMED_ASSISTANT_SIDE (`make check` green:
@@ -17,15 +17,17 @@ The tension to resolve: any colour at all risks re-importing interpretation (red
 2026 trends) pointed one way: warmth, low stimulation, high readability, light-first.
 
 ## Decision
-A single **shared, warm, low-stimulation theme** for both views, expressed as **CSS design tokens**
+A single **shared, calm, low-stimulation theme** for both views, expressed as **CSS design tokens**
 (`THEME` dict in `report_html.py` — one source of truth), built into `_THEME_CSS` / `_THEME_JS` that
 `digest_html.py` imports; each view keeps only **layout** in its own `_CSS`.
 
-- **Palette: sage + cream** (Scott picked it from three live calm previews — warm-neutral / faint-teal /
-  sage — generated and sent for pick-by-eye). Warm off-white background, soft slate-green text, a
-  de-saturated **sage accent**.
+- **Palette: aubergine + orchid** — a deep purple matched to a reference image Scott supplied. He first
+  picked sage from three live calm previews, then chose this purple by eye to match the reference; it
+  departs from the research-suggested *warm* neutrals (the operator's aesthetic call) but keeps every
+  structural constraint. Light is a pale lavender, dark is the deep aubergine, with one de-saturated
+  **orchid accent**.
 - **Light-first, optional dark.** Default light (`<html data-theme="light">`); a no-dep toggle sets
-  `data-theme` from `prefers-color-scheme` (no flash) and on click. Dark is a zinc-tinted near-black,
+  `data-theme` from `prefers-color-scheme` (no flash) and on click. Dark is an aubergine near-black,
   **never pure-white-on-pure-black**.
 - **Colour is NON-semantic.** One accent, the **same for every lens**, used only to mark
   *interactivity / selection* (lens label, hover/selected border, the active-mark outline) — it never
@@ -49,10 +51,10 @@ severity colour (interpretation — librarian rule); pure-white-on-pure-black; d
 palettes; any framework / bundler / server; committing the generated HTML.
 
 ## Consequences
-- Both views are warmer, more readable, and accessibility-checked; one token source means the two
+- Both views are calmer, more readable, and accessibility-checked; one token source means the two
   views can't drift apart, and the colour palette is now machine-verified, not vibes.
 - The **grayscale-only** stance of ADR 0014/0015 is superseded by this theme; the **no-semantic-colour**
-  rule from those ADRs stands unchanged (this only adds a non-semantic accent + warmth).
+  rule from those ADRs stands unchanged (this only adds a non-semantic accent + a calm palette).
 - The next increment (multi-patient digest, STATUS step 11) inherits this theme for free.
 - If a genuinely separate third view appears, promote `_THEME_CSS/_THEME_JS` + the shared helpers into a
   small `view_html` module (deferred per ADR 0015 — YAGNI until then).
