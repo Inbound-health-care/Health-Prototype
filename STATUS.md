@@ -4,14 +4,17 @@ _The front door. Read this first, update it last. One source of "where am I."_
 Last updated: 2026-06-06
 
 ## Current state
-- **Session 2026-06-06 — PR #26 MERGED to `main`** (relative-date anchoring ADR 0013 + counsel
-  checklist + `report_html.py` inspection view ADR 0014 + STATUS/ADR-0012 reconcile); `main` now
-  **167 tests**. **UI slice 2 — clinician Pre-visit Pattern Digest IN PROGRESS** on
-  `claude/dazzling-shannon-jPWz2` (new draft PR): `digest_html.py` (ADR 0015) renders all five lenses
-  as cited cards from REAL engine output (`extract -> run_report`), dependency-free, grayscale,
-  banned-words-clean; one synthetic patient (EXAMPLE-009) trips all five lenses once each. Figma mock
-  approved (2026-06-06). `make check` green — **177 tests**, self-test 6+10, `ruff`.
-  `python digest_html.py --demo`.
+- **Session 2026-06-06 — multi-patient fail-closed extractor IN PROGRESS** on
+  `claude/dazzling-shannon-jPWz2` (new draft PR): `extract.extract_records_multi` (ADR 0016) splits a
+  multi-patient batch on an EXPLICIT delimiter and accepts a segment only when identity is unambiguous;
+  missing/ambiguous/duplicate keys are QUARANTINED (never merged or guessed), per-patient date-shift with
+  a fail-closed `require_shift`, whole-note `provenance` on every record. The "no-bleed" invariant is
+  tested by hand oracle + **Hypothesis** (folded in per the freshness check; dev-only, `make proptest`).
+  Synthetic data only; real-PHI counsel/Expert-Determination gate unchanged. `make check` green —
+  **207 tests** (+3 Hypothesis properties), self-test 6+10, `ruff`. `python extract.py --demo-multi`.
+- **PRs #26 and #27 MERGED to `main`:** relative-date anchoring (ADR 0013) + counsel checklist +
+  `report_html.py` inspection view (ADR 0014) + the clinician **Pre-visit Pattern Digest**
+  `digest_html.py` (ADR 0015). `main` now carries both HTML views; **177 tests** on `main`.
 - **Engine: 5 surfacing rules on `main`, 144 tests green (engine 90 + free-text slice-1 27 + matching-modes 27), `ruff` clean.**
   `detect_recurrence` / `detect_gap` / `detect_frequency` / `detect_cooccurrence`
   (opt-in `window_days`) / `detect_cadence_change` + v1 opt-in matching (normalize /
@@ -186,17 +189,18 @@ Both planned engine increments are MERGED to `main`:
 7. ~~**UI slice 1 — HTML report view**~~ — DONE this session (ADR 0014; branch `claude/dazzling-shannon-jPWz2`,
    draft PR #26): dependency-free self-contained HTML making provenance visible (cited spans ↔ findings);
    librarian rule holds in the view. Clinician-facing pre-visit digest being mocked in Figma. Awaiting CONFIRMED_USER_SIDE.
-8. **NEXT pick (open — Scott's call):** multi-patient notes (specced fail-closed in ADR 0013 /
-   `COUNSEL_VERIFICATION_CHECKLIST.md`), mid-line temporal expressions / partial-date normalization, or
-   building out the digest UI from the Figma mock — framed by the **behavioral-health "pre-visit pattern
-   digest"** direction. Treat the free-text extractor as the regulated boundary.
+8. **Multi-patient notes — IMPLEMENTED this session (ADR 0016, `extract_records_multi`, synthetic data;
+   new draft PR), with Hypothesis property tests folded in.** Remaining open picks (Scott's call):
+   mid-line temporal expressions / partial-date normalization; multi-patient RENDERING in the views
+   (`report_html`/`digest_html` are single-note today); the next "freshness" batch (mutation testing,
+   the required-lint CI check, plugin-bundling). Treat the free-text extractor as the regulated boundary.
 
 ## Key facts
-- Branch: `main` has 5 rules + free-text slices 1–2 + **relative-date anchoring (ADR 0013)** + the
-  **`report_html.py` inspection view (ADR 0014)** + the counsel checklist, **167 tests** (post #1–#26).
-  Active dev branch **`claude/dazzling-shannon-jPWz2`** (new draft PR) carries **UI slice 2** —
-  `digest_html.py`, the clinician Pre-visit Pattern Digest (ADR 0015) — **177 tests**, not yet on `main`.
-  `claude/hopeful-albattani-sYkkR` is merged via #25 (retire-able).
+- Branch: `main` has 5 rules + free-text slices 1–2 + **relative-date anchoring (ADR 0013)** + both HTML
+  views (**`report_html.py`** ADR 0014, **`digest_html.py`** ADR 0015) + the counsel checklist,
+  **177 tests** (post #1–#27). Active dev branch **`claude/dazzling-shannon-jPWz2`** (new draft PR)
+  carries the **multi-patient fail-closed extractor** (`extract_records_multi`, ADR 0016) + Hypothesis
+  property tests — **207 tests**, not yet on `main`. `claude/hopeful-albattani-sYkkR` is merged via #25.
   Per-session history + the free-text/legal-grounding design + the 2026 compliance/market audit live
   in Drive `health-prototype/` (`archive` + `freetext-design` + `audit-2026-06-05`).
 - Spec (contract): Drive `BUILD_SPEC_RecurrenceDetection_v0_2026-05-30.md`

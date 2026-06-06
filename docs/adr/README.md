@@ -41,3 +41,7 @@ it — history is the point.
 - [0010 — Rename the "firewall" metaphor (librarian rule / allowlist / research gate)](0010-rename-firewall-metaphor.md)
 - [0011 — FDA CDS guidance refreshed (Jan 2026) + 2026 compliance audit](0011-fda-cds-guidance-refresh-2026.md)
 - [0012 — Free-text matching modes (strict/synonyms/fuzzy/both) + merge-safety guards](0012-freetext-matching-modes.md)
+- [0013 — Relative-date anchoring (conservative, opt-in)](0013-relative-date-anchoring.md)
+- [0014 — HTML report view (UI slice 1): provenance made visible](0014-html-report-view.md)
+- [0015 — Pre-visit Pattern Digest view (UI slice 2): the clinician product surface](0015-pre-visit-digest-view.md)
+- [0016 — Multi-patient free-text extraction (fail-closed identity, per-patient de-id)](0016-multi-patient-fail-closed-extraction.md)

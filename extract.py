@@ -65,13 +65,14 @@ import datetime
 import difflib
 import re
 import sys
+from collections import Counter
 from dataclasses import dataclass
 
 from recurrence import _check_fuzzy_cutoff, _normalize, detect_recurrence
 
 # Front-end version — independent of the engine's VERSION. Bump on a
 # user-visible change to extraction behavior.
-VERSION = "0.3.0"
+VERSION = "0.4.0"
 
 
 # ---------------------------------------------------------------------------
@@ -634,6 +635,213 @@ def extract_records(
     return [{"id": f"{record_id_prefix}{rid}", "entries": entries}]
 
 
+# ---------------------------------------------------------------------------
+# Multi-patient extraction (slice 3; FAIL-CLOSED on identity — see ADR 0016).
+# One input may hold several patients. We split ONLY on an explicit, operator-
+# supplied delimiter and accept a segment ONLY when its identity is unambiguous;
+# a segment with no key, with two or more DISTINCT keys, or whose key collides
+# with another segment is QUARANTINED (refused), never merged or guessed. This is
+# the deterministic analogue of "abstain under uncertainty": when attribution is
+# unclear, refuse rather than risk patient mis-attribution / record bleed (the
+# dominant documented risk). recurrence.run_report already groups by record_id and
+# every rule is per-record, so N correctly-keyed records Just Work; the only new
+# job is producing them safely. extract_records (single-note) is left untouched.
+# ---------------------------------------------------------------------------
+
+# Fixed, neutral provenance tokens (librarian rule): a refusal reason is never an
+# interpretation. missing_key = no Patient: header; ambiguous_key = >=2 distinct
+# headers in one segment; duplicate_key = a key shared across segments (ALL
+# colliding segments are refused, never merged); missing_shift = require_shift is
+# on and no per-patient shift was supplied (de-identification would be partial).
+_QUARANTINE_REASONS = ("missing_key", "ambiguous_key", "duplicate_key", "missing_shift")
+
+
+@dataclass
+class QuarantinedSegment:
+    """One refused segment, stamped with NEUTRAL provenance only (librarian rule).
+
+    ``index`` is the 0-based segment ordinal; ``reason`` is one of
+    ``_QUARANTINE_REASONS``; ``char_offset`` is the segment's start offset in the
+    whole note; ``detail`` is a neutral, non-interpretive note (a count or which
+    key collided) and must stay free of interpretive/banned words."""
+
+    index: int
+    reason: str
+    char_offset: int = 0
+    detail: str = ""
+
+
+@dataclass
+class MultiExtractResult:
+    """The outcome of a multi-patient split. ``records`` are the accepted canonical
+    records (each a normal {id, entries} plus an additive ``provenance`` block the
+    engine ignores); ``quarantined`` lists the refused segments in segment order.
+    Bad DATA never raises (fail-closed = quarantine); only bad CONFIG raises."""
+
+    records: list[dict]
+    quarantined: list[QuarantinedSegment]
+
+
+def _validate_delimiter(delimiter: str) -> None:
+    """The segment delimiter must be an explicit, non-empty, non-whitespace string
+    — segment boundaries are never guessed (fail loudly on bad config)."""
+    if not isinstance(delimiter, str) or delimiter.strip() == "":
+        raise ValueError(
+            f"delimiter must be a non-empty, non-whitespace string, got {delimiter!r}"
+        )
+
+
+def parse_patient_ids(segment: str, *, base_offset: int = 0) -> list[tuple[str, int]]:
+    """Every ``Patient: <value>`` header in ``segment`` as ``(value, value_start)``
+    in document order, where ``value_start`` is the WHOLE-NOTE char offset of the
+    value (add ``base_offset`` to the in-segment position). Values are stripped and
+    taken VERBATIM, never gazetteer-scanned (the allowlist, ADR 0009). Distinct
+    detection is the caller's job; this returns EVERY header so a segment with two
+    different headers can be recognized as ambiguous. ``parse_patient_id`` (first
+    wins) is left untouched for the single-note path."""
+    out: list[tuple[str, int]] = []
+    offset = 0
+    for line in segment.splitlines(keepends=True):
+        m = _PATIENT_RE.match(line)
+        if m:
+            out.append((m.group(1), base_offset + offset + m.start(1)))
+        offset += len(line)
+    return out
+
+
+def _segment_note(note: str, delimiter: str) -> list[tuple[int, str]]:
+    """Split ``note`` on the literal ``delimiter`` into ``(start_offset, text)``
+    pairs, where ``start_offset`` is the segment's char offset in the whole note
+    (so per-segment spans can be rebased to whole-note offsets). The delimiter
+    text is NOT part of any segment. The preamble before the first delimiter is
+    segment 0 — never special-cased to attach to the first patient."""
+    segments: list[tuple[int, str]] = []
+    pos = 0
+    while True:
+        hit = note.find(delimiter, pos)
+        if hit == -1:
+            segments.append((pos, note[pos:]))
+            break
+        segments.append((pos, note[pos:hit]))
+        pos = hit + len(delimiter)
+    return segments
+
+
+def extract_records_multi(
+    note: str,
+    gazetteer: list[str],
+    *,
+    delimiter: str,
+    shift_by_id: dict[str, int] | None = None,
+    require_shift: bool = False,
+    record_id_prefix: str = "",
+    config: MatchConfig | None = None,
+    resolve_relative: bool = False,
+    reference_date: datetime.date | None = None,
+) -> MultiExtractResult:
+    """Split a multi-patient note on an EXPLICIT ``delimiter`` and extract one
+    canonical record per segment, FAIL-CLOSED on identity (ADR 0016).
+
+    A segment is accepted ONLY when it carries exactly one DISTINCT ``Patient:``
+    header value AND that key does not collide with another segment; otherwise it
+    is quarantined (``missing_key`` / ``ambiguous_key`` / ``duplicate_key``),
+    never merged or guessed — identity is never inferred from prose. ``shift_by_id``
+    maps a RAW patient key (pre-prefix) to its per-patient de-identifying day
+    offset (a consistent per-patient shift preserves intervals while obscuring the
+    calendar, ADR 0009); when ``require_shift`` is True an accepted key with no
+    shift is quarantined (``missing_shift``) so de-identification can never be
+    partial; when False (default) a missing shift is 0 (the single-note convention).
+
+    Each accepted record carries an additive ``provenance`` block (segment index +
+    whole-note spans) the engine ignores (the ``tag``/``source_span`` precedent).
+    ``source_span``/``date_span`` are rebased to WHOLE-NOTE offsets, so they recover
+    their text against ``note`` exactly as the single-note path does.
+
+    Bad DATA never raises (fail-closed = quarantine); only bad CONFIG raises
+    (empty/whitespace delimiter; non-dict ``shift_by_id`` or a bad shift value;
+    non-bool ``require_shift``)."""
+    _validate_gazetteer(gazetteer)
+    _validate_delimiter(delimiter)
+    _validate_relative(resolve_relative, reference_date)
+    if not isinstance(require_shift, bool):
+        raise ValueError(f"require_shift must be a bool, got {require_shift!r}")
+    if shift_by_id is not None:
+        if not isinstance(shift_by_id, dict):
+            raise ValueError(f"shift_by_id must be a dict, got {shift_by_id!r}")
+        for value in shift_by_id.values():
+            _validate_shift(value)
+    shifts = shift_by_id or {}
+    config = config or MatchConfig()
+
+    # Pass 1: classify each segment. Candidates (exactly one distinct key) are
+    # collected as (index, start, text, key, key_span) so a cross-segment duplicate
+    # key can be detected before anything is accepted.
+    candidates: list[tuple[int, int, str, str, list[int]]] = []
+    quarantined: list[QuarantinedSegment] = []
+    for index, (start, text) in enumerate(_segment_note(note, delimiter)):
+        headers = parse_patient_ids(text, base_offset=start)
+        distinct = {value for value, _ in headers}
+        if not distinct:
+            quarantined.append(
+                QuarantinedSegment(index, "missing_key", start, "no Patient: header")
+            )
+        elif len(distinct) >= 2:
+            quarantined.append(
+                QuarantinedSegment(
+                    index, "ambiguous_key", start, f"{len(distinct)} distinct headers"
+                )
+            )
+        else:
+            value, value_start = headers[0]
+            key_span = [value_start, value_start + len(value)]
+            candidates.append((index, start, text, value, key_span))
+
+    # Pass 2: a key shared by >1 candidate is a collision — quarantine ALL colliding
+    # segments (run_report groups by record_id, so a shared id would merge two
+    # patients = the bleed we refuse). Then apply the per-patient shift policy.
+    key_counts = Counter(key for _, _, _, key, _ in candidates)
+    records: list[dict] = []
+    for index, start, text, key, key_span in candidates:
+        if key_counts[key] > 1:
+            quarantined.append(
+                QuarantinedSegment(index, "duplicate_key", start, "key shared across segments")
+            )
+            continue
+        if require_shift and key not in shifts:
+            quarantined.append(
+                QuarantinedSegment(index, "missing_shift", start, "no per-patient shift supplied")
+            )
+            continue
+        seg_entries = extract_entries(
+            text,
+            gazetteer,
+            date_shift_days=shifts.get(key, 0),
+            config=config,
+            resolve_relative=resolve_relative,
+            reference_date=reference_date,
+        )
+        for entry in seg_entries:  # rebase spans to whole-note offsets
+            s, e = entry["source_span"]
+            entry["source_span"] = [s + start, e + start]
+            if "date_span" in entry:
+                ds, de = entry["date_span"]
+                entry["date_span"] = [ds + start, de + start]
+        records.append(
+            {
+                "id": f"{record_id_prefix}{key}",
+                "entries": seg_entries,
+                "provenance": {
+                    "segment_index": index,
+                    "segment_span": [start, start + len(text)],
+                    "patient_key_span": key_span,
+                },
+            }
+        )
+
+    quarantined.sort(key=lambda q: q.index)
+    return MultiExtractResult(records=records, quarantined=quarantined)
+
+
 def format_entry(entry: dict) -> str:
     """Render one entry as a neutral provenance line for ``--demo``. Surfaces the
     date (or, for opt-in relative entries, the cited temporal phrase + kind), the
@@ -744,6 +952,49 @@ def _run_demo_relative(reference_date: datetime.date) -> int:
         print("  (nothing recurs)")
     for hit in hits:
         print(f'  "{hit.item}" appears {hit.count}x — {", ".join(hit.dates)}')
+    return 0
+
+
+def _run_demo_multi() -> int:
+    """Multi-patient demo (ADR 0016): split the synthetic batch on its explicit
+    delimiter, show the accepted (cited, fail-closed) records and the neutral
+    quarantine report, then feed ONLY the accepted records to the engine —
+    quarantined segments never reach it."""
+    from data.sample_records import (
+        FREETEXT_GAZETTEER,
+        FREETEXT_MULTI_DELIMITER,
+        FREETEXT_MULTI_NOTE,
+        FREETEXT_MULTI_SHIFTS,
+    )
+    from recurrence import format_report, run_report
+
+    print("Source note (multi-patient batch):")
+    print(FREETEXT_MULTI_NOTE)
+    print(f"Explicit delimiter: {FREETEXT_MULTI_DELIMITER!r}")
+    print()
+    result = extract_records_multi(
+        FREETEXT_MULTI_NOTE,
+        FREETEXT_GAZETTEER,
+        delimiter=FREETEXT_MULTI_DELIMITER,
+        shift_by_id=FREETEXT_MULTI_SHIFTS,
+    )
+    print("Accepted records (cited, de-identified, fail-closed on identity):")
+    for record in result.records:
+        prov = record["provenance"]
+        print(f'  {record["id"]}  (segment {prov["segment_index"]})')
+        for entry in record["entries"]:
+            print(f"    {format_entry(entry)}")
+    print()
+    print("Quarantined segments (refused — neutral provenance only):")
+    if not result.quarantined:
+        print("  (none)")
+    for q in result.quarantined:
+        detail = f" ({q.detail})" if q.detail else ""
+        print(f"  segment {q.index} @offset {q.char_offset}: {q.reason}{detail}")
+    print()
+    print("Fed to the engine (run_report) — quarantined segments never reach it:")
+    text = format_report(run_report(result.records))
+    print(text if text else "  (nothing surfaces)")
     return 0
 
 
@@ -884,6 +1135,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Extract the sample note and show the engine surfacing a recurrence",
     )
     p.add_argument(
+        "--demo-multi",
+        action="store_true",
+        help="Multi-patient fail-closed demo: split a synthetic batch on an "
+        "explicit delimiter, show accepted records + the quarantine report (ADR 0016)",
+    )
+    p.add_argument(
         "--reference-date",
         metavar="YYYY-MM-DD",
         default=None,
@@ -913,6 +1170,8 @@ def main() -> int:
             )
             return 2
         return _run_demo_relative(ref)
+    if args.demo_multi:
+        return _run_demo_multi()
     if args.demo:
         return _run_demo(_config_for_mode(args.match_mode))
     build_parser().print_help()

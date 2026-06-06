@@ -91,11 +91,20 @@ Apply these to the canonical docs only after counsel confirms (kept here so they
 - Add a sentence noting the **criterion 3 → 4 relocation** (automation-bias / time-critical).
 - Re-check `SECURITY_AND_TOOL_POLICY.md` §C.1's FDA cite against the Jan-2026 guidance.
 
-## Multi-patient (specced; deferred — see ADR 0013 "Rejected")
-When built: split only on an explicit operator-defined delimiter + an explicit per-segment patient
+## Multi-patient (specced; IMPLEMENTED on SYNTHETIC data — see ADR 0016)
+The design: split only on an explicit operator-defined delimiter + an explicit per-segment patient
 key; **fail closed** (refuse/quarantine a segment with a missing/ambiguous key — never infer identity
 from prose); per-segment de-id with a per-patient shift key; provenance-stamp every record. The
 dominant documented risk is patient mis-attribution / record bleed.
+
+**Built (ADR 0016, 2026-06-06):** `extract.extract_records_multi` implements exactly this on synthetic
+EXAMPLE-id data — explicit delimiter, fail-closed quarantine (`missing_key` / `ambiguous_key` /
+`duplicate_key`), a duplicate key quarantines ALL colliding segments (no merge), a per-patient
+`shift_by_id` with a fail-closed `require_shift` so de-identification can never be partial (closing the
+reused-shift / residual-date weak spot above at the multi-patient layer), and a whole-note
+`provenance` stamp on every accepted record. The "no-bleed" invariant is checked by hand oracle and by
+Hypothesis. **The real-PHI gate is UNCHANGED:** items 3–8 above (written Expert Determination + FDA
+memo before any real PHI) still block real-PHI use; this is synthetic-data only.
 
 ## Sources (RESEARCH_ONLY, web; judge by concept)
 - FDA CDS Software guidance (landing). https://www.fda.gov/regulatory-information/search-fda-guidance-documents/clinical-decision-support-software

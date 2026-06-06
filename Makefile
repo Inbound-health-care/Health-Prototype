@@ -1,4 +1,4 @@
-.PHONY: test selftest demo lint check typecheck fmt-check fmt cov security tools branch-audit clean
+.PHONY: test selftest demo lint check typecheck fmt-check fmt cov security proptest tools branch-audit clean
 
 # Engine is pure stdlib; no runtime dependencies to install.
 # The targets below test/lint/type-check are OPTIONAL dev tooling: each is a
@@ -42,6 +42,11 @@ cov:           ## Test coverage via uvx (no install): run suite + report
 
 security:      ## Security/AST lint via uvx (no install)
 	-uvx bandit -q -r recurrence.py
+
+# Property tests are dev-only/additive: the suite SKIPS them when hypothesis is
+# absent, so `make test` stays pure-stdlib green. `make proptest` runs them via uvx.
+proptest:      ## Property-based tests (Hypothesis via uvx; no install)
+	-uvx --with hypothesis python -m unittest tests.test_extract_multi_properties -v
 
 tools:         ## Report which optional dev tools are available
 	@for t in python3 pytest ruff mypy pyright uv black; do \
