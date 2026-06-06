@@ -106,5 +106,16 @@ class TestDarkToggleIsWired(unittest.TestCase):
             self.assertIn(':root[data-theme="dark"]', html)
 
 
+class TestResponsiveAndroid(unittest.TestCase):
+    def test_views_stack_on_narrow_android_widths(self):
+        # Android-targeted responsive layer (ADR 0018): a viewport meta + a media query
+        # that stacks the two columns below 640px (every Android phone portrait; primary
+        # width 360px). Desktop / foldable-unfolded keep the two-column layout.
+        for html in (report_html.build_demo_html(REF), digest_html.build_demo_html(REF)):
+            self.assertIn('name="viewport"', html)
+            self.assertIn("@media (max-width: 640px)", html)
+            self.assertIn("flex-direction: column", html)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -36,7 +36,15 @@ from recurrence import RecordReport, run_report
 # Shared, pure view helpers — one source of truth for span collection, neutral
 # <mark> rendering, HTML-escaping, and the click-to-highlight script, so the
 # inspection view and this digest can never highlight provenance differently.
-from report_html import _JS, _THEME_CSS, _THEME_JS, _collect_spans, _esc, _render_note
+from report_html import (
+    _JS,
+    _THEME_CSS,
+    _THEME_JS,
+    _THEME_MEDIA_CSS,
+    _collect_spans,
+    _esc,
+    _render_note,
+)
 
 VERSION = "0.1.0"
 
@@ -166,7 +174,7 @@ def render_digest(
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{_esc(title)}</title>
 <style>
-{_THEME_CSS}{_CSS}</style>
+{_THEME_CSS}{_CSS}{_THEME_MEDIA_CSS}</style>
 <script>
 {_THEME_JS}</script>
 </head>

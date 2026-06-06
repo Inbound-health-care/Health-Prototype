@@ -4,13 +4,14 @@ _The front door. Read this first, update it last. One source of "where am I."_
 Last updated: 2026-06-06
 
 ## Current state
-- **Session 2026-06-06 (cont.) — UI phase kicked off: calm / eye-comfort view theme on `claude/exciting-fermat-lztQq` (ADR 0017; draft PR).**
-  Scott's direction: calm, easy on the eyes, **NOT "poppin".** Web-researched (eye comfort, healthcare/BH palettes, WCAG 2.2).
-  Both views (`report_html.py` + `digest_html.py`) now share ONE warm theme via CSS design tokens (`THEME` in `report_html`):
+- **Session 2026-06-06 (cont.) — UI phase on `claude/exciting-fermat-lztQq` (PR #30): calm theme (ADR 0017) + Android responsive (ADR 0018).**
+  Scott's direction: calm, easy on the eyes, **NOT "poppin".** Web-researched (eye comfort, healthcare/BH palettes, WCAG 2.2; Android devices).
+  Both views (`report_html.py` + `digest_html.py`) share ONE theme via CSS design tokens (`THEME` in `report_html`):
   **aubergine + orchid** (deep purple, matched to a reference image Scott supplied), **light-first + optional dark toggle**, a **single NON-semantic accent**
-  (same for every lens — no severity/type colour; librarian rule holds). **WCAG-AA contrast enforced by a new test** (`tests/test_view_theme.py`,
-  computes luminance from `THEME`, light + dark). `make check` green — **212 tests** (+5 theme), self-test 6+10, `ruff`. Engine untouched.
-  Revises the "grayscale-only" half of ADR 0014/0015; their "no colour by type/severity" rule stands. NEXT in-phase: multi-patient digest RENDERING.
+  (same for every lens — no severity/type colour; librarian rule holds). **WCAG-AA contrast enforced by test** (`tests/test_view_theme.py`, computes luminance from `THEME`, light + dark).
+  **Android responsive (ADR 0018):** shared `_THEME_MEDIA_CSS` (appended last) stacks the two columns below **640 px** (primary width **360 px** — Samsung A/S, Galaxy S25 = 360×780 CSS); foldable-unfolded/desktop keep two columns; CSS-only, no deps.
+  `make check` green — **213 tests** (+5 theme, +1 responsive), self-test 6+10, `ruff`. Engine untouched. CI green; **color locked** (Scott confirmed vs his reference).
+  Revises the "grayscale-only" half of ADR 0014/0015; their "no colour by type/severity" rule stands. **NEXT in-phase: multi-patient digest RENDERING** (deferred pick).
 - **Session 2026-06-06 — MERGED #28 (multi-patient fail-closed extractor, ADR 0016) to `main`; `main` now 207 tests, VERSION 0.4.0.**
   - **#28 — multi-patient fail-closed extractor (ADR 0016):** `extract.extract_records_multi` splits a
     multi-patient batch on an EXPLICIT delimiter and accepts a segment only when identity is unambiguous;
@@ -215,11 +216,12 @@ Both planned engine increments are MERGED to `main`:
 10. ~~**Multi-patient extractor (ADR 0016, PR #28)**~~ — DONE, **MERGED (squash)**, **CONFIRMED_USER_SIDE**
     (Scott ran `python extract.py --demo-multi` on his laptop, 2026-06-06). Brought `main` to **207 tests** +
     VERSION 0.4.0; the deferred `--demo-multi` snapshot is folded into `docs/DEMO_OUTPUT.md` in the same PR.
-11. **UI phase (Scott, 2026-06-06): calm / eye-comfort, NOT "poppin".**
-    a. ~~Calm visual pass~~ — DONE on `claude/exciting-fermat-lztQq` (ADR 0017; draft PR): both views share one warm
-       **aubergine + orchid** theme (CSS tokens in `report_html.THEME`), light-first + optional dark toggle, ONE non-semantic
-       accent, WCAG-AA contrast enforced by `tests/test_view_theme.py`. `make check` 212 green. Awaiting CONFIRMED_USER_SIDE.
-    b. **NEXT in-phase: multi-patient digest RENDERING** over `extract_records_multi` (patient index in segment order,
+11. **UI phase (Scott, 2026-06-06): calm / eye-comfort, NOT "poppin".** All on PR #30 (`claude/exciting-fermat-lztQq`); awaiting CONFIRMED_USER_SIDE + merge.
+    a. ~~Calm visual pass~~ — DONE (ADR 0017): both views share one **aubergine + orchid** theme (CSS tokens in `report_html.THEME`),
+       light-first + optional dark toggle, ONE non-semantic accent, WCAG-AA contrast enforced by `tests/test_view_theme.py`. Color locked.
+    b. ~~Android responsive pass~~ — DONE (ADR 0018): shared `_THEME_MEDIA_CSS` stacks the columns below **640 px** (primary **360 px**;
+       Samsung A/S); foldable/desktop keep two columns; tap targets + note overflow handled. CSS-only. `make check` 213 green.
+    c. **NEXT in-phase: multi-patient digest RENDERING** over `extract_records_multi` (patient index in segment order,
        per-patient cards, per-patient span scoping = no cross-patient highlight bleed, neutral quarantine section).
     Framed by the behavioral-health pre-visit digest direction; the free-text extractor stays the regulated boundary.
 
@@ -229,8 +231,9 @@ Both planned engine increments are MERGED to `main`:
   the counsel checklist + **review hardening** (CI/Makefile parity, DEMO_OUTPUT, honest wording) + the
   **multi-patient fail-closed extractor (ADR 0016, `extract_records_multi`)**, **207 tests**, VERSION 0.4.0
   (post #1–#29).
-  Active dev branch **`claude/exciting-fermat-lztQq`** = the UI phase — calm **aubergine + orchid** view theme
-  (ADR 0017, light-first + dark toggle, one non-semantic accent, WCAG-AA test), **212 tests**, draft PR.
+  Active dev branch **`claude/exciting-fermat-lztQq`** = PR #30, the UI phase — calm **aubergine + orchid** view theme
+  (ADR 0017, light-first + dark toggle, one non-semantic accent, WCAG-AA test) + **Android responsive** (ADR 0018,
+  stack < 640 px), **213 tests**, draft PR.
   `claude/dazzling-shannon-jPWz2` is merged via #28 (retire-able); `claude/hopeful-albattani-sYkkR` via #25
   (retire-able); `claude/review-hardening` merged via #29 (retire-able).
   Per-session history + the free-text/legal-grounding design + the 2026 compliance/market audit live

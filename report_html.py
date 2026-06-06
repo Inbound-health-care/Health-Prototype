@@ -113,6 +113,25 @@ _THEME_JS = """\
 })();
 """
 
+# Android-targeted responsive layer (ADR 0018), appended LAST in each view's <style>
+# so it overrides the shared base + the view's own layout. Primary width 360 px (the
+# most common Android viewport, incl. Galaxy S25 = 360x780 CSS); below 640 px (every
+# Android phone portrait) the two columns stack and spacing/tap targets adapt; foldable
+# unfolded (~768) + tablets keep the two-column layout. Pure CSS — no JS change, no deps.
+# Logical properties keep `top` out of the document (banned-words rule).
+_THEME_MEDIA_CSS = """\
+@media (max-width: 640px) {
+  main { flex-direction: column; }
+  main > section { flex: 0 0 auto; border-inline-end: none; padding: 14px 16px; }
+  main > section:not(:last-child) { border-block-end: 1px solid var(--border); }
+  header { padding: 16px 16px; padding-inline-end: 84px; }
+  .note { overflow-x: auto; }
+  .card, li.finding { padding: 14px 14px; }
+  .theme-toggle { inset-block-start: 12px; inset-inline-end: 12px;
+                  padding: 10px 16px; min-block-size: 44px; }
+}
+"""
+
 
 def _esc(s: str) -> str:
     """HTML-escape for both text and attribute contexts (quotes included)."""
@@ -267,7 +286,7 @@ def render_html(
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{_esc(title)}</title>
 <style>
-{_THEME_CSS}{_CSS}</style>
+{_THEME_CSS}{_CSS}{_THEME_MEDIA_CSS}</style>
 <script>
 {_THEME_JS}</script>
 </head>
