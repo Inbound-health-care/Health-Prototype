@@ -29,12 +29,15 @@ opt-in choice (a `MatchConfig`), never a hidden default:
 The guards are always on in fuzzy/both; strict is always available as the default.
 This is a transparency / human-control aid, not a guarantee — see `--explain-modes`.
 
-The two PHI controls, by construction (see ADR 0009 — NOT legal advice):
-  - Allowlist (HIPAA Safe Harbor): only curated gazetteer concepts can surface,
-    so names / SSNs / MRNs and the other identifiers are structurally
-    un-extractable. The "Patient:" header value becomes the record id and is
-    never gazetteer-scanned. Fuzzy matches are anchored to the gazetteer too, so
-    only allowlisted concepts ever surface.
+The two PHI controls, by design (see ADR 0009 — NOT legal advice, NOT a
+compliance determination):
+  - Allowlist (HIPAA Safe-Harbor-*shaped*): the allowlist limits what the
+    extractor can emit through normal matching — only curated gazetteer concepts
+    surface, the "Patient:" header value becomes the record id and is never
+    gazetteer-scanned, and fuzzy matches are gazetteer-anchored too. This reduces
+    PHI exposure, but does NOT by itself establish HIPAA de-identification or
+    guarantee that all identifiers are impossible to surface through future code
+    paths.
   - Dates de-identified by a consistent per-record shift (an Expert-Determination
     technique): every date moves by the same offset, so intervals are preserved
     and the engine's date math survives while the calendar is obscured. The
