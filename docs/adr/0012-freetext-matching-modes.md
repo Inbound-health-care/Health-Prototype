@@ -1,11 +1,11 @@
 # 0012 — Free-text matching modes (strict / synonyms / fuzzy / both) + merge-safety guards
 
 **Date:** 2026-06-05
-**Evidence level:** IMPLEMENTED_UNVERIFIED — slice shipped on `claude/hopeful-albattani-sYkkR`:
-`extract.py` modes + guards + `tests/test_extract_modes.py`. CONFIRMED_ASSISTANT_SIDE
-(`make check` green — 144 tests / self-test 6+7 / `ruff` clean); promotes to
-CONFIRMED_USER_SIDE when Scott runs it. The legal/market reasoning below is **RESEARCH_ONLY**
-(web-sourced, not counsel-verified). Refines ADR 0008's deferred "fuzzy/synonym" item.
+**Evidence level:** CONFIRMED_USER_SIDE — MERGED to `main` via PR #25 (squash). Scott ran the suite
+on his own laptop (2026-06-05); all results came back as expected. Also CONFIRMED_ASSISTANT_SIDE
+(`make check` green on `main` — 144 tests / self-test 6+7 / `ruff` clean). The legal/market reasoning
+below remains **RESEARCH_ONLY** (web-sourced, not counsel-verified). Refines ADR 0008's deferred
+"fuzzy/synonym" item.
 **Type:** Architecture / safety / front-end
 
 ## Context
@@ -84,6 +84,8 @@ auto-generated synonyms; fuzzy clustering of arbitrary text not anchored to the 
 - `extract.py` `VERSION` → 0.2.0.
 
 ## Confirmation
+- **CONFIRMED_USER_SIDE (2026-06-05):** MERGED to `main` via PR #25; Scott ran the suite on his own
+  laptop — all results came back as expected.
 - `make check` green — **144 tests** (engine 90 + extract slice-1 27 + modes 27), self-test 6+7,
   `ruff` clean. `tests/test_extract_modes.py` proves: strict == slice-1 oracle (safe default);
   synonyms remap to a hand-written oracle and lift the recurrence count 2→3; fuzzy merges a typo but

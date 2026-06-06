@@ -40,8 +40,17 @@ The two PHI controls, by construction (see ADR 0009 — NOT legal advice):
     and the engine's date math survives while the calendar is obscured. The
     default shift is 0 (unshifted).
 
-Deferred to later slices (researched, intentionally not built): relative dates
-("3 weeks ago") need an anchor; multi-patient notes.
+Relative-date anchoring (slice 1; opt-in — see ADR 0013): OFF by default, so
+default output is byte-for-byte the explicit-date behavior. When the caller sets
+resolve_relative=True (with an explicit reference_date anchor), a line whose
+LEADING token is a relative ("3 weeks ago", "since 2026-02-01"), partial
+("March 2026"), or frequency ("q2wk") expression is recognized; explicitly-
+anchored relatives resolve, everything else is surfaced UNRESOLVED/undated but
+cited — never guessed. Recurring expressions are tagged as frequency, never given
+an invented date.
+
+Deferred to later slices (researched, intentionally not built): multi-patient
+notes; mid-line (non-leading) temporal expressions; partial-date normalization.
 
   Self-test:      python extract.py --self-test
   Demo:           python extract.py --demo [--match-mode {strict,synonyms,fuzzy,both}]
@@ -51,6 +60,7 @@ Deferred to later slices (researched, intentionally not built): relative dates
 from __future__ import annotations
 
 import argparse
+import calendar
 import datetime
 import difflib
 import re
@@ -61,7 +71,7 @@ from recurrence import _check_fuzzy_cutoff, _normalize, detect_recurrence
 
 # Front-end version — independent of the engine's VERSION. Bump on a
 # user-visible change to extraction behavior.
-VERSION = "0.2.0"
+VERSION = "0.3.0"
 
 
 # ---------------------------------------------------------------------------
@@ -203,8 +213,9 @@ class MatchConfig:
 
 
 # ---------------------------------------------------------------------------
-# Date extraction — explicit dates only. Relative/incomplete expressions
-# ("today", "3 weeks ago") need an anchor date and are deferred (see ADR 0008).
+# Date extraction — explicit dates (always on). Relative/partial/frequency
+# expressions are a separate, opt-in pass below (ADR 0013); the explicit parser
+# here is unchanged and remains the default.
 # ---------------------------------------------------------------------------
 
 _MONTHS = {
@@ -270,6 +281,145 @@ def shift_date(d: datetime.date, days: int) -> datetime.date:
     """Apply the per-record date shift (ADR 0009 de-identification). ``days == 0``
     is the identity; any constant shift preserves every interval between dates."""
     return d + datetime.timedelta(days=days)
+
+
+# ---------------------------------------------------------------------------
+# Relative-date anchoring (slice 1; OPT-IN, conservative — see ADR 0013).
+# OFF by default, so default output is byte-for-byte the explicit-date behavior.
+# When enabled, a line whose LEADING token is a relative / partial / frequency
+# expression is recognized and the gazetteer hits on that line are annotated. The
+# arithmetic is trivial; the literature shows the hard part is anchor SELECTION,
+# so we resolve ONLY explicitly-anchored cases and otherwise surface the phrase
+# UNRESOLVED (date="") — never guess. Recurring expressions ("q2wk") are tagged as
+# frequency, never expanded into invented event dates. The anchor is an explicit
+# caller-supplied reference_date (encounter/document date); resolved dates are
+# date-shifted with everything else, so a constant per-record shift preserves all
+# intervals (ADR 0009).
+# ---------------------------------------------------------------------------
+
+_REL_UNITS = {
+    "day": "days", "days": "days", "week": "weeks", "weeks": "weeks",
+    "month": "months", "months": "months", "year": "years", "years": "years",
+}
+
+# "<N> <unit> ago|prior|earlier"  and  "(for the past|past) <N> <unit>".
+_REL_AGO_RE = re.compile(
+    r"^\s*(\d{1,4})\s+(day|days|week|weeks|month|months|year|years)"
+    r"\s+(?:ago|prior|earlier)\b",
+    re.IGNORECASE,
+)
+_REL_PAST_RE = re.compile(
+    r"^\s*(?:for\s+the\s+past|past)\s+(\d{1,4})"
+    r"\s+(day|days|week|weeks|month|months|year|years)\b",
+    re.IGNORECASE,
+)
+_REL_SINCE_RE = re.compile(r"^\s*since\s+", re.IGNORECASE)
+# Leading frequency token (minimal, extensible): qNwk/qNh/qNd, bid/tid/qid/qd,
+# once|twice daily, daily, every N <unit>. Frequency is NOT a dated event.
+_FREQ_RE = re.compile(
+    r"^\s*(?:q\d{1,2}\s?(?:hrs|hr|h|wks|wk|w|mo|months|month|weeks|week|days|day|d)"
+    r"|qhs|qid|tid|bid|qd"
+    r"|once\s+daily|twice\s+daily|daily"
+    r"|every\s+\d{1,3}\s+(?:day|days|week|weeks|month|months))\b",
+    re.IGNORECASE,
+)
+# Partial explicit date: "<MonthName> <Year>" (no day) -> month granularity.
+_PARTIAL_MONYEAR_RE = re.compile(r"^\s*([A-Za-z]{3,9})\s+(\d{4})(?![0-9])")
+
+
+def _shift_months(d: datetime.date, months: int) -> datetime.date:
+    """``d`` shifted by ``months`` (may be negative), clamping the day to the
+    target month's length (Mar 31 - 1 month -> Feb 28). Pure stdlib; never raises."""
+    index = d.month - 1 + months
+    year = d.year + index // 12
+    month = index % 12 + 1
+    day = min(d.day, calendar.monthrange(year, month)[1])
+    return datetime.date(year, month, day)
+
+
+def _resolve_offset(n: int, unit: str, anchor: datetime.date) -> datetime.date:
+    """``anchor`` minus ``n`` units (unit normalized via _REL_UNITS)."""
+    kind = _REL_UNITS[unit.casefold()]
+    if kind == "days":
+        return anchor - datetime.timedelta(days=n)
+    if kind == "weeks":
+        return anchor - datetime.timedelta(weeks=n)
+    if kind == "months":
+        return _shift_months(anchor, -n)
+    return _shift_months(anchor, -12 * n)  # years
+
+
+def _validate_relative(resolve_relative: bool, reference_date) -> None:
+    """resolve_relative is a bool; reference_date is a date or None. An anchor with
+    the feature off is rejected (explicit, must-be-chosen — cf. MatchConfig)."""
+    if not isinstance(resolve_relative, bool):
+        raise ValueError(f"resolve_relative must be a bool, got {resolve_relative!r}")
+    if reference_date is not None and not isinstance(reference_date, datetime.date):
+        raise ValueError(
+            f"reference_date must be a datetime.date or None, got {reference_date!r}"
+        )
+    if reference_date is not None and not resolve_relative:
+        raise ValueError(
+            "reference_date given but resolve_relative is False; pass resolve_relative=True"
+        )
+
+
+def _parse_leading_relative(
+    line: str, reference_date: datetime.date | None
+) -> tuple[str, datetime.date | None, int, int] | None:
+    """Recognize a LEADING relative/partial/frequency token (consulted only when
+    resolve_relative is on and the line has no leading explicit date). Returns
+    ``(kind, date_or_None, phrase_start, content_offset)`` where the phrase occupies
+    ``line[phrase_start:content_offset]`` and gazetteer content begins at
+    content_offset; or None. ``kind`` in 'relative' | 'partial' | 'frequency' |
+    'unresolved'. Never raises (house style: skip, never guess)."""
+    ws = len(line) - len(line.lstrip())
+    # "since <explicit date>" — absolute, needs no anchor.
+    m = _REL_SINCE_RE.match(line)
+    if m:
+        parsed = _parse_leading_date(line[m.end():])
+        if parsed is not None:
+            inner_date, inner_off = parsed
+            return ("relative", inner_date, ws, m.end() + inner_off)
+    # "<N> <unit> ago|prior|earlier" / "(for the past|past) <N> <unit>".
+    for rx in (_REL_AGO_RE, _REL_PAST_RE):
+        m = rx.match(line)
+        if m:
+            if reference_date is None:
+                return ("unresolved", None, ws, m.end())
+            resolved = _resolve_offset(int(m.group(1)), m.group(2), reference_date)
+            return ("relative", resolved, ws, m.end())
+    # Leading frequency token — surfaced, never dated.
+    m = _FREQ_RE.match(line)
+    if m:
+        return ("frequency", None, ws, m.end())
+    # Partial "<MonthName> <Year>" — only for a real month name.
+    m = _PARTIAL_MONYEAR_RE.match(line)
+    if m and _MONTHS.get(m.group(1).casefold()) is not None:
+        return ("partial", None, ws, m.end())
+    return None
+
+
+def _walk_temporal_lines(
+    note: str, reference_date: datetime.date | None, resolve_relative: bool
+):
+    """Yield ``(line_start, kind, date_or_None, phrase_start, content_start)`` in
+    WHOLE-NOTE offsets for each line with a recognized leading temporal token.
+    'explicit' lines mirror parse_dated_lines exactly (phrase_start is None);
+    relative/partial/frequency/unresolved lines are yielded only when
+    resolve_relative is True."""
+    offset = 0
+    for line in note.splitlines(keepends=True):
+        parsed = _parse_leading_date(line)
+        if parsed is not None:
+            date, content_rel = parsed
+            yield (offset, "explicit", date, None, offset + content_rel)
+        elif resolve_relative:
+            rel = _parse_leading_relative(line, reference_date)
+            if rel is not None:
+                kind, date, phrase_rel, content_rel = rel
+                yield (offset, kind, date, offset + phrase_rel, offset + content_rel)
+        offset += len(line)
 
 
 # ---------------------------------------------------------------------------
@@ -396,35 +546,55 @@ def extract_entries(
     *,
     date_shift_days: int = 0,
     config: MatchConfig | None = None,
+    resolve_relative: bool = False,
+    reference_date: datetime.date | None = None,
 ) -> list[dict]:
     """The flat list of ``{date, item, source_span}`` entries for ``note`` (no
     record wrapper). One entry per gazetteer hit on a dated line, in document
     order. ``config`` (default strict) selects the matching mode. Dates are
     shifted by ``date_shift_days`` (default 0) then rendered ISO; ``source_span``
     is a ``[start, end]`` character offset into the note (end exclusive) and is
-    NEVER shifted."""
+    NEVER shifted.
+
+    Relative-date anchoring is OPT-IN (``resolve_relative``; ADR 0013) and OFF by
+    default. When on, a line whose leading token is a relative/partial/frequency
+    expression also yields entries; those carry three additive provenance fields —
+    ``date_kind`` ('relative'|'partial'|'frequency'|'unresolved'), ``date_phrase``
+    (the literal temporal text) and ``date_span`` (its [start, end] offsets).
+    Resolved relatives anchor to the line's explicit date if present, else
+    ``reference_date``; an anchorless relative is left unresolved (``date=""``).
+    Explicit-date entries are unaffected (no extra fields), so the default output
+    is byte-for-byte unchanged."""
     _validate_gazetteer(gazetteer)
     _validate_shift(date_shift_days)
+    _validate_relative(resolve_relative, reference_date)
     config = config or MatchConfig()
     entries: list[dict] = []
-    for _line_start, date, content_start in parse_dated_lines(note):
-        # Match only over the line's content (past the date token, up to the
-        # newline), so the date itself can never be matched and a term cannot
+    for _line_start, kind, date, phrase_start, content_start in _walk_temporal_lines(
+        note, reference_date, resolve_relative
+    ):
+        # Match only over the line's content (past the temporal token, up to the
+        # newline), so the token itself can never be matched and a term cannot
         # cross a line boundary.
         newline = note.find("\n", content_start)
         line_end = len(note) if newline == -1 else newline
         content = note[content_start:line_end]
-        shifted = shift_date(date, date_shift_days).isoformat()
+        shifted = (
+            shift_date(date, date_shift_days).isoformat() if date is not None else ""
+        )
         for rel_start, rel_end, term in find_gazetteer_hits(
             content, gazetteer, config=config
         ):
-            entries.append(
-                {
-                    "date": shifted,
-                    "item": term,
-                    "source_span": [content_start + rel_start, content_start + rel_end],
-                }
-            )
+            entry = {
+                "date": shifted,
+                "item": term,
+                "source_span": [content_start + rel_start, content_start + rel_end],
+            }
+            if kind != "explicit":
+                entry["date_kind"] = kind
+                entry["date_phrase"] = note[phrase_start:content_start]
+                entry["date_span"] = [phrase_start, content_start]
+            entries.append(entry)
     return entries
 
 
@@ -435,31 +605,49 @@ def extract_records(
     date_shift_days: int = 0,
     record_id_prefix: str = "",
     config: MatchConfig | None = None,
+    resolve_relative: bool = False,
+    reference_date: datetime.date | None = None,
 ) -> list[dict]:
     """Turn one prose note into canonical records (slice 1: exactly one record,
     keyed by the ``Patient:`` header). Returns ``[]`` when there is no header.
     The list return type leaves multi-patient notes a non-breaking future slice.
 
     The output is the shape recurrence.py's rules already consume; ``source_span``
-    is an additive optional field the rules ignore (the ``tag`` precedent)."""
+    is an additive optional field the rules ignore (the ``tag`` precedent).
+    ``resolve_relative`` / ``reference_date`` enable opt-in relative-date anchoring
+    (ADR 0013; see extract_entries)."""
     _validate_gazetteer(gazetteer)
     _validate_shift(date_shift_days)
+    _validate_relative(resolve_relative, reference_date)
     config = config or MatchConfig()
     rid = parse_patient_id(note)
     if rid is None:
         return []
     entries = extract_entries(
-        note, gazetteer, date_shift_days=date_shift_days, config=config
+        note,
+        gazetteer,
+        date_shift_days=date_shift_days,
+        config=config,
+        resolve_relative=resolve_relative,
+        reference_date=reference_date,
     )
     return [{"id": f"{record_id_prefix}{rid}", "entries": entries}]
 
 
 def format_entry(entry: dict) -> str:
     """Render one entry as a neutral provenance line for ``--demo``. Surfaces the
-    date, the literal item, and the source span; it interprets nothing."""
+    date (or, for opt-in relative entries, the cited temporal phrase + kind), the
+    literal item, and the source span; it interprets nothing."""
     span = entry.get("source_span")
     where = f"@{span}" if span is not None else ""
-    return f'{entry.get("date", "")}  "{entry.get("item", "")}"  {where}'.rstrip()
+    date = entry.get("date", "")
+    kind = entry.get("date_kind")
+    if kind:
+        prefix = f"{date} " if date else ""
+        date_field = f'{prefix}[{kind}: "{entry.get("date_phrase", "")}"]'
+    else:
+        date_field = date
+    return f'{date_field}  "{entry.get("item", "")}"  {where}'.rstrip()
 
 
 # ---------------------------------------------------------------------------
@@ -531,13 +719,43 @@ def _run_demo(config: MatchConfig) -> int:
     return 0
 
 
+def _run_demo_relative(reference_date: datetime.date) -> int:
+    """Opt-in relative-date demo (ADR 0013): resolve explicitly-anchored relatives
+    against ``reference_date``, surface partial/frequency/unresolved phrases cited
+    but undated, then show the engine consuming the records unchanged."""
+    from data.sample_records import FREETEXT_GAZETTEER, FREETEXT_RELATIVE_NOTE
+
+    print(f"Reference (anchor) date: {reference_date.isoformat()}")
+    print("Source note:")
+    print(FREETEXT_RELATIVE_NOTE)
+    records = extract_records(
+        FREETEXT_RELATIVE_NOTE,
+        FREETEXT_GAZETTEER,
+        resolve_relative=True,
+        reference_date=reference_date,
+    )
+    print("Extracted entries (literal mention + cited temporal phrase; not interpreted):")
+    for entry in records[0]["entries"]:
+        print(f"  {format_entry(entry)}")
+    print()
+    print("Fed to the engine (detect_recurrence), it surfaces:")
+    hits = detect_recurrence(records)
+    if not hits:
+        print("  (nothing recurs)")
+    for hit in hits:
+        print(f'  "{hit.item}" appears {hit.count}x — {", ".join(hit.dates)}')
+    return 0
+
+
 def _run_self_test() -> int:
     """Slice-2 spec check: each matching mode against the hand-written oracle, the
     fuzzy guard, and the date shift. Returns 0 on success, non-zero on failure."""
     from data.sample_records import (
         FREETEXT_EXPECTED_RECORDS,
+        FREETEXT_EXPECTED_RECORDS_RELATIVE,
         FREETEXT_EXPECTED_RECORDS_SYNONYMS,
         FREETEXT_GAZETTEER,
+        FREETEXT_RELATIVE_NOTE,
         FREETEXT_SAMPLE_NOTE,
         FREETEXT_SYNONYMS,
     )
@@ -591,6 +809,36 @@ def _run_self_test() -> int:
         )
     )
 
+    # Relative-date anchoring (opt-in; ADR 0013).
+    rel = extract_records(
+        FREETEXT_RELATIVE_NOTE,
+        FREETEXT_GAZETTEER,
+        resolve_relative=True,
+        reference_date=datetime.date(2026, 3, 15),
+    )
+    results.append(
+        ("relative_extracts_match_oracle", rel == FREETEXT_EXPECTED_RECORDS_RELATIVE)
+    )
+    rel_off = extract_records(FREETEXT_RELATIVE_NOTE, FREETEXT_GAZETTEER)
+    results.append(
+        (
+            "relative_default_off_skips_unanchored",
+            len(rel_off[0]["entries"]) == 1
+            and "date_kind" not in rel_off[0]["entries"][0],
+        )
+    )
+    unresolved = extract_entries(
+        "3 weeks ago poor sleep.\n", FREETEXT_GAZETTEER, resolve_relative=True
+    )
+    results.append(
+        (
+            "relative_unresolved_without_anchor",
+            len(unresolved) == 1
+            and unresolved[0]["date"] == ""
+            and unresolved[0]["date_kind"] == "unresolved",
+        )
+    )
+
     failures = [name for name, ok in results if not ok]
     if failures:
         print(f"FAILED ({len(failures)}):", file=sys.stderr)
@@ -635,6 +883,13 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Extract the sample note and show the engine surfacing a recurrence",
     )
+    p.add_argument(
+        "--reference-date",
+        metavar="YYYY-MM-DD",
+        default=None,
+        help="Anchor (encounter/document) date; runs the opt-in relative-date "
+        "demo on the relative sample note (ADR 0013).",
+    )
     return p
 
 
@@ -648,6 +903,16 @@ def main() -> int:
         return 0
     if args.self_test:
         return _run_self_test()
+    if args.reference_date is not None:
+        try:
+            ref = datetime.date.fromisoformat(args.reference_date)
+        except ValueError:
+            print(
+                f"invalid --reference-date {args.reference_date!r} (use YYYY-MM-DD)",
+                file=sys.stderr,
+            )
+            return 2
+        return _run_demo_relative(ref)
     if args.demo:
         return _run_demo(_config_for_mode(args.match_mode))
     build_parser().print_help()

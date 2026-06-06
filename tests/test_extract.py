@@ -25,7 +25,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from data.sample_records import (  # noqa: E402
     FREETEXT_EXPECTED_RECORDS,
+    FREETEXT_EXPECTED_RECORDS_RELATIVE,
     FREETEXT_GAZETTEER,
+    FREETEXT_RELATIVE_NOTE,
     FREETEXT_SAMPLE_NOTE,
 )
 from extract import (  # noqa: E402
@@ -260,6 +262,171 @@ class TestInputValidation(unittest.TestCase):
         with self.assertRaises(ValueError):
             extract_records(
                 FREETEXT_SAMPLE_NOTE, FREETEXT_GAZETTEER, date_shift_days="x"
+            )
+
+
+class TestRelativeDateAnchoring(unittest.TestCase):
+    """ADR 0013: opt-in, conservative relative-date anchoring. OFF by default
+    (byte-for-byte explicit behavior); when on, explicitly-anchored relatives
+    resolve, while partial/frequency/anchorless phrases stay undated but cited —
+    never guessed."""
+
+    REF = datetime.date(2026, 3, 15)
+
+    def test_records_equal_oracle(self):
+        self.assertEqual(
+            extract_records(
+                FREETEXT_RELATIVE_NOTE,
+                FREETEXT_GAZETTEER,
+                resolve_relative=True,
+                reference_date=self.REF,
+            ),
+            FREETEXT_EXPECTED_RECORDS_RELATIVE,
+        )
+
+    def test_default_off_is_explicit_only_and_unannotated(self):
+        # Relative off (default): unanchored lines are skipped, exactly as before;
+        # the one explicit line carries no extra fields.
+        records = extract_records(FREETEXT_RELATIVE_NOTE, FREETEXT_GAZETTEER)
+        self.assertEqual(len(records[0]["entries"]), 1)
+        only = records[0]["entries"][0]
+        self.assertEqual(only["date"], "2026-03-15")
+        self.assertNotIn("date_kind", only)
+
+    def test_weeks_ago_resolves_against_reference(self):
+        entries = extract_entries(
+            "3 weeks ago poor sleep.\n",
+            FREETEXT_GAZETTEER,
+            resolve_relative=True,
+            reference_date=self.REF,
+        )
+        self.assertEqual(entries[0]["date"], "2026-02-22")
+        self.assertEqual(entries[0]["date_kind"], "relative")
+        self.assertEqual(entries[0]["date_phrase"], "3 weeks ago")
+
+    def test_months_ago_clamps_day_not_raises(self):
+        # 2026-03-31 - 1 month -> 2026-02-28 (clamp; 2026 is not a leap year).
+        entries = extract_entries(
+            "1 month ago poor sleep.\n",
+            FREETEXT_GAZETTEER,
+            resolve_relative=True,
+            reference_date=datetime.date(2026, 3, 31),
+        )
+        self.assertEqual(entries[0]["date"], "2026-02-28")
+
+    def test_since_date_resolves_without_anchor(self):
+        entries = extract_entries(
+            "since 2026-02-01 chest pain.\n",
+            FREETEXT_GAZETTEER,
+            resolve_relative=True,  # no reference_date needed: the date is explicit
+        )
+        self.assertEqual(entries[0]["date"], "2026-02-01")
+        self.assertEqual(entries[0]["date_kind"], "relative")
+
+    def test_frequency_is_surfaced_but_never_dated(self):
+        entries = extract_entries(
+            "q2wk sleep.\n", FREETEXT_GAZETTEER, resolve_relative=True
+        )
+        self.assertEqual(entries[0]["date"], "")
+        self.assertEqual(entries[0]["date_kind"], "frequency")
+        self.assertEqual(entries[0]["item"], "sleep")
+
+    def test_partial_month_year_is_undated(self):
+        entries = extract_entries(
+            "March 2026 poor sleep.\n",
+            FREETEXT_GAZETTEER,
+            resolve_relative=True,
+            reference_date=self.REF,
+        )
+        self.assertEqual(entries[0]["date"], "")
+        self.assertEqual(entries[0]["date_kind"], "partial")
+        self.assertEqual(entries[0]["date_phrase"], "March 2026")
+
+    def test_anchorless_relative_is_unresolved_not_guessed(self):
+        entries = extract_entries(
+            "3 weeks ago poor sleep.\n", FREETEXT_GAZETTEER, resolve_relative=True
+        )
+        self.assertEqual(entries[0]["date"], "")
+        self.assertEqual(entries[0]["date_kind"], "unresolved")
+        self.assertEqual(entries[0]["date_phrase"], "3 weeks ago")
+
+    def test_spans_recover_phrase_and_item_text(self):
+        records = extract_records(
+            FREETEXT_RELATIVE_NOTE,
+            FREETEXT_GAZETTEER,
+            resolve_relative=True,
+            reference_date=self.REF,
+        )
+        for entry in records[0]["entries"]:
+            if "date_span" in entry:
+                start, end = entry["date_span"]
+                self.assertEqual(
+                    FREETEXT_RELATIVE_NOTE[start:end], entry["date_phrase"]
+                )
+            start, end = entry["source_span"]
+            self.assertEqual(
+                FREETEXT_RELATIVE_NOTE[start:end].casefold(), entry["item"].casefold()
+            )
+
+    def test_shift_preserves_relative_explicit_interval(self):
+        records = extract_records(
+            FREETEXT_RELATIVE_NOTE,
+            FREETEXT_GAZETTEER,
+            resolve_relative=True,
+            reference_date=self.REF,
+            date_shift_days=-3650,
+        )
+        by_span = {tuple(e["source_span"]): e for e in records[0]["entries"]}
+        explicit = datetime.date.fromisoformat(by_span[(32, 42)]["date"])
+        relative = datetime.date.fromisoformat(by_span[(56, 66)]["date"])
+        self.assertEqual((explicit - relative).days, 21)  # 03-15 vs 02-22 preserved
+
+    def test_relative_records_feed_engine_unchanged(self):
+        records = extract_records(
+            FREETEXT_RELATIVE_NOTE,
+            FREETEXT_GAZETTEER,
+            resolve_relative=True,
+            reference_date=self.REF,
+        )
+        hits = {h.item: h for h in detect_recurrence(records)}
+        # poor sleep on 2026-03-15 (explicit) + 2026-02-22 (relative); the
+        # undated frequency "sleep" entry is dropped by the engine.
+        self.assertIn("poor sleep", hits)
+        self.assertEqual(hits["poor sleep"].count, 2)
+        self.assertEqual(hits["poor sleep"].dates, ["2026-02-22", "2026-03-15"])
+
+    def test_relative_entries_have_no_banned_words(self):
+        records = extract_records(
+            FREETEXT_RELATIVE_NOTE,
+            FREETEXT_GAZETTEER,
+            resolve_relative=True,
+            reference_date=self.REF,
+        )
+        for entry in records[0]["entries"]:
+            line = format_entry(entry).lower()
+            self.assertIn(entry["item"], line)
+            for banned in TestLibrarianRuleBannedWords.BANNED:
+                self.assertNotIn(banned, line, f"banned word: {banned!r}")
+
+    def test_reference_date_without_resolve_raises(self):
+        with self.assertRaises(ValueError):
+            extract_records(
+                FREETEXT_RELATIVE_NOTE, FREETEXT_GAZETTEER, reference_date=self.REF
+            )
+
+    def test_bad_reference_date_type_raises(self):
+        with self.assertRaises(ValueError):
+            extract_records(
+                FREETEXT_RELATIVE_NOTE,
+                FREETEXT_GAZETTEER,
+                resolve_relative=True,
+                reference_date="2026-03-15",
+            )
+
+    def test_non_bool_resolve_relative_raises(self):
+        with self.assertRaises(ValueError):
+            extract_records(
+                FREETEXT_RELATIVE_NOTE, FREETEXT_GAZETTEER, resolve_relative="yes"
             )
 
 
