@@ -775,3 +775,41 @@ FREETEXT_EXPECTED_RECORDS_RELATIVE: list[dict] = [
         ],
     },
 ]
+
+# ---------------------------------------------------------------------------
+# Pre-visit digest demo (UI slice 2 / ADR 0015) — a synthetic free-text note
+# authored so ONE patient surfaces ALL FIVE lenses, letting the clinician-facing
+# "Pre-visit Pattern Digest" (digest_html.py, matching the Figma mock) render a
+# card per lens from REAL engine output (extract -> run_report), never hand-built
+# HTML. ZERO real PHI: EXAMPLE-009 is invented; dates are illustrative and
+# de-identified (consistent-shift convention) and all fall on/before the encounter.
+# Not part of SAMPLE_RECORDS or any answer key — it is demo input, not an oracle.
+#
+# What each lens keys on, at the engine's documented defaults:
+#   recurrence (>=2):          poor sleep 6x, anxiety 3x, lithium level 2x
+#   gap (>90d):                lithium level 2025-10-24 -> 2026-03-15 (142d)
+#   frequency (3 in 30d):      anxiety 2026-02-02 .. 2026-03-02 (3 in 28d)
+#   co-occurrence (>=2 dates): poor sleep + anxiety on 2026-02-14 and 2026-03-02
+#   cadence change (>=4, 2x):  poor sleep spacing ~40d -> ~16d (pivot 2026-01-29)
+# Spacings are chosen so each lens fires once and only once (e.g. poor sleep's
+# tight run never reaches 3-in-30, so frequency stays anxiety's alone).
+# ---------------------------------------------------------------------------
+DIGEST_SAMPLE_NOTE: str = (
+    "Patient: EXAMPLE-009\n"
+    "\n"
+    "2025-10-01 Reports poor sleep.\n"
+    "2025-10-24 Lithium started; lithium level drawn.\n"
+    "2025-11-10 Poor sleep continues.\n"
+    "2025-12-20 Poor sleep noted.\n"
+    "2026-01-29 Poor sleep again.\n"
+    "2026-02-02 Anxiety reported.\n"
+    "2026-02-14 Poor sleep and anxiety both noted.\n"
+    "2026-03-02 Poor sleep with anxiety.\n"
+    "2026-03-15 Encounter; lithium level rechecked.\n"
+)
+
+# Minimal, domain-agnostic gazetteer for the demo (a real deployment supplies its
+# own vetted vocabulary). Canonical spellings; matching is case-insensitive.
+DIGEST_SAMPLE_GAZETTEER: list[str] = ["poor sleep", "anxiety", "lithium level"]
+
+DIGEST_SAMPLE_REFERENCE_DATE: str = "2026-03-15"  # encounter date (digest meta)

@@ -1,9 +1,17 @@
 # STATUS — health-prototype
 
 _The front door. Read this first, update it last. One source of "where am I."_
-Last updated: 2026-06-05
+Last updated: 2026-06-06
 
 ## Current state
+- **Session 2026-06-06 — PR #26 MERGED to `main`** (relative-date anchoring ADR 0013 + counsel
+  checklist + `report_html.py` inspection view ADR 0014 + STATUS/ADR-0012 reconcile); `main` now
+  **167 tests**. **UI slice 2 — clinician Pre-visit Pattern Digest IN PROGRESS** on
+  `claude/dazzling-shannon-jPWz2` (new draft PR): `digest_html.py` (ADR 0015) renders all five lenses
+  as cited cards from REAL engine output (`extract -> run_report`), dependency-free, grayscale,
+  banned-words-clean; one synthetic patient (EXAMPLE-009) trips all five lenses once each. Figma mock
+  approved (2026-06-06). `make check` green — **177 tests**, self-test 6+10, `ruff`.
+  `python digest_html.py --demo`.
 - **Engine: 5 surfacing rules on `main`, 144 tests green (engine 90 + free-text slice-1 27 + matching-modes 27), `ruff` clean.**
   `detect_recurrence` / `detect_gap` / `detect_frequency` / `detect_cooccurrence`
   (opt-in `window_days`) / `detect_cadence_change` + v1 opt-in matching (normalize /
@@ -140,14 +148,17 @@ Last updated: 2026-06-05
       **(2026-06-05, branch `claude/dazzling-shannon-jPWz2`):** the counsel-verify sub-part now has a
       written path — `docs/COUNSEL_VERIFICATION_CHECKLIST.md` (draft PR #26) — incl. deferred ADR 0009
       fixes (date-shift = Expert Determination, not Safe Harbor). BH-roadmap decision still Scott's.
-- [ ] **Relative-date anchoring (ADR 0013) — IMPLEMENTED on `claude/dazzling-shannon-jPWz2` (draft PR #26).**
-      Opt-in, conservative; default off == strict byte-for-byte; resolves explicitly-anchored relatives,
-      surfaces partial/frequency/unresolved cited-but-undated; engine + 90 tests untouched. `make check`
-      green (**159 tests**, self-test 6+10, ruff). Awaiting CONFIRMED_USER_SIDE; not yet on `main`.
-- [ ] **UI slice 1 — HTML report view (ADR 0014) — IMPLEMENTED on `claude/dazzling-shannon-jPWz2` (draft PR #26).**
-      `report_html.py`: dependency-free single-file HTML (cited spans ↔ surfaced patterns, click-to-highlight);
-      grayscale / document-order / banned-words-clean (librarian rule in the view). `make check` green
-      (**167 tests**, self-test 6+10, ruff). Figma clinician-digest mock in progress. Awaiting CONFIRMED_USER_SIDE.
+- [x] **Relative-date anchoring (ADR 0013) — MERGED (PR #26).** Opt-in, conservative; default off ==
+      strict byte-for-byte; resolves explicitly-anchored relatives, surfaces partial/frequency/unresolved
+      cited-but-undated; engine + 90 tests untouched. On `main`.
+- [x] **UI slice 1 — HTML report view (ADR 0014) — MERGED (PR #26).** `report_html.py`: dependency-free
+      single-file HTML (cited spans ↔ surfaced patterns, click-to-highlight); grayscale / document-order /
+      banned-words-clean (librarian rule in the view). On `main`.
+- [ ] **UI slice 2 — clinician Pre-visit Pattern Digest (ADR 0015) — IMPLEMENTED on `claude/dazzling-shannon-jPWz2` (new draft PR).**
+      `digest_html.py`: the product view from the (approved) Figma mock — five lenses as cited cards beside the
+      source note, click-to-highlight, all from real `run_report` output; dependency-free, grayscale, banned-words-clean.
+      One synthetic patient surfaces all five lenses. `make check` green (**177 tests**, self-test 6+10, ruff).
+      Awaiting CONFIRMED_USER_SIDE; not yet on `main`.
 - [x] **Free-text slice 2 — matching modes + merge-safety guards (ADR 0012) — MERGED (PR #25).** `extract.py`
       gained an explicit, must-be-chosen `MatchConfig`: **strict** (default = slice-1 behavior) / **synonyms** /
       **fuzzy** / **both**. Fuzzy is guarded (domain-agnostic affix-antonym detector + look-alike
@@ -181,10 +192,11 @@ Both planned engine increments are MERGED to `main`:
    digest"** direction. Treat the free-text extractor as the regulated boundary.
 
 ## Key facts
-- Branch: `main` has 5 rules + free-text slices 1–2, **144 tests** (post #1–#25). Active dev branch
-  **`claude/dazzling-shannon-jPWz2`** (draft PR #26) carries: the STATUS/ADR-0012 reconcile, **relative-date
-  anchoring** (ADR 0013), `docs/COUNSEL_VERIFICATION_CHECKLIST.md`, and **UI slice 1** — `report_html.py`
-  (ADR 0014) — **167 tests**, not yet on `main`. `claude/hopeful-albattani-sYkkR` is merged via #25 (retire-able).
+- Branch: `main` has 5 rules + free-text slices 1–2 + **relative-date anchoring (ADR 0013)** + the
+  **`report_html.py` inspection view (ADR 0014)** + the counsel checklist, **167 tests** (post #1–#26).
+  Active dev branch **`claude/dazzling-shannon-jPWz2`** (new draft PR) carries **UI slice 2** —
+  `digest_html.py`, the clinician Pre-visit Pattern Digest (ADR 0015) — **177 tests**, not yet on `main`.
+  `claude/hopeful-albattani-sYkkR` is merged via #25 (retire-able).
   Per-session history + the free-text/legal-grounding design + the 2026 compliance/market audit live
   in Drive `health-prototype/` (`archive` + `freetext-design` + `audit-2026-06-05`).
 - Spec (contract): Drive `BUILD_SPEC_RecurrenceDetection_v0_2026-05-30.md`

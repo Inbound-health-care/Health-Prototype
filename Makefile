@@ -20,7 +20,7 @@ demo:          ## Run every surfacing-rule demo
 	python recurrence.py --demo-cooccurrence
 
 lint:          ## Byte-compile sanity check (+ ruff if installed)
-	python -m compileall -q recurrence.py extract.py report_html.py tests data scripts
+	python -m compileall -q recurrence.py extract.py report_html.py digest_html.py tests data scripts
 	-ruff check .
 
 check:         ## Standard local verification gate: tests + self-test + lint
