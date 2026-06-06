@@ -45,3 +45,4 @@ it — history is the point.
 - [0014 — HTML report view (UI slice 1): provenance made visible](0014-html-report-view.md)
 - [0015 — Pre-visit Pattern Digest view (UI slice 2): the clinician product surface](0015-pre-visit-digest-view.md)
 - [0016 — Multi-patient free-text extraction (fail-closed identity, per-patient de-id)](0016-multi-patient-fail-closed-extraction.md)
+- [0017 — Calm, eye-comfort view theme (warm neutrals + one non-semantic accent)](0017-calm-eye-comfort-view-theme.md)
