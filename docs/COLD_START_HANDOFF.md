@@ -32,9 +32,9 @@ naming later. Values brutal honesty over hype. Reads everything.
 - **health-prototype**: recurrence engine. v0 exact-match + v1 opt-in matching
   (normalize/synonyms/fuzzy) + **5 rules** (recurrence / gap / frequency /
   co-occurrence / cadence-change) + router/expert registry with `--report` (v0 and `--report-v1`).
-  **117 tests green** (engine 90 + free-text extract 27), `ruff` clean, CI on Py 3.10-3.13.
-  The librarian rule: surface/count/cite, NEVER interpret. PRs through #20 merged to `main`
-  (incl. `extract.py`, a free-text front-end — slice 1, ADR 0008); branch protection active.
+  **221 tests green** (engine + free-text slices 1–2 + multi-patient + both HTML views + theme), `ruff` clean, CI on Py 3.10-3.13.
+  The librarian rule: surface/count/cite, NEVER interpret. PRs through #32 merged to `main`
+  (incl. `extract.py` free-text front-end + multi-patient extractor + both HTML views); branch protection active.
 - A **6th** rule is a drop-in: append one `Expert(name, detect_x, format_x)` to
   `EXPERTS` and it joins `--report` automatically.
 - A SECOND project exists (separate): **Sovereign Scribe / PACT** — local clinical

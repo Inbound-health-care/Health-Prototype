@@ -4,7 +4,7 @@ _The front door. Read this first, update it last. One source of "where am I."_
 Last updated: 2026-06-06
 
 ## Current state
-- **Session 2026-06-06 (cont.) — multi-patient digest RENDERING (ADR 0020) on branch `claude/repo-settings-loading-WdwbB` (draft PR; NOT yet on `main`); 221 tests.**
+- **Session 2026-06-06 (cont.) — MERGED PR #32 to `main` — multi-patient digest RENDERING (ADR 0020); `main` now 221 tests.**
   Realizes STATUS step 11c, rendering the batch output of `extract_records_multi` (ADR 0016) in the clinician digest. Layout was research-led: a 2024–2026 web sweep (RESEARCH_ONLY) on clinician chart-review needs — documentation burden is the #1 pain (worst in behavioral health), clinicians want **scannable/less-is-more**, **citation/provenance is the trust lever** (our thesis, externally confirmed), and cognitive-load research says **minimize navigation, single-screen at-a-glance + drill-down**. So: **stacked per-patient blocks** (segment order, never reordered) + a compact **patient jump-index** (anchor links, no JS state) + a neutral **quarantine section** for refused segments (engine reason codes, never merged/guessed). **No cross-patient highlight bleed** — each block renders its OWN segment (spans rebased segment-local) AND `_MULTI_JS` scopes findings↔marks per `.patient` block. New `python digest_html.py --demo-multi`; `digest_html` VERSION 0.2.0; engine + shared helpers untouched; banned-words-clean. `report_html` (inspection) stays single-note (later follow-up). `make check` green — **221 tests** (+7), self-test 6+10, `ruff` (local + CI-pinned 0.15.16); PR #32 CI green. **CONFIRMED_USER_SIDE** (Scott confirmed on his phone, 2026-06-06).
 - **Session 2026-06-06 (cont.) — MERGED PR #31 to `main` — view review refinements (ADR 0019) + CI ruff pin 0.15.16 + 2026 standards re-verify; `main` 214 tests.** ADR 0019 **CONFIRMED_USER_SIDE** (Scott confirmed the toggle placement, citation collapse, wording, and view names on his phone, 2026-06-06). Same PR bumped the CI `ruff` pin 0.15.8 → 0.15.16 (CI-verified green) and recorded a dated standards re-verify (WCAG 2.2 AA kept / APCA not adopted, ADR 0017; OWASP Top 10 for Agentic Applications 2026 cross-ref, SECURITY §B).
 - **Session 2026-06-06 (cont.) — MERGED PR #30 to `main` — calm theme (ADR 0017) + Android responsive (ADR 0018); `main` now 213 tests.**
@@ -80,18 +80,18 @@ Last updated: 2026-06-06
   exemption + gazetteer-anchored fuzzy). Engine + its 90 tests untouched; suite now **144** (self-test 6+7).
   **CONFIRMED_USER_SIDE** — Scott ran it on his own laptop (2026-06-05); all results came back as expected.
   ADR 0012; liability framing RESEARCH_ONLY.
-- **Relative-date anchoring — IMPLEMENTED on `claude/dazzling-shannon-jPWz2` (ADR 0013; draft PR #26; NOT yet on `main`).**
+- **Relative-date anchoring — MERGED (PR #26; ADR 0013) to `main`.**
   Opt-in (`resolve_relative`, default off → strict slices byte-for-byte), conservative: resolves only
   explicitly-anchored relatives ("3 weeks ago", "since <date>") against the line/`reference_date`; partial
   ("March 2026") and frequency ("q2wk") are surfaced **cited but undated**; an anchorless relative is left
   **unresolved**, never guessed. Additive provenance fields only — `recurrence.py` + its 90 tests untouched.
-  `make check` green (**159 tests**, self-test 6+10, ruff). Awaiting CONFIRMED_USER_SIDE.
+  (159 tests at merge; 221 on `main` now.) On `main`.
 - **Counsel-verification checklist — NEW doc on the same branch (resolves ADR 0011's "counsel-verify" loop; RESEARCH_ONLY).**
   `docs/COUNSEL_VERIFICATION_CHECKLIST.md`: the ordered counsel path (two tracks; Expert Determination; FDA
   non-device memo; Q-Sub/513(g); pilot gate), the verified **FDA Jan-2026** findings (twice-refreshed; March =
   Town Hall; criterion 3→4), the HIPAA **date-shift = Expert Determination, NOT Safe Harbor** distinction, the
   BH-roadmap read, and a **deferred** list of ADR 0009 fixes (not applied until counsel — Scott's call).
-- **UI slice 1 — self-contained HTML report (ADR 0014; same branch / draft PR #26; NOT on `main`).**
+- **UI slice 1 — self-contained HTML report (ADR 0014) — MERGED (PR #26) to `main`.**
   `report_html.py` (pure stdlib, no deps, no network): the source note with cited spans highlighted
   (item `source_span` + relative-date `date_span`) beside the `run_report` findings; click a finding →
   highlight its cited source. Grayscale-only, document order, banned-words-clean — the librarian rule
@@ -104,7 +104,9 @@ Last updated: 2026-06-06
 - [x] `docs/adr/` running log (0001 tool-call, 0002 report arch, 0003 co-occurrence,
       0004 `--report-v1`, 0005 doc/harness reconciliation, 0006 AGENTS.md source-of-truth,
       **0007 cadence-change rule**, 0008 free-text kickoff, 0009 legal grounding, 0010 rename,
-      0011 compliance/market audit, 0012 matching modes, **0013 relative-date anchoring**, **0014 HTML report view**).
+      0011 compliance/market audit, 0012 matching modes, 0013 relative-date anchoring, 0014 HTML report view,
+      0015 pre-visit digest, 0016 multi-patient extractor, 0017 calm theme, 0018 responsive,
+      0019 view refinements, **0020 multi-patient digest rendering**).
 - [x] Doc/harness stack salvaged off `spec-jm3Ck` and merged to `main` via PR #7.
 - [x] Stale branches retired: only `main` + active working branches remain on origin.
 - [x] **PR #6 resolved**: back-end bits (`CONTRIBUTING.md`, `docs/PUBLISH_CHECKLIST.md`,
@@ -141,7 +143,7 @@ Last updated: 2026-06-06
       + `tests/test_extract.py` (27 tests). Scott chose **Stance A (strict literal)** +
       **de-identified/shifted dates** (default 0). Front-end; `recurrence.py` + its 90 engine
       tests untouched. ADR 0008 → IMPLEMENTED_UNVERIFIED; ADR 0009 slice-1 tests pass.
-      `make check` green (117 tests / self-test 6+3 / ruff clean). Awaiting CONFIRMED_USER_SIDE.
+      `make check` green at that milestone (117 tests; 221 on `main` now).
 - [x] **Legal grounding — MERGED (PR #18) (RESEARCH_ONLY legal cites):** ADR 0009 +
       `SECURITY_AND_TOOL_POLICY.md` §C.1 + Drive
       `health-prototype/freetext-design/FIREWALL_legal_grounding.md`. Maps the librarian rule +
@@ -178,13 +180,12 @@ Last updated: 2026-06-06
       so it can't drift again); README pipeline diagram + non-goals ("what this deliberately does not do");
       honest/softened compliance wording (README, docstrings, SECURITY §C.1); new `docs/DEMO_OUTPUT.md`
       (captured stdout). The `--demo-multi` snapshot in DEMO_OUTPUT stays deferred until #28 lands. On `main`.
-- [ ] **Multi-patient extractor — slice (ADR 0016) — OPEN (PR #28), awaiting Scott's CONFIRMED_USER_SIDE.**
+- [x] **Multi-patient extractor — slice (ADR 0016) — MERGED (PR #28) to `main`, CONFIRMED_USER_SIDE** (Scott ran
+      `extract.py --demo-multi` on his laptop, 2026-06-06).
       `extract.extract_records_multi`: fail-closed identity — explicit operator delimiter; quarantine (never
       merge/guess) on missing/ambiguous/duplicate key or missing per-patient shift; spans rebased to whole-note
       offsets; engine + single-note `extract_records` untouched. +Hypothesis property tests (skip if absent;
-      `make proptest`). CI-green, **CONFIRMED_ASSISTANT_SIDE**. Branch `claude/dazzling-shannon-jPWz2`; would
-      bring `main` to **207 tests** + VERSION 0.4.0. **NEXT: Scott runs `extract.py --demo-multi` on his
-      laptop and confirms; then the next session merges it.**
+      `make proptest`). Brought `main` to 207 tests at merge (221 now). **Now rendered in the digest — ADR 0020 (PR #32).**
 - [x] **Free-text slice 2 — matching modes + merge-safety guards (ADR 0012) — MERGED (PR #25).** `extract.py`
       gained an explicit, must-be-chosen `MatchConfig`: **strict** (default = slice-1 behavior) / **synonyms** /
       **fuzzy** / **both**. Fuzzy is guarded (domain-agnostic affix-antonym detector + look-alike
@@ -206,9 +207,9 @@ Both planned engine increments are MERGED to `main`:
    (Scott ran it on his own laptop, 2026-06-05 — all results came back as expected). Synonym/fuzzy matching
    shipped as explicit, **must-be-chosen, guarded** modes (strict/synonyms/fuzzy/both) — affix-antonym detector
    + look-alike denylist + drug-name exemption + gazetteer-anchored fuzzy; strict default == slice 1, byte-for-byte.
-6. ~~**Relative-date anchoring**~~ — DONE this session (ADR 0013; branch `claude/dazzling-shannon-jPWz2`,
-   draft PR #26): opt-in, conservative, default-off byte-for-byte; explicitly-anchored relatives resolve,
-   partial/frequency/unresolved surfaced cited-but-undated. Awaiting CONFIRMED_USER_SIDE; not yet on `main`.
+6. ~~**Relative-date anchoring**~~ — DONE (ADR 0013; **MERGED PR #26** to `main`): opt-in, conservative,
+   default-off byte-for-byte; explicitly-anchored relatives resolve, partial/frequency/unresolved surfaced
+   cited-but-undated.
 7. ~~**UI slice 1 — HTML report view**~~ — DONE (ADR 0014; **MERGED PR #26**): dependency-free self-contained
    HTML making provenance visible (cited spans ↔ findings); librarian rule holds in the view.
 8. ~~**UI slice 2 — clinician Pre-visit Pattern Digest**~~ — DONE (ADR 0015; **MERGED PR #27**): the product
@@ -224,19 +225,21 @@ Both planned engine increments are MERGED to `main`:
        light-first + optional dark toggle, ONE non-semantic accent, WCAG-AA contrast enforced by `tests/test_view_theme.py`. Color locked.
     b. ~~Android responsive pass~~ — DONE (ADR 0018): shared `_THEME_MEDIA_CSS` stacks the columns below **640 px** (primary **360 px**;
        Samsung A/S); foldable/desktop keep two columns; tap targets + note overflow handled. CSS-only. `make check` 213 green.
-    c. ~~**multi-patient digest RENDERING**~~ — DONE (ADR 0020; branch `claude/repo-settings-loading-WdwbB`, draft PR;
-       NOT yet on `main`): stacked per-patient blocks in segment order + patient jump-index + neutral quarantine
+    c. ~~**multi-patient digest RENDERING**~~ — DONE (ADR 0020; **MERGED PR #32** to `main`):
+       stacked per-patient blocks in segment order + patient jump-index + neutral quarantine
        section; no cross-patient highlight bleed (own-segment render + per-block-scoped JS). Layout research-led
        (clinician chart-review needs 2024–2026: scannable/less-is-more, citation-as-trust, minimize navigation).
        `python digest_html.py --demo-multi`. **CONFIRMED_USER_SIDE** (Scott, phone, 2026-06-06). `report_html` multi is a later follow-up.
     Framed by the behavioral-health pre-visit digest direction; the free-text extractor stays the regulated boundary.
 
 ## Key facts
-- Branch: `main` has 5 rules + free-text slices 1–2 + **relative-date anchoring (ADR 0013)** + the
-  **`report_html.py` inspection view (ADR 0014)** + the **`digest_html.py` clinician digest (ADR 0015)** +
-  the counsel checklist + **review hardening** + the **multi-patient fail-closed extractor (ADR 0016)** +
-  the **calm aubergine view theme (ADR 0017)** + **Android responsive (ADR 0018)**, **213 tests**, VERSION 0.4.0
-  (post #1–#30).
+- Branch: `main` has 5 rules + free-text slices 1–2 + relative-date anchoring (ADR 0013) + the
+  `report_html.py` inspection view (ADR 0014) + the `digest_html.py` clinician digest (ADR 0015) +
+  the counsel checklist + review hardening + the multi-patient fail-closed extractor (ADR 0016) +
+  the calm aubergine view theme (ADR 0017) + Android responsive (ADR 0018) + view refinements (ADR 0019)
+  + **multi-patient digest rendering (ADR 0020)**, **221 tests** (post #1–#32).
+  Per-module versions (no single repo-wide version): `recurrence.py` 0.5.0, `extract.py` 0.4.0,
+  `report_html.py` 0.1.0, `digest_html.py` 0.2.0.
   `claude/exciting-fermat-lztQq` is merged via #30 (retire-able).
   `claude/dazzling-shannon-jPWz2` is merged via #28 (retire-able); `claude/hopeful-albattani-sYkkR` via #25
   (retire-able); `claude/review-hardening` merged via #29 (retire-able).

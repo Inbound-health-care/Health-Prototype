@@ -19,6 +19,14 @@ file just points there and adds the Claude-specific bits below.
   - Hook `.claude/hooks/session_start.sh` — orientation + toolchain check at start.
   - Commands `.claude/commands/` — `handoff`, `drift-check`, `new-phase`,
     `audit-prompt`.
+- **End-session protocol (set 2026-06-06) — sessions close READ-ONLY, diary in chat.**
+  Ending a session runs `/handoff`'s 5 steps: (1) check state + run a drift check; (2) close
+  everything blocking AND non-blocking (PRs merged/closed, CI green, docs reconciled); (3) list
+  it all for Scott to audit; (4) do whatever he says; (5) **only AFTER the final push/merge,
+  switch to read-only** — no more commits/pushes, and write the diary in **chat only** (never a
+  committed JOURNAL.md/handoff file; Scott logs his own thoughts). This REPLACES the old
+  commit-and-push JOURNAL handoff. Session WORK still gets committed during step 2; read-only is
+  only for after closure.
 - **Merging PRs (set 2026-06-05):** Scott controls merges. Claude MAY merge a PR
   (GitHub MCP, squash — respecting branch protection: linear history + required
   checks), but ONLY after asking Scott and getting his explicit OK for that
