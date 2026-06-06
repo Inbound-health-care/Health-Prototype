@@ -12,6 +12,36 @@ is made visible. The struggle and the reasoning ARE the deliverable._
 
 ---
 
+## 2026-06-06 — The reframe: the constraint IS the product (learning vehicle, not a healthcare ship)
+**Where:** Claude Code web session (phone), after asking Claude for a blunt, outside-the-box
+read on the project — on purpose, to compare its take against another model's.
+
+**The click:** Claude's read landed — "the meta-system has outgrown the product; the discipline
+is heavier than the thing it governs." That's correct, and it's the POINT, not a flaw. I'm not
+building this to ship to a health system. If I just needed something to pull up info, that's a
+20-minute build and done. I deliberately picked a domain restrictive enough (PHI, citation
+discipline, recurrence math) to FORCE me to think outside the box. The restriction is the gym,
+not the goal.
+
+**What I'm actually after:** reusable scaffolding that outlives this repo — a reusable math-test
+harness, a reusable citation/siting test, drift control, the librarian rule. The health
+prototype is the sparring partner I run the method against, not the deliverable.
+
+**Why the UI detour:** the engine got "decent enough," and that was my green light to go play
+with eye candy for a bit. Seeing TEST GREEN / +N tests / output I verified by running the code
+myself was a morale checkpoint — nice to SEE the invisible backend work for once — not a pivot.
+
+**Why I'm fine with split focus:** I don't fully know what I want to build yet, and I'm not
+pretending to. The honest goal right now is to LEARN while I can — backend/systems depth, slower
+and less flashy, figured out by reading and asking. Split focus is the deliberate cost of
+learning broadly.
+
+**Honest self-note:** the over-done rules/instructions/auditing are intentional over-engineering
+as a teacher. I take the "pre-validation product" read as accurate-for-where-I-am, not as bad
+news. Not done; not trying to be done.
+
+---
+
 ## 2026-06-05 (evening, II) — Scott's drift gauge: hype-drift as a canary
 **Where:** same web session, reviewing the slice-2 PR (#25). Scott's insight, his words.
 
