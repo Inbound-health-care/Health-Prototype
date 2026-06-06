@@ -12,9 +12,10 @@ ADR 0013's relative-date pass) beside the patterns the five rules surface
 in the note: "every line traces to source" made visible — i.e. FDA Non-Device CDS
 criterion 4 (the basis is reviewable) on screen.
 
-It honors the librarian rule in the VIEW layer too: neutral, grayscale-only highlights
-(no severity colors), document order only — it surfaces and cites, it does NOT rank,
-score, flag, judge, or interpret. See ADR 0014.
+It honors the librarian rule in the VIEW layer too: a calm, low-stimulation theme with a
+single NON-semantic accent (the same for every lens — no per-lens or severity colors),
+light-first with an optional dark toggle, document order only — it surfaces and cites,
+it does NOT rank, score, flag, judge, or interpret. See ADR 0014 (view) + ADR 0017 (theme).
 
   Demo:  python report_html.py --demo [outfile.html]
 """
@@ -30,6 +31,106 @@ from extract import extract_records
 from recurrence import RecordReport, run_report
 
 VERSION = "0.1.0"
+
+# --- Shared calm theme (ADR 0017) -------------------------------------------
+# One source of truth for colour, reused by digest_html so the two views can
+# never drift apart. Tokens are CSS custom properties; each view's own CSS
+# (layout) references them via var(). Light-first + an optional dark toggle.
+# Colour is NON-semantic: a single accent marks interactivity/selection, the
+# SAME for every lens — it never encodes severity, type, or judgment (the
+# librarian rule, held in the view). Contrast is WCAG-checked in
+# tests/test_view_theme.py, which imports THEME directly.
+THEME = {
+    "light": {
+        "bg": "#FAF6FB", "surface": "#FFFDFF", "text": "#291E2E",
+        "muted": "#675A6E", "border": "#E6DDEA", "mark-rest": "#F1E8F4",
+        "accent": "#7A3A86", "accent-weak": "#F0E1F4", "accent-line": "#8A4F96",
+    },
+    "dark": {
+        "bg": "#221026", "surface": "#2C1730", "text": "#ECE4EF",
+        "muted": "#B4A3B8", "border": "#3E2A44", "mark-rest": "#34203A",
+        "accent": "#D7A0DE", "accent-weak": "#3C2244", "accent-line": "#B074BA",
+    },
+}
+
+
+def _root_block(selector: str, tokens: dict[str, str], scheme: str) -> str:
+    """One CSS rule mapping the theme tokens to custom properties (var())."""
+    decls = "".join(f"--{k}: {v}; " for k, v in tokens.items())
+    return f"{selector} {{ color-scheme: {scheme}; {decls}}}\n"
+
+
+# Tokens (light + dark) plus the components both views share: base typography,
+# the cited note + neutral marks, the lens label, header/footer, the dark toggle.
+# Layout (the two-column split, cards vs. list) stays in each view's own _CSS.
+_THEME_CSS = (
+    _root_block(":root", THEME["light"], "light")
+    + _root_block(':root[data-theme="dark"]', THEME["dark"], "dark")
+    + """\
+* { box-sizing: border-box; }
+body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+       margin: 0; color: var(--text); background: var(--bg); line-height: 1.5; }
+header { padding: 22px 28px; border-block-end: 1px solid var(--border); background: var(--surface); }
+header h1 { font-size: 22px; margin: 0; font-weight: 600; letter-spacing: -.01em; }
+.meta { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+.stance { margin: 8px 0 0; color: var(--muted); font-size: 13px; max-width: 80ch; }
+h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .05em;
+     color: var(--muted); margin: 0 0 14px; font-weight: 600; }
+.note { white-space: pre-wrap; font-family: ui-monospace, Menlo, Consolas, monospace;
+        font-size: 13px; background: var(--surface); border: 1px solid var(--border);
+        border-radius: 8px; padding: 14px; color: var(--text); }
+mark.cite { background: var(--mark-rest); border-radius: 3px; padding: 0 2px; color: inherit; }
+mark.cite-date { background: transparent; border-block-end: 1px dotted var(--accent-line); }
+mark.cite.active { background: var(--accent-weak); outline: 2px solid var(--accent-line); outline-offset: 1px; }
+.lens { color: var(--accent); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
+.finding { cursor: pointer; }
+.empty { color: var(--muted); font-size: 13px; }
+footer { padding: 14px 28px; border-block-start: 1px solid var(--border);
+         color: var(--muted); font-size: 12px; background: var(--surface); }
+.theme-toggle { position: fixed; inset-block-start: 14px; inset-inline-end: 16px; z-index: 10;
+                background: var(--surface); color: var(--text); border: 1px solid var(--border);
+                border-radius: 999px; padding: 6px 14px; font-size: 13px; cursor: pointer; }
+.theme-toggle:hover { border-color: var(--accent-line); }
+"""
+)
+
+# Sets the initial theme from the OS preference (no flash), then wires the toggle.
+_THEME_JS = """\
+(function () {
+  var root = document.documentElement;
+  var mq = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+  root.setAttribute('data-theme', mq && mq.matches ? 'dark' : 'light');
+  document.addEventListener('DOMContentLoaded', function () {
+    var btn = document.querySelector('.theme-toggle');
+    if (!btn) { return; }
+    function label() { btn.textContent = root.getAttribute('data-theme') === 'dark' ? 'Light' : 'Dark'; }
+    label();
+    btn.addEventListener('click', function () {
+      root.setAttribute('data-theme', root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+      label();
+    });
+  });
+})();
+"""
+
+# Android-targeted responsive layer (ADR 0018), appended LAST in each view's <style>
+# so it overrides the shared base + the view's own layout. Primary width 360 px (the
+# most common Android viewport, incl. Galaxy S25 = 360x780 CSS); below 640 px (every
+# Android phone portrait) the two columns stack and spacing/tap targets adapt; foldable
+# unfolded (~768) + tablets keep the two-column layout. Pure CSS — no JS change, no deps.
+# Logical properties keep `top` out of the document (banned-words rule).
+_THEME_MEDIA_CSS = """\
+@media (max-width: 640px) {
+  main { flex-direction: column; }
+  main > section { flex: 0 0 auto; border-inline-end: none; padding: 14px 16px; }
+  main > section:not(:last-child) { border-block-end: 1px solid var(--border); }
+  header { padding: 16px 16px; padding-inline-end: 84px; }
+  .note { overflow-x: auto; }
+  .card, li.finding { padding: 14px 14px; }
+  .theme-toggle { inset-block-start: 12px; inset-inline-end: 12px;
+                  padding: 10px 16px; min-block-size: 44px; }
+}
+"""
 
 
 def _esc(s: str) -> str:
@@ -112,37 +213,22 @@ def _render_findings(reports: list[RecordReport]) -> str:
     return "\n".join(blocks)
 
 
+# Layout only — colour/typography/components live in _THEME_CSS (shared).
 _CSS = """\
-:root { color-scheme: light; }
-* { box-sizing: border-box; }
-body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-       margin: 0; color: #1a1a1a; background: #fafafa; line-height: 1.5; }
-header { padding: 16px 24px; border-bottom: 1px solid #ddd; background: #fff; }
-header h1 { font-size: 18px; margin: 0 0 4px; font-weight: 600; }
-.stance { margin: 4px 0 0; color: #555; font-size: 13px; max-width: 70ch; }
-.meta { margin: 6px 0 0; color: #777; font-size: 12px; }
 main { display: flex; gap: 0; align-items: stretch; }
 section { padding: 16px 24px; }
-.note-col { flex: 1 1 55%; border-right: 1px solid #eee; }
+header { padding: 16px 24px; }
+header h1 { font-size: 18px; margin: 0 0 4px; }
+.stance { max-width: 70ch; }
+.note-col { flex: 1 1 55%; border-inline-end: 1px solid var(--border); }
 .panel { flex: 1 1 45%; }
-h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em;
-     color: #666; margin: 0 0 12px; font-weight: 600; }
-h3 { font-size: 13px; margin: 16px 0 6px; color: #333; }
-.note { white-space: pre-wrap; font-family: ui-monospace, Menlo, Consolas, monospace;
-        font-size: 13px; background: #fff; border: 1px solid #eee; border-radius: 6px;
-        padding: 14px; }
-mark.cite { background: #ececec; border-radius: 2px; padding: 0 1px; cursor: default; }
-mark.cite-date { background: transparent; border-bottom: 1px dotted #999; }
-mark.cite.active { background: #cfcfcf; outline: 1px solid #8a8a8a; }
+h3 { font-size: 13px; margin: 16px 0 6px; color: var(--text); }
 ul.findings { list-style: none; margin: 0 0 8px; padding: 0; }
-li.finding { padding: 7px 9px; border: 1px solid #eee; border-radius: 6px;
-             margin: 0 0 6px; background: #fff; cursor: pointer; font-size: 13px; }
-li.finding.sel { border-color: #8a8a8a; background: #f0f0f0; }
-.lens { display: inline-block; min-width: 9ch; color: #777; font-size: 11px;
-        text-transform: uppercase; letter-spacing: .03em; margin-right: 8px; }
-.empty { color: #777; font-size: 13px; }
-footer { padding: 12px 24px; border-block-start: 1px solid #ddd; color: #888;
-         font-size: 12px; background: #fff; }
+li.finding { padding: 7px 9px; border: 1px solid var(--border); border-radius: 6px;
+             margin: 0 0 6px; background: var(--surface); font-size: 13px; }
+li.finding:hover { border-color: var(--accent-line); }
+li.finding.sel { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-weak); }
+.lens { display: inline-block; min-width: 9ch; font-size: 11px; margin-inline-end: 8px; }
 """
 
 _JS = """\
@@ -194,15 +280,18 @@ def render_html(
         meta_bits.append(f"Reference date: {_esc(reference_date.isoformat())}")
     meta = f'<p class="meta">{" &middot; ".join(meta_bits)}</p>' if meta_bits else ""
     return f"""<!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{_esc(title)}</title>
 <style>
-{_CSS}</style>
+{_THEME_CSS}{_CSS}{_THEME_MEDIA_CSS}</style>
+<script>
+{_THEME_JS}</script>
 </head>
 <body>
+<button class="theme-toggle" type="button">Dark</button>
 <header>
 <h1>{_esc(title)}</h1>
 <p class="stance">Surfaced from the record and cited &mdash; never judged, ordered, or recommended.

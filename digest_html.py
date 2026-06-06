@@ -16,9 +16,10 @@ provenance dates; clicking a card highlights its cited spans in the note. The
 cards come from run_report() over real extracted records — never hand-written —
 so the view can only ever show what the engine actually surfaced.
 
-Like the engine, it honors the librarian rule in the VIEW layer: grayscale-only
-highlights (no severity colors), document order, surfaces/counts/cites. It does
-NOT score, rank, judge, order by importance, or say what a pattern means.
+Like the engine, it honors the librarian rule in the VIEW layer: a calm, low-stimulation
+theme with a single NON-semantic accent (the same for every lens — no per-lens or severity
+colors), light-first with an optional dark toggle, document order, surfaces/counts/
+cites. It does NOT score, rank, judge, order by importance, or say what a pattern means.
 
   Demo:  python digest_html.py --demo [outfile.html]
 """
@@ -35,7 +36,15 @@ from recurrence import RecordReport, run_report
 # Shared, pure view helpers — one source of truth for span collection, neutral
 # <mark> rendering, HTML-escaping, and the click-to-highlight script, so the
 # inspection view and this digest can never highlight provenance differently.
-from report_html import _JS, _collect_spans, _esc, _render_note
+from report_html import (
+    _JS,
+    _THEME_CSS,
+    _THEME_JS,
+    _THEME_MEDIA_CSS,
+    _collect_spans,
+    _esc,
+    _render_note,
+)
 
 VERSION = "0.1.0"
 
@@ -118,37 +127,21 @@ def _render_cards(reports: list[RecordReport]) -> str:
     return "\n".join(cards)
 
 
+# Layout only — colour/typography/components live in _THEME_CSS (shared).
 _CSS = """\
-:root { color-scheme: light; }
-* { box-sizing: border-box; }
-body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-       margin: 0; color: #1a1a1a; background: #fafafa; line-height: 1.5; }
-header { padding: 22px 28px; border-block-end: 1px solid #ddd; background: #fff; }
-header h1 { font-size: 22px; margin: 0; font-weight: 600; letter-spacing: -.01em; }
-.meta { margin: 6px 0 0; color: #666; font-size: 13px; }
-.stance { margin: 8px 0 0; color: #555; font-size: 13px; max-width: 80ch; }
 main { display: flex; gap: 0; align-items: stretch; }
 section { padding: 20px 28px; }
-.patterns { flex: 1 1 58%; border-inline-end: 1px solid #eee; }
+.patterns { flex: 1 1 58%; border-inline-end: 1px solid var(--border); }
 .source { flex: 1 1 42%; }
-h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .05em;
-     color: #777; margin: 0 0 14px; font-weight: 600; }
-.card { border: 1px solid #e3e3e3; border-radius: 10px; padding: 12px 14px;
-        margin: 0 0 12px; background: #fff; cursor: pointer; }
-.card.sel { border-color: #8a8a8a; background: #f2f2f2; }
-.lens { font-size: 10px; letter-spacing: .08em; color: #8a8a8a; font-weight: 700; }
-.line { font-size: 15px; color: #1a1a1a; margin: 5px 0 0; }
+.card { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px;
+        margin: 0 0 12px; background: var(--surface); }
+.card:hover { border-color: var(--accent-line); }
+.card.sel { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-weak); }
+.lens { font-size: 10px; letter-spacing: .08em; }
+.line { font-size: 15px; color: var(--text); margin: 5px 0 0; }
 .chip { display: inline-block; margin: 10px 0 0; padding: 2px 9px; font-size: 11px;
-        color: #555; background: #f0f0f0; border: 1px solid #e3e3e3; border-radius: 999px; }
-.note { white-space: pre-wrap; font-family: ui-monospace, Menlo, Consolas, monospace;
-        font-size: 13px; background: #fff; border: 1px solid #eee; border-radius: 8px;
-        padding: 14px; color: #222; }
-mark.cite { background: #ececec; border-radius: 2px; padding: 0 1px; }
-mark.cite-date { background: transparent; border-block-end: 1px dotted #999; }
-mark.cite.active { background: #cfcfcf; outline: 1px solid #8a8a8a; }
-.empty { color: #777; font-size: 13px; }
-footer { padding: 14px 28px; border-block-start: 1px solid #ddd; color: #888;
-         font-size: 12px; background: #fff; }
+        color: var(--muted); background: var(--mark-rest); border: 1px solid var(--border);
+        border-radius: 999px; }
 """
 
 
@@ -175,15 +168,18 @@ def render_digest(
     meta_bits.append("de-identified")
     meta = " &middot; ".join(_esc(b) for b in meta_bits)
     return f"""<!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{_esc(title)}</title>
 <style>
-{_CSS}</style>
+{_THEME_CSS}{_CSS}{_THEME_MEDIA_CSS}</style>
+<script>
+{_THEME_JS}</script>
 </head>
 <body>
+<button class="theme-toggle" type="button">Dark</button>
 <header>
 <h1>{_esc(title)}</h1>
 <p class="meta">{meta}</p>
