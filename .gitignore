@@ -31,3 +31,5 @@ digest_demo.html
 digest_multi_demo.html
 *.report.html
 *.digest.html
+# proof-html build dir (make html-demos); regenerate in CI, never commit
+_site/

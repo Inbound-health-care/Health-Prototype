@@ -55,3 +55,27 @@ jobs:
         run: pip install ruff==0.15.16
       - name: Ruff check
         run: ruff check .
+
+  # HTML-validity gate (ADR 0026). The views are GENERATED on demand and gitignored,
+  # so proof-html must build them FIRST, then validate. Self-contained output (inline
+  # CSS/JS, no network, no <img>/<link>/<script src>) -> the external-link checker is
+  # disabled; this validates markup + internal #anchors only. The generate step
+  # delegates to the Makefile so local and CI share one file list (PR #29 parity).
+  html:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+      - name: Generate the four HTML views into _site/ (delegates to the Makefile)
+        run: make html-demos
+      - name: Validate generated HTML (proof-html / html-proofer)
+        uses: anishathalye/proof-html@v2
+        with:
+          directory: ./_site
+          disable_external: true    # no external links exist; skip the network checker (no flake/egress)
+          enforce_https: false      # moot once external is off; explicit so a future link can't impose https silently
+          check_favicon: false      # views intentionally have no <link rel=icon>
+          check_opengraph: false    # no OpenGraph meta tags
+          check_html: true          # the actual gate: parse + duplicate-id + unresolved internal #anchor
