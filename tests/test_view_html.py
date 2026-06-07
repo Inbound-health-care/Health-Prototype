@@ -203,5 +203,114 @@ class TestPrint(unittest.TestCase):
             self.assertNotIn(banned, haystack, f"banned word in print string: {banned!r}")
 
 
+class _Hit:
+    def __init__(self, **kw):
+        self.__dict__.update(kw)
+
+
+class _Finding:
+    def __init__(self, expert, hit):
+        self.expert = expert
+        self.hit = hit
+
+
+class TestTimelineAxis(unittest.TestCase):
+    """The at-a-glance timeline (ADR 0023): axis math + neutral row extraction."""
+
+    def test_axis_bounds(self):
+        d = datetime.date
+        self.assertEqual(
+            view_html._axis_bounds(["2026-03-01", "2026-01-01", "2026-02-01"]),
+            (d(2026, 1, 1), d(2026, 3, 1)),
+        )
+        # Undated "" is ignored; duplicates collapse.
+        self.assertEqual(
+            view_html._axis_bounds(["", "2026-01-01", "2026-01-01", "2026-03-01"]),
+            (d(2026, 1, 1), d(2026, 3, 1)),
+        )
+        # Fewer than two distinct dated points -> no axis to draw.
+        self.assertIsNone(view_html._axis_bounds([]))
+        self.assertIsNone(view_html._axis_bounds(["2026-01-01"]))
+        self.assertIsNone(view_html._axis_bounds(["2026-01-01", "2026-01-01"]))
+
+    def test_tick_offset(self):
+        d = datetime.date
+        lo, hi = d(2026, 1, 1), d(2026, 3, 2)  # 60-day span
+        self.assertEqual(view_html._tick_offset(lo, lo, hi), 0.0)
+        self.assertEqual(view_html._tick_offset(hi, lo, hi), 100.0)
+        self.assertAlmostEqual(view_html._tick_offset(d(2026, 1, 31), lo, hi), 50.0)
+        # Out of range clamps to 0..100; a zero-span places at the midpoint.
+        self.assertEqual(view_html._tick_offset(d(2025, 1, 1), lo, hi), 0.0)
+        self.assertEqual(view_html._tick_offset(d(2027, 1, 1), lo, hi), 100.0)
+        self.assertEqual(view_html._tick_offset(lo, lo, lo), 50.0)
+
+    def test_rows_one_per_finding_in_order(self):
+        findings = [
+            _Finding("recurrence", _Hit(item="poor sleep", dates=["2026-01-01", "2026-02-01"])),
+            _Finding("cooccurrence", _Hit(item_a="anxiety", item_b="poor sleep",
+                                          dates=["2026-03-01", "2026-03-15"])),
+            # gap carries before/after, not a dates list.
+            _Finding("gap", _Hit(item="depression", before_date="2026-01-01", after_date="2026-06-01")),
+            # a finding with no cited dates is dropped (nothing to place).
+            _Finding("frequency", _Hit(item="nothing", dates=[])),
+        ]
+        rows = view_html._timeline_rows(findings)
+        self.assertEqual(
+            rows,
+            [
+                ("poor sleep", "poor sleep", ["2026-01-01", "2026-02-01"]),
+                ("anxiety + poor sleep", "anxiety", ["2026-03-01", "2026-03-15"]),
+                ("depression", "depression", ["2026-01-01", "2026-06-01"]),
+            ],
+        )
+
+    def test_render_timeline_is_neutral_and_aria_hidden(self):
+        rows = [
+            ("poor sleep", "poor sleep", ["2026-01-01", "2026-02-01", "2026-03-02"]),
+        ]
+        html = view_html._render_timeline(rows)
+        # Decorative echo: the whole section is hidden from assistive tech (the cited
+        # dates live in the cards, the text alternative).
+        self.assertIn('<section class="timeline" aria-hidden="true">', html)
+        self.assertEqual(html.count('class="lane"'), 1)
+        self.assertEqual(html.count('class="tick"'), 3)  # one tick per distinct date
+        self.assertIn("inset-inline-start", html)  # positioned by logical property
+        self.assertNotIn(" left:", html)
+        self.assertNotIn("top:", html)
+        self.assertIn('data-item="poor sleep"', html)  # links to the same note marks
+        # Ticks only — no connecting/trend line, no gradient, no per-lens colour.
+        for forbidden in ("<line", "<path", "linearGradient", "lens-"):
+            self.assertNotIn(forbidden, html)
+
+    def test_render_timeline_empty_or_single_date_draws_nothing(self):
+        self.assertEqual(view_html._render_timeline([]), "")
+        # One date -> no axis -> nothing (never a degenerate single-point "axis").
+        self.assertEqual(
+            view_html._render_timeline([("x", "x", ["2026-01-01"])]), ""
+        )
+
+
+class TestTimelineSurface(unittest.TestCase):
+    """The timeline as rendered into every view."""
+
+    def test_every_view_renders_a_neutral_timeline(self):
+        for name, html in _all_demos().items():
+            with self.subTest(view=name):
+                self.assertIn('<section class="timeline" aria-hidden="true">', html)
+                self.assertIn('class="tick"', html)
+                self.assertIn("inset-inline-start", html)
+                # Librarian rule in the timeline: no trend line, no gradient, no
+                # per-lens / severity colour class on a tick.
+                for forbidden in ("<line", "<path", "linearGradient", "lens-"):
+                    self.assertNotIn(forbidden, html, f"{name}: {forbidden}")
+
+    def test_tick_dates_are_also_present_as_text(self):
+        # The a11y text alternative survives: the digest's cited chips still carry the
+        # dates the (aria-hidden) ticks echo.
+        html = digest_html.build_demo_html(REF)
+        self.assertIn("cited: 2025-10-24 → 2026-03-15", html)  # gap brackets, as text
+        self.assertIn('title="2025-10-24"', html)              # same date, as a tick
+
+
 if __name__ == "__main__":
     unittest.main()

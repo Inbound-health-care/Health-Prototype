@@ -49,6 +49,7 @@ from view_html import (
     _THEME_CSS,
     _THEME_JS,
     _THEME_MEDIA_CSS,
+    _TIMELINE_CSS,
     _anchor_id,
     _collect_spans,
     _esc,
@@ -56,9 +57,11 @@ from view_html import (
     _render_note,
     _render_patient_index,
     _render_quarantine,
+    _render_timeline,
+    _timeline_rows,
 )
 
-VERSION = "0.3.0"
+VERSION = "0.4.0"
 
 # Lens label shown on each card: the engine's own neutral provenance name,
 # presented for the clinician. Never a ranking or a judgment.
@@ -207,6 +210,9 @@ def render_digest(
     order, or recommend."""
     note_html = _render_note(note, _collect_spans(records))
     cards_html = _render_cards(reports)
+    timeline_html = _render_timeline(
+        _timeline_rows([f for rep in reports for f in rep.findings])
+    )
     patient = next((r["id"] for r in records if r.get("id")), "")
     meta_bits = []
     if patient:
@@ -222,7 +228,7 @@ def render_digest(
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{_esc(title)}</title>
 <style>
-{_THEME_CSS}{_CSS}{_THEME_MEDIA_CSS}{_PRINT_CSS}</style>
+{_THEME_CSS}{_CSS}{_TIMELINE_CSS}{_THEME_MEDIA_CSS}{_PRINT_CSS}</style>
 <script>
 {_THEME_JS}</script>
 </head>
@@ -234,6 +240,7 @@ def render_digest(
 <p class="stance">Surfaced from the record and cited &mdash; never judged, ordered, or recommended.
 The clinician decides.</p>
 </header>
+{timeline_html}
 <main>
 <section class="patterns">
 <h2>Surfaced patterns (click a line to highlight its source)</h2>
@@ -286,9 +293,13 @@ def _render_patient_block(
     patient_id = record.get("id", "")
     cards_html = _render_cards([report] if report is not None else [])
     note_html = _localized_note(note, record)
+    timeline_html = _render_timeline(
+        _timeline_rows(report.findings if report is not None else [])
+    )
     return (
         f'<section class="patient" id="{_esc(_anchor_id(patient_id))}">'
         f'<h2 class="patient-id">Patient {_esc(patient_id)}</h2>'
+        f"{timeline_html}"
         '<div class="patient-body">'
         f'<div class="patient-patterns">{cards_html}</div>'
         f'<div class="patient-source"><div class="note">{note_html}</div></div>'
@@ -332,7 +343,7 @@ def render_digest_multi(
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{_esc(title)}</title>
 <style>
-{_THEME_CSS}{_CSS}{_MULTI_CHROME_CSS}{_THEME_MEDIA_CSS}{_PRINT_CSS}</style>
+{_THEME_CSS}{_CSS}{_MULTI_CHROME_CSS}{_TIMELINE_CSS}{_THEME_MEDIA_CSS}{_PRINT_CSS}</style>
 <script>
 {_THEME_JS}</script>
 </head>

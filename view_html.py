@@ -19,9 +19,10 @@ never close an import cycle.
 
 from __future__ import annotations
 
+import datetime
 import html
 
-VERSION = "0.2.0"
+VERSION = "0.3.0"
 
 # --- Shared calm theme (ADR 0017) -------------------------------------------
 # One source of truth for colour, reused by both views so they can never drift
@@ -157,7 +158,33 @@ _PRINT_CSS = """\
   mark.cite { border: 1px solid currentColor; print-color-adjust: exact; }
   mark.cite.active { outline: 1px solid currentColor; }
   details > .cites-full { display: block; }
+  .tick { background: currentColor; }
   @page { size: A4; margin: 14mm; }
+}
+"""
+
+# At-a-glance cited-date timeline (ADR 0023). A horizontal time axis with one
+# NEUTRAL lane per surfaced finding, each cited date a tick positioned by date. It
+# re-arranges provenance the cards already cite — ticks only (no connecting/trend
+# line; a single hairline baseline is an axis, not data), the SAME accent for every
+# lane (no per-lens colour), uniform ticks (no density shading), document order (no
+# ranking). Logical properties keep the banned `top` token out.
+_TIMELINE_CSS = """\
+.timeline { padding: 14px 28px; border-block-end: 1px solid var(--border); background: var(--surface); }
+.timeline h2 { margin: 0 0 12px; }
+.lane { display: flex; align-items: center; gap: 12px; margin: 0 0 8px; }
+.lane-label { flex: 0 0 22%; font-size: 12px; color: var(--muted); text-align: end;
+              white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lane-track { position: relative; flex: 1 1 auto; block-size: 14px;
+              border-block-end: 1px solid var(--border); }
+.tick { position: absolute; inset-block-end: 0; inline-size: 2px; block-size: 12px;
+        background: var(--accent-line); border-radius: 1px; transform: translateX(-1px); }
+.tick.active { background: var(--accent); block-size: 16px; outline: 1px solid var(--accent-line); }
+.axis-ends { display: flex; justify-content: space-between; font-size: 11px;
+            color: var(--muted); margin-block-start: 4px; }
+@media (max-width: 640px) {
+  .timeline { padding: 12px 16px; }
+  .lane-label { flex-basis: 30%; }
 }
 """
 
@@ -209,6 +236,105 @@ def _render_note(note: str, spans: list[tuple[int, int, str, str]]) -> str:
     return "".join(out)
 
 
+# --- At-a-glance cited-date timeline (ADR 0023) -----------------------------
+# A visual re-arrangement of provenance the cards already cite: one neutral lane
+# per surfaced finding, each cited date a tick on a shared time axis. It surfaces
+# and cites; it never ranks, encodes severity, or implies a trend (ticks only — no
+# connecting line, no per-lens colour, no density shading; document order).
+
+
+def _axis_bounds(dates: list[str]) -> tuple[datetime.date, datetime.date] | None:
+    """The earliest and latest ISO date across ``dates`` (undated ``""`` ignored), or
+    ``None`` when fewer than two distinct dated points exist (no axis to draw). The
+    bounds come from the record's OWN cited dates — never an external 'today'."""
+    days = sorted({datetime.date.fromisoformat(d) for d in dates if d})
+    if len(days) < 2:
+        return None
+    return days[0], days[-1]
+
+
+def _tick_offset(d: datetime.date, lo: datetime.date, hi: datetime.date) -> float:
+    """A date's position along the axis as a percent (0..100), clamped. A single-day
+    span places at the midpoint."""
+    span = (hi - lo).days
+    if span <= 0:
+        return 50.0
+    return max(0.0, min(100.0, (d - lo).days / span * 100.0))
+
+
+def _hit_dates(finding: object) -> list[str]:
+    """Every cited date a finding carries, for the timeline. Pulls the typed hit's
+    date list, or the gap's before/after pair. Engine-agnostic (getattr only), so
+    this module never imports the engine. Undated ``""`` is dropped."""
+    hit = getattr(finding, "hit", finding)
+    dates = list(getattr(hit, "dates", []) or [])
+    if not dates:
+        pair = [getattr(hit, "before_date", None), getattr(hit, "after_date", None)]
+        dates = [d for d in pair if d]
+    return [d for d in dates if d]
+
+
+def _timeline_rows(findings: list) -> list[tuple[str, str, list[str]]]:
+    """One ``(lane_label, tick_item, cited_dates)`` per surfaced finding, in the
+    engine's registry/document order (never sorted by count or recency). ``lane_label``
+    names the item(s) (co-occurrence joins its pair); ``tick_item`` is the single item
+    each tick links to (so a card click lights the lane's ticks), matching the note's
+    ``data-item``."""
+    rows: list[tuple[str, str, list[str]]] = []
+    for finding in findings:
+        hit = getattr(finding, "hit", finding)
+        items = [
+            v for v in (getattr(hit, a, None) for a in ("item", "item_a", "item_b")) if v
+        ]
+        if not items:
+            continue
+        dates = _hit_dates(finding)
+        if dates:
+            rows.append((" + ".join(items), items[0], dates))
+    return rows
+
+
+def _render_timeline(rows: list[tuple[str, str, list[str]]]) -> str:
+    """The cited-date timeline: a lane per finding, each cited date a neutral tick
+    positioned by date along the shared min->max axis. The whole section is
+    ``aria-hidden`` — the ticks visually echo dates already in the cited cards (the
+    text alternative), so screen-reader users read the cards, not a flood of ticks.
+    Empty / single-date input -> nothing (no axis to draw)."""
+    if not rows:
+        return ""
+    bounds = _axis_bounds([d for (_, _, dates) in rows for d in dates])
+    if bounds is None:
+        return ""
+    lo, hi = bounds
+    lanes = []
+    for label, item, dates in rows:
+        ticks = []
+        for d in sorted(set(dates)):
+            try:
+                day = datetime.date.fromisoformat(d)
+            except ValueError:
+                continue
+            pct = _tick_offset(day, lo, hi)
+            ticks.append(
+                f'<span class="tick" style="inset-inline-start: {pct:.2f}%" '
+                f'title="{_esc(d)}" data-item="{_esc(item)}"></span>'
+            )
+        lanes.append(
+            '<div class="lane">'
+            f'<span class="lane-label">{_esc(label)}</span>'
+            f'<span class="lane-track">{"".join(ticks)}</span>'
+            "</div>"
+        )
+    return (
+        '<section class="timeline" aria-hidden="true">'
+        "<h2>Timeline of cited dates</h2>"
+        f'{"".join(lanes)}'
+        f'<div class="axis-ends"><span>{_esc(lo.isoformat())}</span>'
+        f"<span>{_esc(hi.isoformat())}</span></div>"
+        "</section>"
+    )
+
+
 # Shared click + KEYBOARD highlight (ADR 0022): one activation path for mouse and
 # keyboard so a finding toggles its cited concept marks identically either way. The
 # findings carry tabindex/role/aria-pressed in the static markup; this binds the
@@ -251,9 +377,11 @@ function bindFindings(findings, marks) {
 """
 
 # Single-scope: bind every finding in the document (inspection view + single digest).
+# Marks include the note's cited spans AND the timeline ticks (same data-item), so a
+# click lights a finding's cited dates in BOTH the note and the at-a-glance timeline.
 _JS = _INTERACT_JS + """\
 (function () {
-  bindFindings(document.querySelectorAll('.finding'), document.querySelectorAll('mark.cite'));
+  bindFindings(document.querySelectorAll('.finding'), document.querySelectorAll('mark.cite, .tick'));
 })();
 """
 
@@ -302,7 +430,7 @@ _MULTI_CHROME_CSS = """\
 _MULTI_JS = _INTERACT_JS + """\
 (function () {
   document.querySelectorAll('.patient').forEach(function (block) {
-    bindFindings(block.querySelectorAll('.finding'), block.querySelectorAll('mark.cite'));
+    bindFindings(block.querySelectorAll('.finding'), block.querySelectorAll('mark.cite, .tick'));
   });
 })();
 """
