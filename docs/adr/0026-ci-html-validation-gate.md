@@ -1,10 +1,11 @@
 # 0026 — CI HTML-validation gate: proof-html on the generated views
 
 **Date:** 2026-06-07
-**Evidence level:** IMPLEMENTED_UNVERIFIED — the `html` job is wired; the first CI run **caught 4 real
+**Evidence level:** CONFIRMED_USER_SIDE — the `html` job is wired; the first CI run **caught 4 real
 HTML5-conformance errors** (see "What the gate caught" below), which were fixed; the regenerated views
-now pass an equivalent local Nu check (`html5validator`, HTML-clean). Promotes to CONFIRMED_ASSISTANT_SIDE
-once the PR CI `html` job is green; the view interaction is CONFIRMED_USER_SIDE when Scott runs `make jstest`.
+pass an equivalent local Nu check (`html5validator`, HTML-clean) and the full CI suite (incl. the `html`
+gate) is green. **Scott ran the live JS/DOM test in a real headless Chromium on Windows (2026-06-07) —
+4/4 ok** — confirming the refactored click / keyboard / print interaction at runtime.
 **Type:** CI / build infrastructure
 
 ## Context
@@ -80,5 +81,6 @@ the `.finding` button; the digest card reflects it via `.card:has(.finding.sel)`
   `test (3.10–3.13)`. Optional local equivalent (needs Docker, absent in this sandbox):
   `docker run --rm -v "$PWD/_site:/site" ghcr.io/gjtorikian/html-proofer:latest /site
   --disable-external --no-enforce-https --no-check-favicon --no-check-opengraph`.
-- Interaction (CONFIRMED_USER_SIDE): Scott runs `make jstest` (headless Chromium) — click + keyboard
-  activation, no cross-patient bleed, beforeprint opens `<details>`.
+- Interaction — **CONFIRMED_USER_SIDE (Scott, 2026-06-07, Windows)**: ran the live JS/DOM test in a
+  real headless Chromium — **4/4 ok** (click toggle, keyboard Enter/Space, beforeprint/afterprint,
+  multi-patient no-bleed). This also satisfies the ADR 0025 live-JS CONFIRMED_USER_SIDE follow-up.

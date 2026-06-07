@@ -16,8 +16,8 @@ Last updated: 2026-06-07
   `::after` overlay; `<details>` raised via `z-index`). `uvx html5validator` (Nu) now reports the views **HTML-clean**; `make check` green; view modules
   bumped (view_html 0.4.0, report_html/digest_html 0.5.0); **ADR 0022 revised by ADR 0026**. Docs reconciled: ADR 0026 + README index (0024–0026),
   PROJECT_MAP (ADR range + ci.yml purpose + Makefile target), architecture.md CI line. **Not auto-required** — Scott adds `html` to branch protection
-  to make it block. proof-html runs CI-side (Docker) → CONFIRMED_ASSISTANT_SIDE when the PR `html` job is green; interaction CONFIRMED_USER_SIDE when
-  Scott runs `make jstest`. Awaiting Scott's review + per-PR merge OK.
+  to make it block. CI all green incl. the `html` gate (CONFIRMED_ASSISTANT_SIDE); **interaction CONFIRMED_USER_SIDE** — Scott ran the live JS/DOM test
+  (`tests.test_view_js`, real headless Chromium, Windows, 2026-06-07) — 4/4 ok (also closes the ADR 0025 live-JS follow-up). **Ready to merge** — Scott squash-merges #39.
 - **Session 2026-06-07 (cont.) — AUDIT FIX-LIST — MERGED to `main` via PR #37 (squash; ADR 0024–0025); `main` now 252 tests.**
   Worked all 15 items in `docs/AUDIT_2026-06-07.md` (Scott approved the plan + four decision-forks). **Tier 1 (governance):**
   JOURNAL.md **retired (chat-only)** — frozen with an ARCHIVED banner, the 5 docs that cited it as canonical reworded to
