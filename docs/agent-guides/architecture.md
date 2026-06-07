@@ -50,7 +50,8 @@ sync with the code (see ADR 0005)._
 - `tests/` — 18 test files, 252 tests (5 skipped: the dev-only Hypothesis properties + the
   dev-only live-JS view test, both gated on optional tools — see ADR 0025). Engine 90 + free-text
   slices + multi-patient + all three HTML views + theme. CI: `.github/workflows/ci.yml`
-  (Py 3.10-3.13); CI also runs the Hypothesis properties (ADR 0025).
+  (Py 3.10-3.13); CI also runs the Hypothesis properties (ADR 0025) and validates the four
+  generated HTML views with proof-html / html-proofer (ADR 0026).
 
 ## Engine hard rules
 - Pure Python STDLIB ONLY at runtime. No network egress. Zero real PHI, ever.

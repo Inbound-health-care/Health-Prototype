@@ -144,7 +144,7 @@ class TestMultiPatientReport(unittest.TestCase):
         )
         # Inspection idiom: a findings list per patient (not the digest's cards).
         # Each accepted patient surfaces its one recurrence finding (poor sleep 2x).
-        self.assertEqual(html.count('<li class="finding"'), 2)
+        self.assertEqual(html.count('class="finding"'), 2)
 
     def test_patient_index_jumps_to_each_patient(self):
         html = build_demo_multi_html(REF)

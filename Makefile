@@ -1,4 +1,4 @@
-.PHONY: test selftest demo compile lint check typecheck fmt-check fmt cov security proptest jstest tools branch-audit clean
+.PHONY: test selftest demo compile lint check typecheck fmt-check fmt cov security proptest jstest html-demos tools branch-audit clean
 
 # Engine is pure stdlib; no runtime dependencies to install.
 # The targets below test/lint/type-check are OPTIONAL dev tooling: each is a
@@ -59,6 +59,16 @@ proptest:      ## Property-based tests (Hypothesis via uvx; no install)
 # absent. First run only: `uvx --with playwright playwright install chromium`.
 jstest:        ## Live JS/DOM view test (Playwright via uvx; no install)
 	-uvx --with playwright python -m unittest tests.test_view_js -v
+
+# Generate the four self-contained views for the CI HTML-validity gate (ADR 0026).
+# Pure stdlib, deterministic. CI's `html` job calls this, then runs proof-html on _site/,
+# so the four-file list lives here once (CI<->Makefile parity, like `compile`).
+html-demos:    ## Generate the four self-contained HTML views into _site/ (the proof-html input; CI delegates here)
+	mkdir -p _site
+	python report_html.py --demo       _site/report_demo.html
+	python report_html.py --demo-multi _site/report_multi_demo.html
+	python digest_html.py --demo       _site/digest_demo.html
+	python digest_html.py --demo-multi _site/digest_multi_demo.html
 
 tools:         ## Report which optional dev tools are available
 	@for t in python3 pytest ruff mypy pyright uv black; do \

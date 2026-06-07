@@ -63,7 +63,7 @@ from view_html import (
 
 __all__ = ["THEME", "render_html", "render_html_multi", "build_demo_html"]
 
-VERSION = "0.4.0"
+VERSION = "0.5.0"
 
 
 def _hit_items(hit: object) -> list[str]:
@@ -90,10 +90,10 @@ def _render_findings_list(report: RecordReport | None) -> str:
     for finding in findings:
         items = "|".join(_hit_items(finding.hit))
         rows.append(
-            f'<li class="finding" data-items="{_esc(items)}"'
-            ' tabindex="0" role="button" aria-pressed="false">'
+            '<li><button type="button" class="finding" '
+            f'data-items="{_esc(items)}" aria-pressed="false">'
             f'<span class="lens">{_esc(finding.expert)}</span>'
-            f'<span class="line">{_esc(finding.line)}</span></li>'
+            f'<span class="line">{_esc(finding.line)}</span></button></li>'
         )
     rows.append("</ul>")
     return "\n".join(rows)
@@ -123,10 +123,11 @@ header h1 { font-size: 18px; margin: 0 0 4px; }
 .panel { flex: 1 1 45%; }
 h3 { font-size: 13px; margin: 16px 0 6px; color: var(--text); }
 ul.findings { list-style: none; margin: 0 0 8px; padding: 0; }
-li.finding { padding: 7px 9px; border: 1px solid var(--border); border-radius: 6px;
-             margin: 0 0 6px; background: var(--surface); font-size: 13px; }
-li.finding:hover { border-color: var(--accent-line); }
-li.finding.sel { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-weak); }
+ul.findings > li { margin: 0 0 6px; }
+.findings .finding { padding: 7px 9px; border: 1px solid var(--border); border-radius: 6px;
+                     background: var(--surface); font-size: 13px; }
+.findings .finding:hover { border-color: var(--accent-line); }
+.findings .finding.sel { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-weak); }
 .lens { display: inline-block; min-width: 9ch; font-size: 11px; margin-inline-end: 8px; }
 """
 

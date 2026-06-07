@@ -52,3 +52,6 @@ it — history is the point.
 - [0021 — Promote shared view primitives to `view_html.py`; report_html multi-patient parity](0021-view-html-extraction-report-multi.md)
 - [0022 — Keyboard navigation + print pass (shared interaction layer)](0022-keyboard-nav-and-print.md)
 - [0023 — At-a-glance cited-date timeline (ticks-only, single-accent, document order)](0023-at-a-glance-cited-date-timeline.md)
+- [0024 — Governance: JOURNAL.md retired (chat-only) + LICENSE = Apache-2.0](0024-journal-retired-and-license.md)
+- [0025 — Verification ceiling: live JS test + Hypothesis gates CI + oracle convention](0025-verification-ceiling-closed.md)
+- [0026 — CI HTML-validation gate: proof-html on the generated views](0026-ci-html-validation-gate.md)

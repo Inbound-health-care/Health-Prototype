@@ -42,7 +42,7 @@ canonical files.
 ## Decisions / discipline / narrative
 | File | Purpose | Canonical? | Load when |
 |---|---|---|---|
-| `docs/adr/` (`0001`–`0025` + `README.md`) | Decision log (build + assistant process) | **yes (decisions)** | "Why was X done" |
+| `docs/adr/` (`0001`–`0026` + `README.md`) | Decision log (build + assistant process) | **yes (decisions)** | "Why was X done" |
 | `docs/DOC_DISCIPLINE.md` | Evidence levels + ADR-confirmation + drift control | **yes (evidence levels)** | Tagging claims / audits |
 | `JOURNAL.md` | Session narrative / lessons (ARCHIVED 2026-06-07 — historical only; diary is chat-only now, ADR 0024) | — (historical archive) | Want the why/story (pre-2026-06-07) |
 | `docs/CLAUDE_OPERATING_MANUAL.md` | Operating manual | — | Deeper process |
@@ -56,8 +56,8 @@ canonical files.
 ## Build / CI / meta / public
 | File | Purpose | Canonical? | Load when |
 |---|---|---|---|
-| `Makefile` | `test` / `selftest` / `lint` / `check` / `demo` / `branch-audit` / `clean` | — | Running tasks |
-| `.github/workflows/ci.yml` | CI: compileall + unittest + self-test | yes (CI gate) | CI changes |
+| `Makefile` | `test` / `selftest` / `lint` / `check` / `demo` / `html-demos` / `branch-audit` / `clean` | — | Running tasks |
+| `.github/workflows/ci.yml` | CI: compileall + unittest + self-test + Hypothesis + HTML-validity (proof-html) | yes (CI gate) | CI changes |
 | `README.md` | Public-facing project description | yes (public face) | External readers |
 | `SOVEREIGN_SCRIBE_SALVAGE.md` | Salvage of the separate clinical-scribe project | — | That project only |
 | `.gitignore` | Ignore rules | — | — |

@@ -22,7 +22,7 @@ from __future__ import annotations
 import datetime
 import html
 
-VERSION = "0.3.0"
+VERSION = "0.4.0"
 
 # --- Shared calm theme (ADR 0017) -------------------------------------------
 # One source of truth for colour, reused by both views so they can never drift
@@ -76,7 +76,9 @@ mark.cite { background: var(--mark-rest); border-radius: 3px; padding: 0 2px; co
 mark.cite-date { background: transparent; border-block-end: 1px dotted var(--accent-line); }
 mark.cite.active { background: var(--accent-weak); outline: 2px solid var(--accent-line); outline-offset: 1px; }
 .lens { color: var(--accent); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
-.finding { cursor: pointer; }
+.finding { cursor: pointer; appearance: none; -webkit-appearance: none; background: none;
+           border: 0; margin: 0; padding: 0; font: inherit; color: inherit; text-align: start;
+           inline-size: 100%; display: block; }
 .finding:focus-visible { outline: 2px solid var(--accent-line); outline-offset: 2px; }
 .empty { color: var(--muted); font-size: 13px; }
 footer { padding: 14px 28px; border-block-start: 1px solid var(--border);
@@ -133,7 +135,7 @@ _THEME_MEDIA_CSS = """\
   main > section:not(:last-child) { border-block-end: 1px solid var(--border); }
   header { padding: 16px 16px; padding-inline-end: 84px; }
   .note { overflow-x: auto; }
-  .card, li.finding { padding: 14px 14px; }
+  .card, .findings .finding { padding: 14px 14px; }
   .theme-toggle { inset-block-start: 12px; inset-inline-end: 12px;
                   padding: 10px 16px; min-block-size: 44px; }
 }
@@ -154,7 +156,7 @@ _PRINT_CSS = """\
   main, .patient-body { display: block; }
   .note-col, .panel, .patterns, .source,
   .patient-patterns, .patient-source { inline-size: 100%; border-inline-end: none; }
-  .patient, .card, li.finding { break-inside: avoid; }
+  .patient, .card, .findings .finding { break-inside: avoid; }
   mark.cite { border: 1px solid currentColor; print-color-adjust: exact; }
   mark.cite.active { outline: 1px solid currentColor; }
   details > .cites-full { display: block; }
@@ -335,14 +337,14 @@ def _render_timeline(rows: list[tuple[str, str, list[str]]]) -> str:
     )
 
 
-# Shared click + KEYBOARD highlight (ADR 0022): one activation path for mouse and
-# keyboard so a finding toggles its cited concept marks identically either way. The
-# findings carry tabindex/role/aria-pressed in the static markup; this binds the
-# listeners and reflects pressed state. `bindFindings(findings, marks)` is scoped by
-# its caller — over the whole document (single view) or per `.patient` block (multi,
-# so two patients sharing an item can never light up each other). The
-# closest('details') guard keeps the cited-date disclosure from toggling the
-# highlight (mouse OR keyboard); avoids the banned `top` token (block:'center').
+# Shared click highlight (ADR 0022, revised ADR 0026): one activation path for a
+# finding to toggle its cited concept marks. Findings are real <button> elements
+# (native focus + Enter/Space), so this only binds click and reflects aria-pressed —
+# no keydown shim, and none can double-fire. `bindFindings(findings, marks)` is scoped
+# by its caller — over the whole document (single view) or per `.patient` block (multi,
+# so two patients sharing an item can never light up each other). The cited-date
+# <details> is a SIBLING of the button (block-link pattern), never a descendant, so
+# operating it never reaches this listener; avoids the banned `top` token (block:'center').
 _INTERACT_JS = """\
 function bindFindings(findings, marks) {
   function clearMarks() { marks.forEach(function (m) { m.classList.remove('active'); }); }
@@ -364,14 +366,7 @@ function bindFindings(findings, marks) {
     if (first) { first.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
   }
   findings.forEach(function (el) {
-    el.addEventListener('click', function (e) {
-      if (e.target.closest('details')) { return; }
-      activate(el);
-    });
-    el.addEventListener('keydown', function (e) {
-      if (e.target.closest('details')) { return; }
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(el); }
-    });
+    el.addEventListener('click', function () { activate(el); });
   });
 }
 """

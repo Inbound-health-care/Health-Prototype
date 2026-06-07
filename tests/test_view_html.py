@@ -135,12 +135,11 @@ class TestKeyboardAndAria(unittest.TestCase):
         for name, html in _all_demos().items():
             with self.subTest(view=name):
                 # Static markup carries the a11y semantics (present before JS runs).
-                self.assertIn('tabindex="0"', html)
-                self.assertIn('role="button"', html)
+                # Findings are real <button>s — native focus + Enter/Space — and valid
+                # inside a list, not a role=button shim on an <li> (ADR 0026).
+                self.assertIn('<button type="button" class="finding"', html)
                 self.assertIn('aria-pressed="false"', html)
-                # Keyboard is wired (Enter/Space), not mouse-only.
-                self.assertIn("keydown", html)
-                self.assertIn("'Enter'", html)
+                self.assertNotIn('role="button"', html)
                 # A visible focus indicator using the (3:1-checked) accent-line token.
                 self.assertIn(".finding:focus-visible", html)
                 self.assertIn("var(--accent-line)", html)
@@ -158,7 +157,7 @@ class TestKeyboardAndAria(unittest.TestCase):
         # (no stray or missing toggle).
         for name, html in _all_demos().items():
             with self.subTest(view=name):
-                n_findings = html.count('class="finding"') + html.count('class="card finding"')
+                n_findings = html.count('class="finding"')
                 self.assertGreater(n_findings, 0, name)
                 self.assertEqual(html.count('aria-pressed="false"'), n_findings, name)
 
