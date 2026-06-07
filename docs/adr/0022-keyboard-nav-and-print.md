@@ -6,6 +6,11 @@ and gave the OK to merge. `make check` green: 241 tests / self-test 6+10 / `ruff
 to `main` via PR #35. The a11y/print method notes below are **RESEARCH_ONLY** (web-sourced 2026-06-07).
 **Type:** UI / front-end / accessibility
 **Builds on:** ADR 0021 (the shared `view_html.py` floor — both views inherit this in one place).
+**Revised by:** ADR 0026 — the custom `role="button"` interaction below (findings as `<li role="button">`;
+the digest card as a `role="button"` nesting an interactive `<details>`) was **replaced with real
+`<button>` elements + the block-link / pseudo-content pattern** after the CI HTML-validity gate
+(proof-html / Nu) flagged both as HTML5-conformance errors. The one-activation-path goal stands; it is
+now carried by native button semantics (focus + Enter/Space) instead of a `tabindex`/`role`/keydown shim.
 
 ## Context
 Both views were mouse-only: click a finding to highlight its cited source. A clinical tool

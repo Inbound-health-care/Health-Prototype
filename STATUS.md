@@ -9,11 +9,15 @@ Last updated: 2026-06-07
   green. Confirmed it was in NO live location (not on `main`/#38, no open PR, no branch); this is a fresh wiring. A dedicated CI **`html` job**
   generates the four views into `_site/` via a new **`make html-demos`** target, then runs **proof-html@v2** offline (`disable_external`,
   favicon/opengraph off, `check_html` on) — real coverage = markup well-formedness + internal `#anchor`/id integrity (external/image/alt are moot;
-  views are self-contained). CI↔Makefile parity preserved (the four-file list lives once in the Makefile, PR #29). Pre-landing audit of the actual
-  output: **0 dup ids / 0 unresolved anchors / 0 external refs** across all four views, so the gate lands green. Docs reconciled: ADR 0026 +
-  README index (0024–0026), PROJECT_MAP (ADR range + ci.yml purpose + Makefile target), architecture.md CI line. **Not auto-required** — Scott adds
-  `html` to branch protection if he wants it to block merges. proof-html runs CI-side (Docker) → CONFIRMED_ASSISTANT_SIDE when the PR's `html` job
-  is green. Awaiting Scott's review + per-PR merge OK.
+  views are self-contained). CI↔Makefile parity preserved (the four-file list lives once in the Makefile, PR #29). **The gate immediately did its
+  job:** the first CI run caught **4 real HTML5-conformance errors** from ADR 0022's `role=button` design (`<li role=button>` in a list; the digest
+  card's `role=button` nesting an interactive `<details>`). Fixed with researched accessible patterns — findings are now real **`<button>`s** (native
+  focus/keyboard, no tabindex/role/keydown shim); the digest card uses the **block-link/pseudo-content** pattern (card not a button; inner-button
+  `::after` overlay; `<details>` raised via `z-index`). `uvx html5validator` (Nu) now reports the views **HTML-clean**; `make check` green; view modules
+  bumped (view_html 0.4.0, report_html/digest_html 0.5.0); **ADR 0022 revised by ADR 0026**. Docs reconciled: ADR 0026 + README index (0024–0026),
+  PROJECT_MAP (ADR range + ci.yml purpose + Makefile target), architecture.md CI line. **Not auto-required** — Scott adds `html` to branch protection
+  to make it block. proof-html runs CI-side (Docker) → CONFIRMED_ASSISTANT_SIDE when the PR `html` job is green; interaction CONFIRMED_USER_SIDE when
+  Scott runs `make jstest`. Awaiting Scott's review + per-PR merge OK.
 - **Session 2026-06-07 (cont.) — AUDIT FIX-LIST — MERGED to `main` via PR #37 (squash; ADR 0024–0025); `main` now 252 tests.**
   Worked all 15 items in `docs/AUDIT_2026-06-07.md` (Scott approved the plan + four decision-forks). **Tier 1 (governance):**
   JOURNAL.md **retired (chat-only)** — frozen with an ARCHIVED banner, the 5 docs that cited it as canonical reworded to

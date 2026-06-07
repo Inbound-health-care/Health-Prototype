@@ -61,7 +61,7 @@ from view_html import (
     _timeline_rows,
 )
 
-VERSION = "0.4.0"
+VERSION = "0.5.0"
 
 # Lens label shown on each card: the engine's own neutral provenance name,
 # presented for the clinician. Never a ranking or a judgment.
@@ -159,12 +159,14 @@ def _render_cards(reports: list[RecordReport]) -> str:
             data_items = _esc("|".join(items))
             chip_html = _chip_html(chip, dates)
             cards.append(
-                f'<div class="card finding" data-items="{data_items}"'
-                ' tabindex="0" role="button" aria-pressed="false">'
-                f'<div class="lens">{_esc(label)}</div>'
-                f'<div class="line">{_esc(line)}</div>'
+                '<div class="card">'
+                '<button type="button" class="finding" '
+                f'data-items="{data_items}" aria-pressed="false">'
+                f'<span class="lens">{_esc(label)}</span>'
+                f'<span class="line">{_esc(line)}</span>'
+                "</button>"
                 f"{chip_html}"
-                f"</div>"
+                "</div>"
             )
     if not cards:
         return '<p class="empty">No patterns surfaced. (The record is not asserted clean.)</p>'
@@ -177,16 +179,19 @@ main { display: flex; gap: 0; align-items: stretch; }
 section { padding: 20px 28px; }
 .patterns { flex: 1 1 58%; border-inline-end: 1px solid var(--border); }
 .source { flex: 1 1 42%; }
-.card { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px;
-        margin: 0 0 12px; background: var(--surface); }
+.card { position: relative; border: 1px solid var(--border); border-radius: 10px;
+        padding: 12px 14px; margin: 0 0 12px; background: var(--surface); }
 .card:hover { border-color: var(--accent-line); }
-.card.sel { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-weak); }
-.lens { font-size: 10px; letter-spacing: .08em; }
-.line { font-size: 15px; color: var(--text); margin: 5px 0 0; }
+.card:has(.finding.sel) { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-weak); }
+/* Block-link (ADR 0026): the finding button is not the whole card, so its overlay
+   makes the whole card the click target; the cited-date <details> is raised above it. */
+.card > .finding::after { content: ""; position: absolute; inset: 0; border-radius: 10px; }
+.lens { font-size: 10px; letter-spacing: .08em; display: block; }
+.line { font-size: 15px; color: var(--text); margin: 5px 0 0; display: block; }
 .chip { display: inline-block; margin: 10px 0 0; padding: 2px 9px; font-size: 11px;
         color: var(--muted); background: var(--mark-rest); border: 1px solid var(--border);
         border-radius: 999px; }
-.chip.cites { padding: 0; border: none; background: none; }
+.chip.cites { padding: 0; border: none; background: none; position: relative; z-index: 1; }
 .chip.cites > summary { display: inline-block; cursor: pointer; list-style: none;
         padding: 4px 11px; min-block-size: 28px; color: var(--muted); background: var(--mark-rest);
         border: 1px solid var(--border); border-radius: 999px; }

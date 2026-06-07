@@ -76,7 +76,7 @@ class TestAllFiveLensesSurface(unittest.TestCase):
         reports = run_report(records)
         n_findings = sum(len(r.findings) for r in reports)
         self.assertEqual(n_findings, 7)
-        self.assertEqual(build_demo_html(REF).count('class="card finding"'), 7)
+        self.assertEqual(build_demo_html(REF).count('class="finding"'), 7)
 
     def test_cooccurrence_is_a_pair_not_a_link(self):
         html = build_demo_html(REF)
@@ -167,7 +167,7 @@ class TestMultiPatientDigest(unittest.TestCase):
             html.index('id="patient-EXAMPLE-002"'),
         )
         # Each accepted patient surfaces its recurrence card from real engine output.
-        self.assertEqual(html.count('class="card finding"'), 2)
+        self.assertEqual(html.count('class="finding"'), 2)
 
     def test_patient_index_jumps_to_each_patient(self):
         html = build_demo_multi_html(REF)
