@@ -48,10 +48,11 @@ security:      ## Security/AST lint via uvx (no install)
 
 # Property tests are dev-only/additive: the suite SKIPS them when hypothesis is
 # absent, so `make test` stays pure-stdlib green. `make proptest` runs them via uvx.
-# CI ALSO gates them now (ADR 0025) — it installs hypothesis and runs this module
-# derandomized, so the fail-closed invariants protect every PR (no longer a bare skip).
+# CI ALSO gates them now (ADR 0025, 0027) — it installs hypothesis and runs these
+# modules derandomized: the fail-closed EXTRACTOR invariants and the rule-layer
+# metamorphic properties protect every PR (no longer a bare skip).
 proptest:      ## Property-based tests (Hypothesis via uvx; no install)
-	-uvx --with hypothesis python -m unittest tests.test_extract_multi_properties -v
+	-uvx --with hypothesis python -m unittest tests.test_extract_multi_properties tests.test_rule_properties -v
 
 # Live JS/DOM test (ADR 0025): executes the views' interactive JS in headless
 # Chromium so a runtime bug can't pass as a green static-string assert. Dev-only,

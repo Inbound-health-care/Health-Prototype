@@ -9,6 +9,10 @@ assert the SAFETY INVARIANTS hold for arbitrary batches Hypothesis generates:
   2. de-identification — a consistent per-patient shift moves every date by exactly
      the offset (intervals preserved), the ADR 0009 claim, for any dates/shift.
   3. additivity — a single-segment batch reduces to extract_records exactly.
+  4. span integrity — every accepted entry's source_span recovers its item, and a
+     record's spans are strictly increasing and non-overlapping, so each cited
+     occurrence is a distinct, ordered citation (guards the rebase math + the
+     HTML highlight) for arbitrary batches.
 
 Hypothesis is a dev-only tool (no runtime dependency): this module SKIPS cleanly
 when it is absent (so `make test` / CI stay pure-stdlib green) and runs under
@@ -146,6 +150,25 @@ if HAS_HYPOTHESIS:
             multi = extract_records_multi(note, GAZ, delimiter=DELIM).records
             single = extract_records(note, GAZ)
             self.assertEqual(multi[0]["entries"], single[0]["entries"])
+
+        @settings(max_examples=250, deadline=None,
+                  suppress_health_check=[HealthCheck.too_slow])
+        @given(st.lists(_segment(), min_size=1, max_size=6))
+        def test_span_offsets_monotonic_and_recover(self, segments):
+            # Every cited span must recover its item text AND the spans within a
+            # record must be strictly increasing + non-overlapping — a rebase
+            # off-by-one that points two entries at the same/earlier text would
+            # still "recover an item" but breaks distinctness; this catches it.
+            note = DELIM.join(segments)
+            result = extract_records_multi(note, GAZ, delimiter=DELIM)
+            for r in result.records:
+                spans = [e["source_span"] for e in r["entries"]]
+                for (s, t), e in zip(spans, r["entries"]):
+                    self.assertLessEqual(s, t)  # well-formed span
+                    self.assertEqual(note[s:t].casefold(), e["item"].casefold())
+                for (s0, t0), (s1, _t1) in zip(spans, spans[1:]):
+                    self.assertLess(s0, s1)       # strictly increasing starts
+                    self.assertLessEqual(t0, s1)  # non-overlapping citations
 
 else:  # pragma: no cover - hypothesis not installed
 
