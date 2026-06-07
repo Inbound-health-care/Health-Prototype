@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import datetime
 import os
+import re
 import sys
 import unittest
 
@@ -26,7 +27,7 @@ from data.sample_records import (  # noqa: E402
 )
 from extract import extract_records  # noqa: E402
 from recurrence import run_report  # noqa: E402
-from report_html import build_demo_html, render_html  # noqa: E402
+from report_html import build_demo_html, build_demo_multi_html, render_html  # noqa: E402
 
 # The suite-wide union of interpretive / ranking words the librarian rule forbids in
 # output. Mirrors tests/test_extract.py; the view layer must add none either.
@@ -116,6 +117,76 @@ class TestLibrarianRuleInTheView(unittest.TestCase):
         # Surfaces nothing; never claims the record is clean of patterns.
         for banned in BANNED:
             self.assertNotIn(banned, html.lower(), banned)
+
+
+class TestMultiPatientReport(unittest.TestCase):
+    """The multi-patient batch inspection view (ADR 0021): the inspection idiom (a
+    findings LIST per patient) brought to parity with the digest (ADR 0020) — one
+    block per accepted patient in segment order, a jump index, a neutral quarantine
+    section, and the load-bearing guarantee: no cross-patient highlight bleed."""
+
+    def _block(self, html, patient_id):
+        # The HTML for exactly one patient's <section> (anchor id -> first </section>).
+        m = re.search(r'id="patient-%s".*?</section>' % re.escape(patient_id), html, re.S)
+        self.assertIsNotNone(m, f"no rendered block for {patient_id}")
+        return m.group(0)
+
+    def test_is_a_single_self_contained_document(self):
+        html = build_demo_multi_html(REF)
+        self.assertTrue(html.startswith("<!doctype html>"))
+        self.assertIn("</html>", html)
+        for forbidden in ("http://", "https://", "<link", "src=", "cdn", "@import"):
+            self.assertNotIn(forbidden, html, forbidden)
+
+    def test_deterministic(self):
+        self.assertEqual(build_demo_multi_html(REF), build_demo_multi_html(REF))
+
+    def test_one_block_per_accepted_patient_in_segment_order(self):
+        html = build_demo_multi_html(REF)
+        self.assertIn('id="patient-EXAMPLE-001"', html)
+        self.assertIn('id="patient-EXAMPLE-002"', html)
+        # Segment order (001 before 002), never reordered.
+        self.assertLess(
+            html.index('id="patient-EXAMPLE-001"'),
+            html.index('id="patient-EXAMPLE-002"'),
+        )
+        # Inspection idiom: a findings list per patient (not the digest's cards).
+        # Each accepted patient surfaces its one recurrence finding (poor sleep 2x).
+        self.assertEqual(html.count('<li class="finding"'), 2)
+
+    def test_patient_index_jumps_to_each_patient(self):
+        html = build_demo_multi_html(REF)
+        self.assertIn('class="patient-index"', html)
+        self.assertIn('href="#patient-EXAMPLE-001"', html)
+        self.assertIn('href="#patient-EXAMPLE-002"', html)
+
+    def test_quarantine_section_surfaces_refused_segments_neutrally(self):
+        # The five refused segments (2x missing_key, 1x ambiguous_key, 2x duplicate_key)
+        # are surfaced with their engine reason code — never merged, guessed, or judged.
+        html = build_demo_multi_html(REF)
+        self.assertIn("Quarantined segments", html)
+        for reason in ("missing_key", "ambiguous_key", "duplicate_key"):
+            self.assertIn(reason, html)
+
+    def test_no_cross_patient_highlight_bleed(self):
+        # The guarantee: each patient renders its OWN source segment only, so a click
+        # can never light up another patient's marks. Two patients SHARE "poor sleep";
+        # prove each block carries only its own dates (structural isolation).
+        html = build_demo_multi_html(REF)
+        b1 = self._block(html, "EXAMPLE-001")
+        b2 = self._block(html, "EXAMPLE-002")
+        self.assertIn("2026-01-05", b1)  # 001's own date
+        self.assertNotIn("2026-02-12", b1)  # 002's date must NOT appear in 001's block
+        self.assertIn("2026-02-12", b2)  # 002's own date
+        self.assertNotIn("2026-01-05", b2)  # 001's date must NOT appear in 002's block
+        # Both blocks still carry the shared concept mark (each scoped to its own note).
+        self.assertIn('data-item="poor sleep"', b1)
+        self.assertIn('data-item="poor sleep"', b2)
+
+    def test_no_banned_words_anywhere(self):
+        html = build_demo_multi_html(REF).lower()
+        for banned in BANNED:
+            self.assertNotIn(banned, html, f"banned word in multi report HTML: {banned!r}")
 
 
 if __name__ == "__main__":

@@ -1,9 +1,24 @@
 # STATUS — health-prototype
 
 _The front door. Read this first, update it last. One source of "where am I."_
-Last updated: 2026-06-06
+Last updated: 2026-06-07
 
 ## Current state
+- **Session 2026-06-07 — MERGED PR #35 to `main` — UI build-out (ADR 0021–0023); `main` now 248 tests. CONFIRMED_USER_SIDE.**
+  Three sequenced increments on `claude/fervent-brown-JEwJA`, each its own ADR + commit, web-research-led (Scott picked all three):
+  (a) **`view_html.py` shared floor + `report_html` multi-patient parity (ADR 0021)** — promoted the theme / span helpers /
+  click-to-highlight / multi-patient chrome out of the two views into a new dependency floor (resolves the circular-import wall
+  ADR 0015/0017 pre-flagged; `THEME` re-exported from `report_html` for back-compat); `report_html` gains `render_html_multi` +
+  `--demo-multi` in the findings-list idiom (no cross-patient bleed). (b) **Keyboard nav + print (ADR 0022)** — one
+  `bindFindings`/`activate` path for mouse + keyboard (Enter/Space, `role=button` / `aria-pressed` / `:focus-visible`); custom
+  role=button because the digest card nests `<details>` (WHATWG §4.10.6); `_PRINT_CSS` (single column, chrome hidden, grayscale-
+  legible marks, `break-inside`, `@page A4`) + a `beforeprint` handler that opens `<details>` for printing (CSS can't — W3C #2084).
+  (c) **At-a-glance cited-date timeline (ADR 0023)** — one neutral lane per surfaced finding, ticks = cited dates on the record's
+  OWN axis; ticks only (no trend line / per-lens colour / density), document order; `.timeline` aria-hidden decorative (the cards
+  are the text alternative); per-patient axis in the multi views (no bleed). `make check` green — **248 tests** (+27), self-test
+  6+10, `ruff`; PR #35 CI green (lint + test 3.10–3.13). Per-module versions: `view_html` 0.3.0 (new), `report_html` 0.4.0,
+  `digest_html` 0.4.0. **CONFIRMED_USER_SIDE** (Scott verified the four views on his device, 2026-06-07). Deferred: un-nest the
+  digest disclosure from the toggle; optional timeline lane de-dup; note-left report-multi layout.
 - **Session 2026-06-06 (cont.) — MERGED PR #32 to `main` — multi-patient digest RENDERING (ADR 0020); `main` now 221 tests.**
   Realizes STATUS step 11c, rendering the batch output of `extract_records_multi` (ADR 0016) in the clinician digest. Layout was research-led: a 2024–2026 web sweep (RESEARCH_ONLY) on clinician chart-review needs — documentation burden is the #1 pain (worst in behavioral health), clinicians want **scannable/less-is-more**, **citation/provenance is the trust lever** (our thesis, externally confirmed), and cognitive-load research says **minimize navigation, single-screen at-a-glance + drill-down**. So: **stacked per-patient blocks** (segment order, never reordered) + a compact **patient jump-index** (anchor links, no JS state) + a neutral **quarantine section** for refused segments (engine reason codes, never merged/guessed). **No cross-patient highlight bleed** — each block renders its OWN segment (spans rebased segment-local) AND `_MULTI_JS` scopes findings↔marks per `.patient` block. New `python digest_html.py --demo-multi`; `digest_html` VERSION 0.2.0; engine + shared helpers untouched; banned-words-clean. `report_html` (inspection) stays single-note (later follow-up). `make check` green — **221 tests** (+7), self-test 6+10, `ruff` (local + CI-pinned 0.15.16); PR #32 CI green. **CONFIRMED_USER_SIDE** (Scott confirmed on his phone, 2026-06-06).
 - **Session 2026-06-06 (cont.) — MERGED PR #31 to `main` — view review refinements (ADR 0019) + CI ruff pin 0.15.16 + 2026 standards re-verify; `main` 214 tests.** ADR 0019 **CONFIRMED_USER_SIDE** (Scott confirmed the toggle placement, citation collapse, wording, and view names on his phone, 2026-06-06). Same PR bumped the CI `ruff` pin 0.15.8 → 0.15.16 (CI-verified green) and recorded a dated standards re-verify (WCAG 2.2 AA kept / APCA not adopted, ADR 0017; OWASP Top 10 for Agentic Applications 2026 cross-ref, SECURITY §B).
@@ -237,9 +252,10 @@ Both planned engine increments are MERGED to `main`:
   `report_html.py` inspection view (ADR 0014) + the `digest_html.py` clinician digest (ADR 0015) +
   the counsel checklist + review hardening + the multi-patient fail-closed extractor (ADR 0016) +
   the calm aubergine view theme (ADR 0017) + Android responsive (ADR 0018) + view refinements (ADR 0019)
-  + **multi-patient digest rendering (ADR 0020)**, **221 tests** (post #1–#32).
+  + multi-patient digest rendering (ADR 0020) + the shared `view_html.py` floor + `report_html` multi-patient
+  + keyboard/print + the at-a-glance cited-date timeline (**ADR 0021–0023**), **248 tests** (post #1–#35).
   Per-module versions (no single repo-wide version): `recurrence.py` 0.5.0, `extract.py` 0.4.0,
-  `report_html.py` 0.1.0, `digest_html.py` 0.2.0.
+  `view_html.py` 0.3.0, `report_html.py` 0.4.0, `digest_html.py` 0.4.0.
   `claude/exciting-fermat-lztQq` is merged via #30 (retire-able).
   `claude/dazzling-shannon-jPWz2` is merged via #28 (retire-able); `claude/hopeful-albattani-sYkkR` via #25
   (retire-able); `claude/review-hardening` merged via #29 (retire-able).
