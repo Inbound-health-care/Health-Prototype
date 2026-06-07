@@ -4,7 +4,7 @@ _The front door. Read this first, update it last. One source of "where am I."_
 Last updated: 2026-06-07
 
 ## Current state
-- **Session 2026-06-07 (cont.) — CI HTML-validity gate wired on `claude/serene-brahmagupta-S4Tjp` (ADR 0026); draft PR, NOT merged.**
+- **Session 2026-06-07 (cont.) — CI HTML-validity gate + accessible view refactor — MERGED to `main` via PR #39 (squash; ADR 0026); `main` now `63748e6`.**
   A prior session added `anishathalye/proof-html` to CI but it ran on **0 files** (the views are generated on demand + gitignored) — a vacuous
   green. Confirmed it was in NO live location (not on `main`/#38, no open PR, no branch); this is a fresh wiring. A dedicated CI **`html` job**
   generates the four views into `_site/` via a new **`make html-demos`** target, then runs **proof-html@v2** offline (`disable_external`,
@@ -17,7 +17,7 @@ Last updated: 2026-06-07
   bumped (view_html 0.4.0, report_html/digest_html 0.5.0); **ADR 0022 revised by ADR 0026**. Docs reconciled: ADR 0026 + README index (0024–0026),
   PROJECT_MAP (ADR range + ci.yml purpose + Makefile target), architecture.md CI line. **Not auto-required** — Scott adds `html` to branch protection
   to make it block. CI all green incl. the `html` gate (CONFIRMED_ASSISTANT_SIDE); **interaction CONFIRMED_USER_SIDE** — Scott ran the live JS/DOM test
-  (`tests.test_view_js`, real headless Chromium, Windows, 2026-06-07) — 4/4 ok (also closes the ADR 0025 live-JS follow-up). **Ready to merge** — Scott squash-merges #39.
+  (`tests.test_view_js`, real headless Chromium, Windows, 2026-06-07) — 4/4 ok (also closes the ADR 0025 live-JS follow-up). **MERGED via PR #39** (Scott, squash, 2026-06-07); branch retire-able post-merge.
 - **Session 2026-06-07 (cont.) — AUDIT FIX-LIST — MERGED to `main` via PR #37 (squash; ADR 0024–0025); `main` now 252 tests.**
   Worked all 15 items in `docs/AUDIT_2026-06-07.md` (Scott approved the plan + four decision-forks). **Tier 1 (governance):**
   JOURNAL.md **retired (chat-only)** — frozen with an ARCHIVED banner, the 5 docs that cited it as canonical reworded to
@@ -145,12 +145,12 @@ Last updated: 2026-06-07
   https://www.figma.com/design/BcT7yhsMHAZl2AeJD9fAAK
 
 ## Open loops
-- [~] **CI HTML-validity gate (ADR 0026) — proof-html wired on `claude/serene-brahmagupta-S4Tjp`; draft PR, awaiting review + per-PR merge OK.**
+- [x] **CI HTML-validity gate + accessible view refactor (ADR 0026) — MERGED via PR #39 (squash, 2026-06-07).**
       Dedicated CI `html` job: `make html-demos` → 4 self-contained views into `_site/` → `proof-html@v2` offline (`disable_external`,
-      favicon/opengraph off, `check_html` on). Replaces the prior vacuous "Ran on 0 files" run (views are generated + gitignored, so a naive
-      `directory: ./` found nothing). Pre-audited clean (0 dup ids / 0 unresolved anchors / 0 external refs) → expected green. **Open after merge:**
-      Scott optionally adds the `html` check to branch-protection required checks to make it block merges; promotes to CONFIRMED_ASSISTANT_SIDE
-      once the PR's `html` job runs green.
+      favicon/opengraph off, `check_html` on); replaces the prior vacuous "Ran on 0 files" run. The gate (full W3C/Nu `check_html`) caught
+      4 real HTML5-conformance errors from ADR 0022's `role=button` design; fixed with real `<button>` findings + the block-link/pseudo-content
+      card (ADR 0022 revised by 0026). CONFIRMED_USER_SIDE (Scott ran the live JS test, real Chromium, 4/4 ok). **Residual (optional):** Scott
+      adds the `html` check to branch-protection required checks if he wants it to *block* merges (it reports but doesn't gate yet).
 - [x] **Repo-wide audit (2026-06-07) — fix-list `docs/AUDIT_2026-06-07.md` — ALL 15 ITEMS DONE, MERGED via PR #37
       (squash; ADR 0024–0025). Open after merge: Scott runs `make jstest` with a real browser for live-JS CONFIRMED_USER_SIDE.**
       Tier 1: JOURNAL retired chat-only (frozen) + 5 docs reworded; LICENSE Apache-2.0 [Scott picked]. Tier 2:
@@ -300,9 +300,10 @@ Both planned engine increments are MERGED to `main`:
   the calm aubergine view theme (ADR 0017) + Android responsive (ADR 0018) + view refinements (ADR 0019)
   + multi-patient digest rendering (ADR 0020) + the shared `view_html.py` floor + `report_html` multi-patient
   + keyboard/print + the at-a-glance cited-date timeline (**ADR 0021–0023**) + the audit fix-list (governance + verification
-  ceiling + doc reconcile, **ADR 0024–0025**), **252 tests** (post #1–#37).
+  ceiling + doc reconcile, **ADR 0024–0025**) + the CI HTML-validity gate (proof-html) + accessible view refactor (real `<button>` findings
+  + block-link card, **ADR 0026**), **252 tests** (post #1–#39).
   Per-module versions (no single repo-wide version): `recurrence.py` 0.5.0, `extract.py` 0.4.0,
-  `view_html.py` 0.3.0, `report_html.py` 0.4.0, `digest_html.py` 0.4.0.
+  `view_html.py` 0.4.0, `report_html.py` 0.5.0, `digest_html.py` 0.5.0.
   `claude/exciting-fermat-lztQq` is merged via #30 (retire-able).
   `claude/dazzling-shannon-jPWz2` is merged via #28 (retire-able); `claude/hopeful-albattani-sYkkR` via #25
   (retire-able); `claude/review-hardening` merged via #29 (retire-able).
