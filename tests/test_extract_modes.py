@@ -38,6 +38,7 @@ from extract import (  # noqa: E402
     format_entry,
 )
 from recurrence import detect_recurrence  # noqa: E402
+from tests.banned_words import BANNED  # noqa: E402
 
 
 class TestStrictIsTheSafeDefault(unittest.TestCase):
@@ -231,10 +232,7 @@ class TestConfigForcesAnExplicitChoice(unittest.TestCase):
 
 
 class TestLibrarianRuleHoldsInEveryMode(unittest.TestCase):
-    BANNED = (
-        "worsening", "severe", "suggests", "diagnos", "risk", "concern",
-        "abnormal", "score", "trend", "cause", "rank", "priority",
-    )
+    BANNED = BANNED  # the shared suite-wide union — see tests/banned_words.py
     CONFIGS = {
         "strict": MatchConfig(),
         "synonyms": MatchConfig(mode="synonyms", synonyms=FREETEXT_SYNONYMS),

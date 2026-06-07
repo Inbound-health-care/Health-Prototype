@@ -42,6 +42,15 @@ try:
 except ImportError:  # pragma: no cover - dev-only tool absent
     HAS_HYPOTHESIS = False
 
+# Determinism on CI (ADR 0025): when these properties gate a PR they must reproduce
+# locally byte-for-byte, so under CI we derandomize (a fixed search instead of a
+# random seed). GitHub Actions sets CI=true; locally `make proptest` stays random
+# (broader exploration). The per-test @settings keep their own max_examples and
+# inherit derandomize from the loaded profile.
+if HAS_HYPOTHESIS and os.environ.get("CI"):  # pragma: no cover - CI-only path
+    settings.register_profile("ci", derandomize=True)
+    settings.load_profile("ci")
+
 DELIM = "\n---\n"
 GAZ = ["poor sleep", "headache", "cough"]
 _HEADER = re.compile(r"(?m)^\s*Patient:\s*(.+?)\s*$")

@@ -1,4 +1,4 @@
-.PHONY: test selftest demo compile lint check typecheck fmt-check fmt cov security proptest tools branch-audit clean
+.PHONY: test selftest demo compile lint check typecheck fmt-check fmt cov security proptest jstest tools branch-audit clean
 
 # Engine is pure stdlib; no runtime dependencies to install.
 # The targets below test/lint/type-check are OPTIONAL dev tooling: each is a
@@ -48,8 +48,17 @@ security:      ## Security/AST lint via uvx (no install)
 
 # Property tests are dev-only/additive: the suite SKIPS them when hypothesis is
 # absent, so `make test` stays pure-stdlib green. `make proptest` runs them via uvx.
+# CI ALSO gates them now (ADR 0025) — it installs hypothesis and runs this module
+# derandomized, so the fail-closed invariants protect every PR (no longer a bare skip).
 proptest:      ## Property-based tests (Hypothesis via uvx; no install)
 	-uvx --with hypothesis python -m unittest tests.test_extract_multi_properties -v
+
+# Live JS/DOM test (ADR 0025): executes the views' interactive JS in headless
+# Chromium so a runtime bug can't pass as a green static-string assert. Dev-only,
+# NOT in CI (browser binaries are heavy); SKIPS cleanly when Playwright/Chromium is
+# absent. First run only: `uvx --with playwright playwright install chromium`.
+jstest:        ## Live JS/DOM view test (Playwright via uvx; no install)
+	-uvx --with playwright python -m unittest tests.test_view_js -v
 
 tools:         ## Report which optional dev tools are available
 	@for t in python3 pytest ruff mypy pyright uv black; do \

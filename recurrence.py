@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-recurrence.py — Recurrence Detection Engine (Prototype v0)
-==========================================================
+recurrence.py — Recurrence Detection Engine (prototype, VERSION 0.5.0)
+=====================================================================
 
 Pure-stdlib. Zero external dependencies. Local-only (no network egress).
 
@@ -15,8 +15,10 @@ interpretive and clinical-decision-support risk, but it is not a compliance
 determination.
 
 Domain-agnostic by design: a record can be a patient, a pharmacy profile, a
-session log — the engine does not care. v0 matches EXACTLY; fuzzy / synonym
-matching (e.g. "can't sleep" == "insomnia") is deferred to v1.
+session log — the engine does not care. Matching is EXACT by DEFAULT; the opt-in
+v1 layers — normalize, human-declared synonyms, and difflib fuzzy (e.g.
+"can't sleep" == "insomnia") — are SHIPPED: pass them to the rules, or run
+`--report-v1`, to merge. Defaults never merge, so v0 behavior is unchanged.
 
   Self-test:  python recurrence.py --self-test
   Demo:       python recurrence.py --demo
@@ -767,6 +769,10 @@ def detect_cadence_change(
     have no interval. States that the spacing changed and where, never that
     faster or slower means anything. Shares the same opt-in matching as the
     other rules.
+
+    Floor: a change point needs at least 3 distinct dated days (≥2 inter-event
+    intervals, one on each side of the pivot). ``min_occurrences`` validates at
+    >= 2, but a value below 3 can never fire (default is 4).
     """
     if min_occurrences < 2:
         raise ValueError(f"min_occurrences must be >= 2, got {min_occurrences}")

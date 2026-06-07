@@ -39,6 +39,7 @@ from extract import (  # noqa: E402
     shift_date,
 )
 from recurrence import detect_recurrence  # noqa: E402
+from tests.banned_words import BANNED  # noqa: E402
 
 
 class TestExtractMatchesOracle(unittest.TestCase):
@@ -181,19 +182,10 @@ class TestAllowlist(unittest.TestCase):
 class TestLibrarianRuleBannedWords(unittest.TestCase):
     """Stance A: the front-end surfaces literal mentions and adds no judgment.
 
-    BANNED is the full suite-wide union of interpretive words the engine forbids
-    in output, plus the report-level ranking words. The front-end must add none.
+    Checks the full suite-wide union (tests/banned_words.py); the front-end must add none.
     """
 
-    BANNED = (
-        "worsening", "worsen", "severe", "severity", "suggests", "diagnos",
-        "risk", "concern", "caution", "abnormal", "score", "relapse", "acute",
-        "accelerat", "decelerat", "increasing", "decreasing", "escalat",
-        "declining", "deteriorat", "improving", "trend", "associated",
-        "correlated", "linked", "cause", "caused", "relationship", "top",
-        "most", "priority", "prioritize", "rank", "ranking", "total",
-        "highest", "lowest", "worst", "best",
-    )
+    BANNED = BANNED  # the shared suite-wide union — see tests/banned_words.py
 
     def test_rendered_entries_have_no_banned_words(self):
         records = extract_records(FREETEXT_SAMPLE_NOTE, FREETEXT_GAZETTEER)

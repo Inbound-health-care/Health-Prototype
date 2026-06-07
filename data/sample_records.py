@@ -7,6 +7,13 @@ ANSWER_KEY is written by hand FIRST (what *should* surface), then the engine
 runs and must match it exactly — never patch the key toward the code.
 tests/test_sample_records.py enforces that agreement.
 
+Note on the guarantee (audit 2026-06-07, Tier 2 #5): this engine and this oracle
+co-landed in the first commit (21a150d), so git history cannot *prove* the key was
+written before/independently of the code. The guarantee is this stated convention —
+oracle-first, never patched toward the code — and author discipline, not commit
+ordering. New oracle entries should land in their own commit, before the code that
+makes them pass, so the independence is visible going forward.
+
 Full design rationale, field dictionary (grounded in 2026 interoperability
 standards), per-record reasons, and the limitations each record demonstrates
 live in data/RECORDS.md. This module is the data + the answer key; RECORDS.md

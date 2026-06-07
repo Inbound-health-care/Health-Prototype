@@ -23,7 +23,7 @@ Then ask Scott where to start. Do NOT begin work until he answers.
 ## 3. Load deeper layers ONLY when the task needs them (Tier 3 — on demand)
 - Architecture / commands / how the engine works -> `docs/agent-guides/architecture.md`
 - Decisions / why X -> `docs/adr/`
-- Narrative / lessons / limitations -> `JOURNAL.md`
+- Narrative / lessons / limitations -> `JOURNAL.md` (ARCHIVED 2026-06-07 — historical only; diary is chat-only, ADR 0024)
 - Full prior-session detail (handoffs + session log) -> Drive: `health-prototype/archive` (off-repo)
 - Subagent-audit + code-review method -> `docs/AGENT_AUDIT_METHOD.md`
 - Token-frugal tool patterns -> `docs/TOOLS_CHEAT_SHEET.md`

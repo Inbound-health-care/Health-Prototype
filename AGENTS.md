@@ -78,7 +78,7 @@ supplies all judgment. Tests enforce this — keep it that way.
   `docs/agent-guides/architecture.md` — the source of truth for engine facts.
 - **Security & tool policy** (untrusted input, tool risk, PHI, source conflicts):
   `SECURITY_AND_TOOL_POLICY.md` — read before any write/delete/install/send.
-- **Decisions / why:** `docs/adr/`   ·   **Narrative / lessons:** `JOURNAL.md`
+- **Decisions / why:** `docs/adr/`   ·   **Narrative / lessons:** `JOURNAL.md` (ARCHIVED 2026-06-07 — historical only; diary is chat-only, ADR 0024)
 - **Doc / evidence discipline:** `docs/DOC_DISCIPLINE.md`
 - **Repo file map:** `PROJECT_MAP.md`   ·   **Cold start:** `docs/COLD_START_HANDOFF.md`
 - **Subagent-audit + code-review method:** `docs/AGENT_AUDIT_METHOD.md`

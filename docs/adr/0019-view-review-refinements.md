@@ -1,8 +1,9 @@
 # 0019 — View review refinements (toggle / citation pills / wording / view names)
 
 **Date:** 2026-06-06
-**Evidence level:** IMPLEMENTED_UNVERIFIED — CONFIRMED_ASSISTANT_SIDE (`make check` green: 214 tests /
-self-test 6+10 / `ruff` clean); promotes to CONFIRMED_USER_SIDE when Scott opens the views on his phone.
+**Evidence level:** CONFIRMED_USER_SIDE — Scott confirmed the toggle placement, citation collapse,
+wording, and view names on his phone (2026-06-06). (`make check` green at merge: 214 tests /
+self-test 6+10 / `ruff` clean.)
 **Type:** UI / front-end
 **Refines:** ADR 0014 (report view), 0015 (digest view), 0017 (theme), 0018 (responsive).
 

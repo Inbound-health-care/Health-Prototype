@@ -1,5 +1,12 @@
 # Build Journal
 
+> **ARCHIVED 2026-06-07 — historical narrative only.** The end-session diary is now
+> **chat-only** (see `CLAUDE.md` "End-session protocol" and `.claude/commands/handoff.md`):
+> sessions close read-only and Scott logs his own thoughts. This file is kept as a frozen
+> record of the entries written before that protocol took hold; it is **not** updated going
+> forward. See ADR 0024 for the decision. (Resolves the audit's JOURNAL contradiction —
+> `docs/AUDIT_2026-06-07.md` Tier 1 #1.)
+
 _How and WHY things were figured out — not just what changed. Newest entry on top.
 Most of this work was done on a PHONE (~67%): reading docs, editing, reviewing,
 deciding — on a small screen, often without prior knowledge of the tooling.

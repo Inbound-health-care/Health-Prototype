@@ -3,6 +3,11 @@ __pycache__/
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
+.hypothesis/
+
+# Coverage output (`make cov` via uvx) — regenerate, never commit
+.coverage
+htmlcov/
 
 # Local configuration / secrets (zero real PHI, zero secrets — defense in depth)
 .env

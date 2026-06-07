@@ -1,9 +1,9 @@
 # 0016 — Multi-patient free-text extraction (fail-closed identity, per-patient de-id)
 
 **Date:** 2026-06-06
-**Evidence level:** IMPLEMENTED_UNVERIFIED — CONFIRMED_ASSISTANT_SIDE (`make check` green: **207 tests**
-+ self-test 6+10 + `ruff`; **3 Hypothesis properties** green via `make proptest`); promotes to
-CONFIRMED_USER_SIDE when Scott runs it. The clinical-safety / de-identification claims stay
+**Evidence level:** CONFIRMED_USER_SIDE — Scott ran `python extract.py --demo-multi` on his laptop
+(2026-06-06). (`make check` green at merge: **207 tests** + self-test 6+10 + `ruff`; **3 Hypothesis
+properties** green via `make proptest`.) The clinical-safety / de-identification claims stay
 **RESEARCH_ONLY**. **Realizes the design specced (and deferred) in ADR 0013 "Rejected" +
 `docs/COUNSEL_VERIFICATION_CHECKLIST.md` §Multi-patient — on SYNTHETIC data only.**
 **Type:** Architecture / front-end / safety
