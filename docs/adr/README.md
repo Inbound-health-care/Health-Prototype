@@ -55,3 +55,4 @@ it — history is the point.
 - [0024 — Governance: JOURNAL.md retired (chat-only) + LICENSE = Apache-2.0](0024-journal-retired-and-license.md)
 - [0025 — Verification ceiling: live JS test + Hypothesis gates CI + oracle convention](0025-verification-ceiling-closed.md)
 - [0026 — CI HTML-validation gate: proof-html on the generated views](0026-ci-html-validation-gate.md)
+- [0027 — Rule-layer metamorphic property tests (verification ceiling reaches the five rules)](0027-rule-layer-property-tests.md)

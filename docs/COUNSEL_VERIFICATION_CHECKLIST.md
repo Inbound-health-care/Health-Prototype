@@ -106,6 +106,25 @@ reused-shift / residual-date weak spot above at the multi-patient layer), and a 
 Hypothesis. **The real-PHI gate is UNCHANGED:** items 3–8 above (written Expert Determination + FDA
 memo before any real PHI) still block real-PHI use; this is synthetic-data only.
 
+## 2026-06-07 research refresh (RESEARCH_ONLY corroboration — counsel gate UNCHANGED)
+A second-pass audit of three AI deep-research docs (full audit + fabrication ledger:
+`docs/RESEARCH_2026-06-07_ai-verification.md`) **re-confirmed directionally** the FDA Jan-2026 CDS
+findings above (single-recommendation enforcement discretion; reaches generative AI). The container's
+egress was blocked again this session, so this is still snippet-sourced — **counsel must pull the
+primaries** (items 2–3). It also surfaced adjacent regulatory items (NOT load-bearing for the two
+claims under test, recorded for landscape):
+- **FDA 7-step AI credibility framework** — the **Jan-2025 draft** guidance "Considerations for the
+  Use of AI to Support Regulatory Decision Making for Drug and Biological Products." This governs AI
+  used in **drug/biologics regulatory submissions**, a DIFFERENT instrument from the CDS guidance;
+  do not conflate the two.
+- **JAMA Health Forum recall study** (DOI 10.1001/jamahealthforum.2025.3172): of 950 AI devices
+  through Nov 2024, 60 devices had 182 recalls, ~43% in the first year — evidence of the **510(k)
+  clinical-validation gap** (context for why local validation matters, below).
+- **Joint Commission + CHAI "RUAIH"** guidance (Sept 17 2025): **local-data validation** before
+  deployment + voluntary **blinded** AI-safety-event reporting. **HTI-1** (ONC/ASTP) predictive-CDS
+  transparency. **CHAI Applied Model Card** (an AI "nutrition label"). These are accreditation /
+  transparency frameworks, not a change to the §520(o)(1)(E) Non-Device criteria.
+
 ## Sources (RESEARCH_ONLY, web; judge by concept)
 - FDA CDS Software guidance (landing). https://www.fda.gov/regulatory-information/search-fda-guidance-documents/clinical-decision-support-software
 - FDA CDS final guidance PDF (Jan 29 2026; quote verbatim). https://www.fda.gov/media/191560/download
@@ -118,3 +137,6 @@ memo before any real PHI) still block real-PHI use; this is synthetic-data only.
 - FDA 513(g) Requests for Information (procedures/fees). https://www.fda.gov/regulatory-information/search-fda-guidance-documents/fda-and-industry-procedures-section-513g-requests-information-under-federal-food-drug-and-cosmetic
 - FDA Q-Submission Program (Pre-Sub mechanics; no fee). https://www.fda.gov/regulatory-information/search-fda-guidance-documents/requests-feedback-and-meetings-medical-device-submissions-q-submission-program
 - Winston & Strawn, "AI and the Learned Intermediary Doctrine" (defense, not immunity). https://www.winston.com/print/v2/content/1098391/a-new-intermediary-artificial-intelligence-and-the-learned-intermediary-doctrine.pdf
+- FDA, AI for regulatory decision-making (7-step credibility; Jan-2025 draft, Fed Reg). https://www.federalregister.gov/documents/2025/01/07/2024-31542/considerations-for-the-use-of-artificial-intelligence-to-support-regulatory-decision-making-for-drug
+- JAMA Health Forum, AI-device recalls / clinical-validation gap (DOI 10.1001/jamahealthforum.2025.3172). https://jamanetwork.com/journals/jama-health-forum/fullarticle/2837802
+- Joint Commission + CHAI, Responsible Use of AI in Healthcare (local validation; blinded reporting). https://www.chai.org/news/joint-commission-and-coalition-for-health-ai-chai-release-initial-guidance

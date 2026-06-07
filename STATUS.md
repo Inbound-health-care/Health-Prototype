@@ -4,6 +4,17 @@ _The front door. Read this first, update it last. One source of "where am I."_
 Last updated: 2026-06-07
 
 ## Current state
+- **Session 2026-06-07 (cont.) — Rule-layer metamorphic property tests (ADR 0027) + AI-verification research fold-in — on branch `claude/serene-brahmagupta-S4Tjp`; draft PR, NOT merged.**
+  Audited three Gemini "deep research" docs via `AGENT_AUDIT_METHOD` (5-then-4 parallel subagents). Honest finding: this engine is deterministic/pure-stdlib/no-LLM, so most of the
+  corpus is **inapplicable** (LLM-judge bias, agentic eval, quantization diff-testing, contamination, OTel) or merely **corroborates** existing practice; the one transferable technique is
+  **metamorphic/property testing**, on a real gap (only the multi-patient EXTRACTOR had Hypothesis props; the 5 rules were oracle-pinned only). Added **4 properties at the RULE layer** — P1
+  record-isolation (no-bleed), P2 reordering-invariance, P3 shift-invariance, P4 span-integrity — in new `tests/test_rule_properties.py` + extended `test_extract_multi_properties.py`, wired
+  into `make proptest` + the CI proptest step (derandomized under `CI`). **`make proptest` 8/8 green (`CI=1`); `make check` green — 253 tests** (6 dev-only skips), self-test 6+10, ruff;
+  **engine UNCHANGED** (`git diff` = tests + Makefile + ci.yml only). **CONFIRMED_ASSISTANT_SIDE** → CONFIRMED_USER_SIDE when Scott runs `make proptest`. Decision recorded in **ADR 0027**
+  (real Confirmation = the new tests; graduates the research per the research gate). Recorded RESEARCH_ONLY: `docs/RESEARCH_2026-06-07_ai-verification.md` (corroborated findings + **bear case** +
+  **fabrication ledger**), the **fabrication-terrain lesson** in `AGENT_AUDIT_METHOD.md`, and a 2026-06-07 corroboration block in `COUNSEL_VERIFICATION_CHECKLIST.md` (counsel gate unchanged).
+  Docs reconciled: ADR 0027 + README index (→0027), PROJECT_MAP (ADR range 0001–0027 + research note + property module). **A pasted MoE "six experts" doc is PARKED (Scott's call — full run later);**
+  as described it would break pure-stdlib/determinism/non-interpretation — the one portable idea is the property tests above.
 - **Session 2026-06-07 (cont.) — CI HTML-validity gate + accessible view refactor — MERGED to `main` via PR #39 (squash; ADR 0026); `main` now `63748e6`.**
   A prior session added `anishathalye/proof-html` to CI but it ran on **0 files** (the views are generated on demand + gitignored) — a vacuous
   green. Confirmed it was in NO live location (not on `main`/#38, no open PR, no branch); this is a fresh wiring. A dedicated CI **`html` job**
@@ -226,6 +237,12 @@ Last updated: 2026-06-07
       **(2026-06-05, branch `claude/dazzling-shannon-jPWz2`):** the counsel-verify sub-part now has a
       written path — `docs/COUNSEL_VERIFICATION_CHECKLIST.md` (draft PR #26) — incl. deferred ADR 0009
       fixes (date-shift = Expert Determination, not Safe Harbor). BH-roadmap decision still Scott's.
+      **(2026-06-07, branch `claude/serene-brahmagupta-S4Tjp`):** a fresh audit of three AI deep-research docs
+      (`docs/RESEARCH_2026-06-07_ai-verification.md`) re-confirmed the FDA Jan-2026 CDS + HIPAA Expert-Determination
+      findings (corroboration added to the counsel checklist) and recorded the **bear case** — verification absorbed as a
+      feature (Snowflake/TruEra; Abridge built citing in-house), FDA leniency weakening the forcing function,
+      pay-for-friction resistance — as the steelman against this thesis, plus a **fabrication ledger**. Counsel-verify
+      gate unchanged; BH-roadmap decision still Scott's.
 - [x] **Relative-date anchoring (ADR 0013) — MERGED (PR #26).** Opt-in, conservative; default off ==
       strict byte-for-byte; resolves explicitly-anchored relatives, surfaces partial/frequency/unresolved
       cited-but-undated; engine + 90 tests untouched. On `main`.

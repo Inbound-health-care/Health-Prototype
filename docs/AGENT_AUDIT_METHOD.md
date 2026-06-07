@@ -59,3 +59,20 @@ Same loop stops repeated bugs:
 - Feed each review's miss into the next review's rules -> errors stop repeating.
 This is the same principle as the harness: lessons live in the brief/rules, not in
 a memory that resets.
+
+## Run 5 (2026-06-07): auditing external AI "deep-research" docs
+Applied the loop to three Gemini deep-research docs (fact-check, not capability mining;
+see `docs/RESEARCH_2026-06-07_ai-verification.md`). One brief per claim-cluster (5, then 4
+agents in parallel), fixed schema: GRADE (CONFIRMED / PARTIAL / UNVERIFIED / LIKELY-FABRICATED)
+— finding — real source URL or "not found". New lessons folded into the brief:
+- **The fabrication-terrain rule.** The lies cluster by TERRAIN, not topic. Soft/commercial
+  ground — prices, market shares, competitive rankings, single-vendor "us vs them" comparison
+  blogs — gets fabricated; hard/citable ground — arXiv IDs, CFR sections, docketed FDA guidance,
+  DOIs — holds up. Brief rule: **trust in proportion to citability; auto-distrust any price,
+  market-share, "who's winning", or single-vendor-blog claim; spot-check every ID at the end.**
+- **Self-applied evidence tags are a WEAK signal.** A fabricated arXiv ID wore a `[Verified-primary]`
+  tag. Treat a doc's own confidence labels as a claim to check, never as the check.
+- **Keep a fabrication ledger.** Record what was checked AND found false (with the correction +
+  real source), not just what passed — so a precise-looking false number is never reused later.
+- **Verify the URL, not just the claim.** Several cited URLs were real pages that did NOT say what
+  the doc claimed (citation-mismatch). Fetch/seek the page; confirm it supports the sentence.
