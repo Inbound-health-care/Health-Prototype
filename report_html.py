@@ -45,6 +45,7 @@ from view_html import (
     _JS,
     _MULTI_CHROME_CSS,
     _MULTI_JS,
+    _PRINT_CSS,
     _THEME_CSS,
     _THEME_JS,
     _THEME_MEDIA_CSS,
@@ -59,7 +60,7 @@ from view_html import (
 
 __all__ = ["THEME", "render_html", "render_html_multi", "build_demo_html"]
 
-VERSION = "0.2.0"
+VERSION = "0.3.0"
 
 
 def _hit_items(hit: object) -> list[str]:
@@ -86,7 +87,8 @@ def _render_findings_list(report: RecordReport | None) -> str:
     for finding in findings:
         items = "|".join(_hit_items(finding.hit))
         rows.append(
-            f'<li class="finding" data-items="{_esc(items)}">'
+            f'<li class="finding" data-items="{_esc(items)}"'
+            ' tabindex="0" role="button" aria-pressed="false">'
             f'<span class="lens">{_esc(finding.expert)}</span>'
             f'<span class="line">{_esc(finding.line)}</span></li>'
         )
@@ -154,7 +156,7 @@ def render_html(
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{_esc(title)}</title>
 <style>
-{_THEME_CSS}{_CSS}{_THEME_MEDIA_CSS}</style>
+{_THEME_CSS}{_CSS}{_THEME_MEDIA_CSS}{_PRINT_CSS}</style>
 <script>
 {_THEME_JS}</script>
 </head>
@@ -251,7 +253,7 @@ def render_html_multi(
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{_esc(title)}</title>
 <style>
-{_THEME_CSS}{_CSS}{_MULTI_CHROME_CSS}{_THEME_MEDIA_CSS}</style>
+{_THEME_CSS}{_CSS}{_MULTI_CHROME_CSS}{_THEME_MEDIA_CSS}{_PRINT_CSS}</style>
 <script>
 {_THEME_JS}</script>
 </head>

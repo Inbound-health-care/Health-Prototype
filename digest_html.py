@@ -45,6 +45,7 @@ from view_html import (
     _JS,
     _MULTI_CHROME_CSS,
     _MULTI_JS,
+    _PRINT_CSS,
     _THEME_CSS,
     _THEME_JS,
     _THEME_MEDIA_CSS,
@@ -57,7 +58,7 @@ from view_html import (
     _render_quarantine,
 )
 
-VERSION = "0.2.0"
+VERSION = "0.3.0"
 
 # Lens label shown on each card: the engine's own neutral provenance name,
 # presented for the clinician. Never a ranking or a judgment.
@@ -155,7 +156,8 @@ def _render_cards(reports: list[RecordReport]) -> str:
             data_items = _esc("|".join(items))
             chip_html = _chip_html(chip, dates)
             cards.append(
-                f'<div class="card finding" data-items="{data_items}">'
+                f'<div class="card finding" data-items="{data_items}"'
+                ' tabindex="0" role="button" aria-pressed="false">'
                 f'<div class="lens">{_esc(label)}</div>'
                 f'<div class="line">{_esc(line)}</div>'
                 f"{chip_html}"
@@ -220,7 +222,7 @@ def render_digest(
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{_esc(title)}</title>
 <style>
-{_THEME_CSS}{_CSS}{_THEME_MEDIA_CSS}</style>
+{_THEME_CSS}{_CSS}{_THEME_MEDIA_CSS}{_PRINT_CSS}</style>
 <script>
 {_THEME_JS}</script>
 </head>
@@ -330,7 +332,7 @@ def render_digest_multi(
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{_esc(title)}</title>
 <style>
-{_THEME_CSS}{_CSS}{_MULTI_CHROME_CSS}{_THEME_MEDIA_CSS}</style>
+{_THEME_CSS}{_CSS}{_MULTI_CHROME_CSS}{_THEME_MEDIA_CSS}{_PRINT_CSS}</style>
 <script>
 {_THEME_JS}</script>
 </head>

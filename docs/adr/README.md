@@ -50,3 +50,4 @@ it — history is the point.
 - [0019 — View review refinements (toggle / citation pills / wording / view names)](0019-view-review-refinements.md)
 - [0020 — Multi-patient digest rendering (stacked, per-patient scoped, quarantine surfaced)](0020-multi-patient-digest-rendering.md)
 - [0021 — Promote shared view primitives to `view_html.py`; report_html multi-patient parity](0021-view-html-extraction-report-multi.md)
+- [0022 — Keyboard navigation + print pass (shared interaction layer)](0022-keyboard-nav-and-print.md)

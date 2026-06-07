@@ -15,6 +15,7 @@ Run from the repo root:
 
 from __future__ import annotations
 
+import datetime
 import os
 import subprocess
 import sys
@@ -22,9 +23,24 @@ import unittest
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+import digest_html  # noqa: E402
+import report_html  # noqa: E402
 import view_html  # noqa: E402
 
 _ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+REF = datetime.date(2026, 3, 15)
+
+
+def _all_demos() -> dict[str, str]:
+    """Every view surface (both views, single + multi) keyed by a readable name, so
+    a shared-layer guarantee can be asserted across all four at once."""
+    return {
+        "report": report_html.build_demo_html(REF),
+        "report-multi": report_html.build_demo_multi_html(REF),
+        "digest": digest_html.build_demo_html(REF),
+        "digest-multi": digest_html.build_demo_multi_html(REF),
+    }
 
 # The suite-wide union of interpretive / ranking words the librarian rule forbids.
 # Mirrors tests/test_report_html.py and tests/test_digest_html.py; the shared layer
@@ -109,13 +125,82 @@ class TestLibrarianRuleInSharedStrings(unittest.TestCase):
     def test_no_banned_words_in_static_strings(self):
         blobs = [
             view_html._THEME_CSS, view_html._THEME_JS, view_html._THEME_MEDIA_CSS,
-            view_html._JS, view_html._MULTI_JS, view_html._MULTI_CHROME_CSS,
+            view_html._JS, view_html._MULTI_JS, view_html._INTERACT_JS,
+            view_html._MULTI_CHROME_CSS, view_html._PRINT_CSS,
             " ".join(view_html._QUARANTINE_LABELS.values()),
             " ".join(view_html._QUARANTINE_LABELS.keys()),
         ]
         haystack = " ".join(blobs).lower()
         for banned in BANNED:
             self.assertNotIn(banned, haystack, f"banned word in shared string: {banned!r}")
+
+
+class TestKeyboardAndAria(unittest.TestCase):
+    """Keyboard nav + ARIA (ADR 0022), in the shared layer so every view inherits it:
+    findings are focusable button-toggles operable by mouse AND keyboard, with a
+    visible focus ring and a reflected pressed state."""
+
+    def test_findings_are_focusable_button_toggles(self):
+        for name, html in _all_demos().items():
+            with self.subTest(view=name):
+                # Static markup carries the a11y semantics (present before JS runs).
+                self.assertIn('tabindex="0"', html)
+                self.assertIn('role="button"', html)
+                self.assertIn('aria-pressed="false"', html)
+                # Keyboard is wired (Enter/Space), not mouse-only.
+                self.assertIn("keydown", html)
+                self.assertIn("'Enter'", html)
+                # A visible focus indicator using the (3:1-checked) accent-line token.
+                self.assertIn(".finding:focus-visible", html)
+                self.assertIn("var(--accent-line)", html)
+
+    def test_one_activation_path_no_duplicated_handler(self):
+        # Mouse and keyboard share ONE bindFindings/activate body, defined once per
+        # page (the single-scope and multi-scope callers both reuse it).
+        for name, html in _all_demos().items():
+            with self.subTest(view=name):
+                self.assertEqual(html.count("function bindFindings"), 1, name)
+                self.assertEqual(html.count("function activate"), 1, name)
+
+    def test_pressed_state_count_matches_findings(self):
+        # Every finding declares aria-pressed; the count tracks the rendered findings
+        # (no stray or missing toggle).
+        for name, html in _all_demos().items():
+            with self.subTest(view=name):
+                n_findings = html.count('class="finding"') + html.count('class="card finding"')
+                self.assertGreater(n_findings, 0, name)
+                self.assertEqual(html.count('aria-pressed="false"'), n_findings, name)
+
+
+class TestPrint(unittest.TestCase):
+    """Print pass (ADR 0022): a clinician hands the page off on paper — single
+    column, no on-screen chrome, grayscale-legible marks, full provenance expanded."""
+
+    def test_print_stylesheet_is_present_and_complete(self):
+        for name, html in _all_demos().items():
+            with self.subTest(view=name):
+                self.assertIn("@media print", html)
+                self.assertIn("@page", html)
+                # On-screen chrome dropped; marks stay legible without colour.
+                self.assertIn(".theme-toggle, footer { display: none; }", html)
+                self.assertIn("mark.cite { border: 1px solid currentColor;", html)
+                # Collapsed cited-date lists print in full (CSS fallback).
+                self.assertIn("details > .cites-full { display: block; }", html)
+                # Blocks do not split across a page (logical break, no `top` token).
+                self.assertIn("break-inside: avoid", html)
+
+    def test_details_are_forced_open_for_print(self):
+        # CSS cannot set a <details> open state, so a beforeprint/afterprint handler
+        # opens every disclosure for printing and restores it after.
+        for name, html in _all_demos().items():
+            with self.subTest(view=name):
+                self.assertIn("beforeprint", html)
+                self.assertIn("afterprint", html)
+
+    def test_print_strings_have_no_banned_words(self):
+        haystack = (view_html._PRINT_CSS + view_html._THEME_JS).lower()
+        for banned in BANNED:
+            self.assertNotIn(banned, haystack, f"banned word in print string: {banned!r}")
 
 
 if __name__ == "__main__":

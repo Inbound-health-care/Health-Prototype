@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import html
 
-VERSION = "0.1.0"
+VERSION = "0.2.0"
 
 # --- Shared calm theme (ADR 0017) -------------------------------------------
 # One source of truth for colour, reused by both views so they can never drift
@@ -76,6 +76,7 @@ mark.cite-date { background: transparent; border-block-end: 1px dotted var(--acc
 mark.cite.active { background: var(--accent-weak); outline: 2px solid var(--accent-line); outline-offset: 1px; }
 .lens { color: var(--accent); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
 .finding { cursor: pointer; }
+.finding:focus-visible { outline: 2px solid var(--accent-line); outline-offset: 2px; }
 .empty { color: var(--muted); font-size: 13px; }
 footer { padding: 14px 28px; border-block-start: 1px solid var(--border);
          color: var(--muted); font-size: 12px; background: var(--surface); }
@@ -102,6 +103,19 @@ _THEME_JS = """\
       label();
     });
   });
+  // Print pass (ADR 0022): CSS cannot set a <details> open state, so force every
+  // collapsed cited-date list open while printing and restore it afterward, so the
+  // full provenance prints (the _PRINT_CSS display rule is the no-JS fallback).
+  window.addEventListener('beforeprint', function () {
+    document.querySelectorAll('details').forEach(function (d) {
+      d.dataset.wasOpen = d.open ? '1' : '0'; d.open = true;
+    });
+  });
+  window.addEventListener('afterprint', function () {
+    document.querySelectorAll('details').forEach(function (d) {
+      if (d.dataset.wasOpen === '0') { d.open = false; }
+    });
+  });
 })();
 """
 
@@ -121,6 +135,29 @@ _THEME_MEDIA_CSS = """\
   .card, li.finding { padding: 14px 14px; }
   .theme-toggle { inset-block-start: 12px; inset-inline-end: 12px;
                   padding: 10px 16px; min-block-size: 44px; }
+}
+"""
+
+# Print pass (ADR 0022), appended LAST in each view's <style> so it wins for print.
+# A clinician hands a pre-visit page off on paper: single column, drop the on-screen
+# chrome (toggle + footer), keep each cited mark legible in grayscale via a border
+# (not colour — print-color-adjust is a best-effort extra, never relied on), keep a
+# patient/card/finding from splitting across a page, and expand the collapsed
+# cited-date lists so the FULL provenance prints (the beforeprint JS also forces the
+# <details> open; this display rule is the no-JS fallback). Logical properties +
+# break-inside keep the banned `top` token out (no page-break-*). A4/Letter via @page.
+_PRINT_CSS = """\
+@media print {
+  :root { color-scheme: light; }
+  .theme-toggle, footer { display: none; }
+  main, .patient-body { display: block; }
+  .note-col, .panel, .patterns, .source,
+  .patient-patterns, .patient-source { inline-size: 100%; border-inline-end: none; }
+  .patient, .card, li.finding { break-inside: avoid; }
+  mark.cite { border: 1px solid currentColor; print-color-adjust: exact; }
+  mark.cite.active { outline: 1px solid currentColor; }
+  details > .cites-full { display: block; }
+  @page { size: A4; margin: 14mm; }
 }
 """
 
@@ -172,33 +209,51 @@ def _render_note(note: str, spans: list[tuple[int, int, str, str]]) -> str:
     return "".join(out)
 
 
-# Single-scope click-to-highlight: click a finding to light its cited concept
-# marks in the note (toggles off on a second click). Used by the inspection view
-# and the single-patient digest.
-_JS = """\
-(function () {
-  var findings = document.querySelectorAll('.finding');
-  var marks = document.querySelectorAll('mark.cite');
+# Shared click + KEYBOARD highlight (ADR 0022): one activation path for mouse and
+# keyboard so a finding toggles its cited concept marks identically either way. The
+# findings carry tabindex/role/aria-pressed in the static markup; this binds the
+# listeners and reflects pressed state. `bindFindings(findings, marks)` is scoped by
+# its caller — over the whole document (single view) or per `.patient` block (multi,
+# so two patients sharing an item can never light up each other). The
+# closest('details') guard keeps the cited-date disclosure from toggling the
+# highlight (mouse OR keyboard); avoids the banned `top` token (block:'center').
+_INTERACT_JS = """\
+function bindFindings(findings, marks) {
   function clearMarks() { marks.forEach(function (m) { m.classList.remove('active'); }); }
+  function activate(el) {
+    var items = (el.getAttribute('data-items') || '').split('|').filter(Boolean);
+    var turningOn = !el.classList.contains('sel');
+    findings.forEach(function (o) { o.classList.remove('sel'); o.setAttribute('aria-pressed', 'false'); });
+    clearMarks();
+    if (!turningOn) { return; }
+    el.classList.add('sel');
+    el.setAttribute('aria-pressed', 'true');
+    var first = null;
+    marks.forEach(function (m) {
+      if (items.indexOf(m.getAttribute('data-item')) >= 0) {
+        m.classList.add('active');
+        if (!first) { first = m; }
+      }
+    });
+    if (first) { first.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+  }
   findings.forEach(function (el) {
     el.addEventListener('click', function (e) {
       if (e.target.closest('details')) { return; }
-      var items = (el.getAttribute('data-items') || '').split('|').filter(Boolean);
-      var turningOn = !el.classList.contains('sel');
-      findings.forEach(function (o) { o.classList.remove('sel'); });
-      clearMarks();
-      if (!turningOn) { return; }
-      el.classList.add('sel');
-      var first = null;
-      marks.forEach(function (m) {
-        if (items.indexOf(m.getAttribute('data-item')) >= 0) {
-          m.classList.add('active');
-          if (!first) { first = m; }
-        }
-      });
-      if (first) { first.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
+      activate(el);
+    });
+    el.addEventListener('keydown', function (e) {
+      if (e.target.closest('details')) { return; }
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(el); }
     });
   });
+}
+"""
+
+# Single-scope: bind every finding in the document (inspection view + single digest).
+_JS = _INTERACT_JS + """\
+(function () {
+  bindFindings(document.querySelectorAll('.finding'), document.querySelectorAll('mark.cite'));
 })();
 """
 
@@ -241,36 +296,13 @@ _MULTI_CHROME_CSS = """\
 }
 """
 
-# Click-to-highlight, SCOPED per patient block: each .patient binds only its own
-# findings to its own marks, so two patients sharing an item can never light up
-# each other (the no-bleed guarantee, enforced in the view). Mirrors _JS but
-# scoped; avoids the banned `top` token (no stopPropagation; logical only).
-_MULTI_JS = """\
+# Per-patient scope: bind each .patient block's findings to its OWN marks, so two
+# patients sharing an item can never light up each other (the no-bleed guarantee,
+# enforced in the view). Reuses the SAME bindFindings as the single view.
+_MULTI_JS = _INTERACT_JS + """\
 (function () {
-  var blocks = document.querySelectorAll('.patient');
-  blocks.forEach(function (block) {
-    var findings = block.querySelectorAll('.finding');
-    var marks = block.querySelectorAll('mark.cite');
-    function clearMarks() { marks.forEach(function (m) { m.classList.remove('active'); }); }
-    findings.forEach(function (el) {
-      el.addEventListener('click', function (e) {
-        if (e.target.closest('details')) { return; }
-        var items = (el.getAttribute('data-items') || '').split('|').filter(Boolean);
-        var turningOn = !el.classList.contains('sel');
-        findings.forEach(function (o) { o.classList.remove('sel'); });
-        clearMarks();
-        if (!turningOn) { return; }
-        el.classList.add('sel');
-        var first = null;
-        marks.forEach(function (m) {
-          if (items.indexOf(m.getAttribute('data-item')) >= 0) {
-            m.classList.add('active');
-            if (!first) { first = m; }
-          }
-        });
-        if (first) { first.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
-      });
-    });
+  document.querySelectorAll('.patient').forEach(function (block) {
+    bindFindings(block.querySelectorAll('.finding'), block.querySelectorAll('mark.cite'));
   });
 })();
 """
