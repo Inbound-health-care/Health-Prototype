@@ -4,7 +4,7 @@ _The front door. Read this first, update it last. One source of "where am I."_
 Last updated: 2026-06-07
 
 ## Current state
-- **Session 2026-06-07 (cont.) — AUDIT FIX-LIST executed on `claude/repo-settings-load-Mpe4x` (ADR 0024–0025); draft PR open, NOT merged.**
+- **Session 2026-06-07 (cont.) — AUDIT FIX-LIST — MERGED to `main` via PR #37 (squash; ADR 0024–0025); `main` now 252 tests.**
   Worked all 15 items in `docs/AUDIT_2026-06-07.md` (Scott approved the plan + four decision-forks). **Tier 1 (governance):**
   JOURNAL.md **retired (chat-only)** — frozen with an ARCHIVED banner, the 5 docs that cited it as canonical reworded to
   "historical archive"; **LICENSE = Apache-2.0** added (patent grant, health-adjacent) + README license note; **ADR 0024**.
@@ -18,7 +18,8 @@ Last updated: 2026-06-07
   to one `tests/banned_words.py`** (39-word union; all 9 copies now import it), `.gitignore` += `.coverage`/`htmlcov/`/`.hypothesis/`.
   `make check` green — **252 tests** (5 dev-only skips: Hypothesis + live-JS), self-test 6+10, `ruff` clean; `make proptest` 3/3 green
   (incl. `CI=true`). **JS test could not be run here** (sandbox blocks the Chromium binary download) — structurally sound + skips clean,
-  CONFIRMED only when Scott runs `make jstest` locally. **Per-module versions unchanged.** Awaiting Scott's review + per-PR merge OK.
+  CONFIRMED only when Scott runs `make jstest` locally. **Per-module versions unchanged.** MERGED via PR #37 (Scott, squash, 2026-06-07);
+  branch `claude/repo-settings-load-Mpe4x` deleted post-merge. Open follow-up: Scott runs `make jstest` with a real browser for the live-JS CONFIRMED_USER_SIDE.
 - **Session 2026-06-07 — MERGED PR #35 to `main` — UI build-out (ADR 0021–0023); `main` now 248 tests. CONFIRMED_USER_SIDE.**
   Three sequenced increments on `claude/fervent-brown-JEwJA`, each its own ADR + commit, web-research-led (Scott picked all three):
   (a) **`view_html.py` shared floor + `report_html` multi-patient parity (ADR 0021)** — promoted the theme / span helpers /
@@ -130,8 +131,8 @@ Last updated: 2026-06-07
   https://www.figma.com/design/BcT7yhsMHAZl2AeJD9fAAK
 
 ## Open loops
-- [~] **Repo-wide audit (2026-06-07) — fix-list `docs/AUDIT_2026-06-07.md` — ALL 15 ITEMS DONE on
-      `claude/repo-settings-load-Mpe4x` (ADR 0024–0025); draft PR open, awaiting Scott's review + merge OK.**
+- [x] **Repo-wide audit (2026-06-07) — fix-list `docs/AUDIT_2026-06-07.md` — ALL 15 ITEMS DONE, MERGED via PR #37
+      (squash; ADR 0024–0025). Open after merge: Scott runs `make jstest` with a real browser for live-JS CONFIRMED_USER_SIDE.**
       Tier 1: JOURNAL retired chat-only (frozen) + 5 docs reworded; LICENSE Apache-2.0 [Scott picked]. Tier 2:
       dev-only live JS test (`make jstest`, not CI) + Hypothesis gates CI (derandomized) [Scott picked] + oracle
       convention documented. Tier 3: architecture/PROJECT_MAP/COLD_START counts + module lists reconciled
@@ -278,7 +279,8 @@ Both planned engine increments are MERGED to `main`:
   the counsel checklist + review hardening + the multi-patient fail-closed extractor (ADR 0016) +
   the calm aubergine view theme (ADR 0017) + Android responsive (ADR 0018) + view refinements (ADR 0019)
   + multi-patient digest rendering (ADR 0020) + the shared `view_html.py` floor + `report_html` multi-patient
-  + keyboard/print + the at-a-glance cited-date timeline (**ADR 0021–0023**), **248 tests** (post #1–#35).
+  + keyboard/print + the at-a-glance cited-date timeline (**ADR 0021–0023**) + the audit fix-list (governance + verification
+  ceiling + doc reconcile, **ADR 0024–0025**), **252 tests** (post #1–#37).
   Per-module versions (no single repo-wide version): `recurrence.py` 0.5.0, `extract.py` 0.4.0,
   `view_html.py` 0.3.0, `report_html.py` 0.4.0, `digest_html.py` 0.4.0.
   `claude/exciting-fermat-lztQq` is merged via #30 (retire-able).
