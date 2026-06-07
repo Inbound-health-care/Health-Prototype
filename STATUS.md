@@ -115,6 +115,18 @@ Last updated: 2026-06-07
   https://www.figma.com/design/BcT7yhsMHAZl2AeJD9fAAK
 
 ## Open loops
+- [ ] **Repo-wide audit (2026-06-07) — fix-list in `docs/AUDIT_2026-06-07.md`. START HERE next session.**
+      Read it first; work Tier 1–2 before anything else. Tier 1 (governance): resolve the `JOURNAL.md`
+      retired-vs-canonical contradiction (CLAUDE/handoff say retired+chat-only; 5 docs cite it as
+      canonical) [Scott's call on direction]; add a `LICENSE` [Scott]. Tier 2 (verification ceiling):
+      live JS/DOM behavior is untested (asserted as static strings only); the Hypothesis no-bleed
+      properties don't gate CI (1 skip — only `make proptest`) [Scott]; oracle independence is
+      git-unprovable. Tier 3 (doc drift): `architecture.md` (16/221→17/248, no view modules),
+      `PROJECT_MAP.md` (ADRs 0001–0010→0023, omits 4 modules), ADR 0014/0015 "grayscale-only"
+      superseded by 0017 but unlinked, propagate evidence-levels for 0013/0016/0019. Tier 4: one-line
+      code-doc nits (cadence floor docstring, stale `recurrence.py` v0 header, dedup the ~10× `BANNED`
+      copies, `.gitignore` missing `.coverage`). The ENGINE CODE + COMPLIANCE HEDGING audited CLEAN —
+      do not re-litigate those; the concern is doc drift + the verification ceiling.
 - [x] All 4 rules + v1 matching + combined report merged to `main`.
 - [x] `docs/adr/` running log (0001 tool-call, 0002 report arch, 0003 co-occurrence,
       0004 `--report-v1`, 0005 doc/harness reconciliation, 0006 AGENTS.md source-of-truth,
