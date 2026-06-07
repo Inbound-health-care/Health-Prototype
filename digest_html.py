@@ -21,7 +21,11 @@ theme with a single NON-semantic accent (the same for every lens — no per-lens
 colors), light-first with an optional dark toggle, document order, surfaces/counts/
 cites. It does NOT score, rank, judge, order by importance, or say what a pattern means.
 
-  Demo:  python digest_html.py --demo [outfile.html]
+The shared theme + neutral-span helpers + multi-patient chrome live in view_html.py
+(the dependency floor, ADR 0021); this module keeps only the digest's card idiom.
+
+  Demo:        python digest_html.py --demo [outfile.html]
+  Multi-batch: python digest_html.py --demo-multi [outfile.html]
 """
 
 from __future__ import annotations
@@ -33,17 +37,24 @@ import sys
 from extract import MultiExtractResult, extract_records, extract_records_multi
 from recurrence import RecordReport, run_report
 
-# Shared, pure view helpers — one source of truth for span collection, neutral
-# <mark> rendering, HTML-escaping, and the click-to-highlight script, so the
+# Shared, pure view primitives — one source of truth for span collection, neutral
+# <mark> rendering, HTML-escaping, the click-to-highlight scripts, and the
+# multi-patient chrome (jump-index, quarantine, per-patient scoped JS), so the
 # inspection view and this digest can never highlight provenance differently.
-from report_html import (
+from view_html import (
     _JS,
+    _MULTI_CHROME_CSS,
+    _MULTI_JS,
     _THEME_CSS,
     _THEME_JS,
     _THEME_MEDIA_CSS,
+    _anchor_id,
     _collect_spans,
     _esc,
+    _localized_note,
     _render_note,
+    _render_patient_index,
+    _render_quarantine,
 )
 
 VERSION = "0.2.0"
@@ -260,105 +271,9 @@ def build_demo_html(reference_date: datetime.date) -> str:
 # each with its OWN source segment so a click can only ever highlight within that
 # patient (structural no cross-patient bleed); a compact patient index jumps
 # between them; refused segments are surfaced in a neutral quarantine section,
-# never merged or guessed. Cognitive-load research (single-screen, scannable,
-# drill-down, minimal navigation) shaped the layout. ZERO interpretation added.
+# never merged or guessed. The index / quarantine / scoped-JS / per-segment note
+# chrome is shared (view_html); this view supplies the card-idiom per-patient body.
 # ---------------------------------------------------------------------------
-
-# Layout only for the multi view (colour/typography/.card/.chip/.note are shared).
-_MULTI_CSS = """\
-.patient-index { padding: 12px 28px; border-block-end: 1px solid var(--border);
-                 background: var(--surface); font-size: 13px; }
-.index-label { color: var(--muted); margin-inline-end: 8px; }
-.patient-index a { color: var(--accent); text-decoration: none; margin-inline-end: 12px;
-                   white-space: nowrap; border-block-end: 1px dotted var(--accent-line); }
-.patient { padding: 18px 28px; border-block-end: 1px solid var(--border); }
-.patient-id { color: var(--text); font-size: 14px; text-transform: none; letter-spacing: 0;
-              margin: 0 0 12px; }
-.patient-body { display: flex; gap: 24px; align-items: flex-start; }
-.patient-patterns { flex: 1 1 58%; }
-.patient-source { flex: 1 1 42%; }
-.quarantine { padding: 18px 28px; background: var(--surface); }
-.quarantine ul { list-style: none; margin: 0; padding: 0; }
-.quarantine li { font-size: 13px; color: var(--muted); padding: 6px 0;
-                 border-block-end: 1px solid var(--border); }
-.quarantine .seg { color: var(--text); font-weight: 600; margin-inline-end: 8px; }
-@media (max-width: 640px) {
-  .patient, .quarantine { padding: 14px 16px; }
-  .patient-index { padding: 12px 16px; }
-  .patient-body { flex-direction: column; gap: 14px; }
-  .patient-patterns, .patient-source { flex: 0 0 auto; inline-size: 100%; }
-}
-"""
-
-# Click-to-highlight, SCOPED per patient block: each .patient binds only its own
-# findings to its own marks, so two patients sharing an item can never light up
-# each other (the no-bleed guarantee, enforced in the view). Mirrors report_html's
-# _JS but scoped; avoids the banned `top` token (no stopPropagation; logical only).
-_MULTI_JS = """\
-(function () {
-  var blocks = document.querySelectorAll('.patient');
-  blocks.forEach(function (block) {
-    var findings = block.querySelectorAll('.finding');
-    var marks = block.querySelectorAll('mark.cite');
-    function clearMarks() { marks.forEach(function (m) { m.classList.remove('active'); }); }
-    findings.forEach(function (el) {
-      el.addEventListener('click', function (e) {
-        if (e.target.closest('details')) { return; }
-        var items = (el.getAttribute('data-items') || '').split('|').filter(Boolean);
-        var turningOn = !el.classList.contains('sel');
-        findings.forEach(function (o) { o.classList.remove('sel'); });
-        clearMarks();
-        if (!turningOn) { return; }
-        el.classList.add('sel');
-        var first = null;
-        marks.forEach(function (m) {
-          if (items.indexOf(m.getAttribute('data-item')) >= 0) {
-            m.classList.add('active');
-            if (!first) { first = m; }
-          }
-        });
-        if (first) { first.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
-      });
-    });
-  });
-})();
-"""
-
-# Neutral, non-interpretive labels for each fail-closed reason (ADR 0016). The
-# engine's own reason code is shown too, so the wording adds nothing it didn't
-# already classify — surfacing, not interpreting.
-_QUARANTINE_LABELS = {
-    "missing_key": "no patient identifier in segment",
-    "ambiguous_key": "more than one patient identifier in segment",
-    "duplicate_key": "patient identifier shared with another segment",
-    "missing_shift": "no per-patient de-identification shift supplied",
-}
-
-
-def _anchor_id(patient_id: str) -> str:
-    """A safe in-page anchor for a patient id (alnum kept, anything else -> '-')."""
-    return "patient-" + "".join(c if c.isalnum() else "-" for c in patient_id)
-
-
-def _localized_note(note: str, record: dict) -> str:
-    """Render ONE patient's own source SEGMENT with segment-local marks.
-
-    The segment text is sliced from the whole note via the record's
-    ``provenance.segment_span``; the entries' whole-note spans are rebased to
-    segment-local offsets, so each patient's note stands alone — a click can only
-    ever highlight within this patient's own segment (no cross-patient bleed). A
-    record without multi provenance falls back to the whole-note render."""
-    prov = record.get("provenance") or {}
-    seg_span = prov.get("segment_span")
-    if not seg_span:
-        return _render_note(note, _collect_spans([record]))
-    start, end = seg_span
-    segment = note[start:end]
-    local = [
-        (s - start, e - start, label, kind)
-        for (s, e, label, kind) in _collect_spans([record])
-    ]
-    return _render_note(segment, local)
 
 
 def _render_patient_block(
@@ -376,43 +291,6 @@ def _render_patient_block(
         f'<div class="patient-patterns">{cards_html}</div>'
         f'<div class="patient-source"><div class="note">{note_html}</div></div>'
         "</div></section>"
-    )
-
-
-def _render_patient_index(records: list[dict]) -> str:
-    """A compact jump-list to each accepted patient (anchor links, no JS state) so
-    a clinician moves between patients without losing the single-page context. Only
-    shown when there is more than one patient."""
-    if len(records) <= 1:
-        return ""
-    links = " ".join(
-        f'<a href="#{_esc(_anchor_id(r.get("id", "")))}">{_esc(r.get("id", ""))}</a>'
-        for r in records
-    )
-    return (
-        '<nav class="patient-index">'
-        '<span class="index-label">Patients in this batch:</span> '
-        f"{links}</nav>"
-    )
-
-
-def _render_quarantine(quarantined: list) -> str:
-    """The refused segments, surfaced in segment order with their neutral reason —
-    never merged, guessed, or interpreted. Empty -> nothing (no 'all clean' claim)."""
-    if not quarantined:
-        return ""
-    rows = []
-    for q in quarantined:
-        label = _QUARANTINE_LABELS.get(q.reason, q.reason)
-        detail = f" &mdash; {_esc(q.detail)}" if getattr(q, "detail", "") else ""
-        rows.append(
-            f'<li><span class="seg">Segment {q.index}</span>'
-            f"{_esc(label)} ({_esc(q.reason)}){detail}</li>"
-        )
-    return (
-        '<section class="quarantine">'
-        "<h2>Quarantined segments (not rendered as patients)</h2>"
-        f'<ul>{"".join(rows)}</ul></section>'
     )
 
 
@@ -452,7 +330,7 @@ def render_digest_multi(
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{_esc(title)}</title>
 <style>
-{_THEME_CSS}{_CSS}{_MULTI_CSS}{_THEME_MEDIA_CSS}</style>
+{_THEME_CSS}{_CSS}{_MULTI_CHROME_CSS}{_THEME_MEDIA_CSS}</style>
 <script>
 {_THEME_JS}</script>
 </head>

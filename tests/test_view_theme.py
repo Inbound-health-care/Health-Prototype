@@ -83,7 +83,10 @@ class TestColourIsNonSemantic(unittest.TestCase):
         # Every literal colour in the stylesheet must be a declared theme token —
         # no rogue or per-lens / severity colour can sneak into the view.
         allowed = {v.lower() for mode in THEME.values() for v in mode.values()}
-        for html in (report_html.build_demo_html(REF), digest_html.build_demo_html(REF)):
+        for html in (
+            report_html.build_demo_html(REF), digest_html.build_demo_html(REF),
+            report_html.build_demo_multi_html(REF), digest_html.build_demo_multi_html(REF),
+        ):
             found = {h.lower() for h in re.findall(r"#[0-9A-Fa-f]{6}", _style(html))}
             self.assertTrue(found, "no colours found in <style>")
             self.assertLessEqual(found, allowed, f"non-token colour(s): {found - allowed}")
@@ -99,7 +102,10 @@ class TestColourIsNonSemantic(unittest.TestCase):
 
 class TestDarkToggleIsWired(unittest.TestCase):
     def test_light_first_with_optional_dark(self):
-        for html in (report_html.build_demo_html(REF), digest_html.build_demo_html(REF)):
+        for html in (
+            report_html.build_demo_html(REF), digest_html.build_demo_html(REF),
+            report_html.build_demo_multi_html(REF), digest_html.build_demo_multi_html(REF),
+        ):
             self.assertIn('<html lang="en" data-theme="light">', html)  # light-first
             self.assertIn('class="theme-toggle"', html)
             self.assertIn("prefers-color-scheme", html)
@@ -111,7 +117,10 @@ class TestResponsiveAndroid(unittest.TestCase):
         # Android-targeted responsive layer (ADR 0018): a viewport meta + a media query
         # that stacks the two columns below 640px (every Android phone portrait; primary
         # width 360px). Desktop / foldable-unfolded keep the two-column layout.
-        for html in (report_html.build_demo_html(REF), digest_html.build_demo_html(REF)):
+        for html in (
+            report_html.build_demo_html(REF), digest_html.build_demo_html(REF),
+            report_html.build_demo_multi_html(REF), digest_html.build_demo_multi_html(REF),
+        ):
             self.assertIn('name="viewport"', html)
             self.assertIn("@media (max-width: 640px)", html)
             self.assertIn("flex-direction: column", html)

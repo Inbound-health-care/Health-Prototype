@@ -47,3 +47,6 @@ it — history is the point.
 - [0016 — Multi-patient free-text extraction (fail-closed identity, per-patient de-id)](0016-multi-patient-fail-closed-extraction.md)
 - [0017 — Calm, eye-comfort view theme (warm neutrals + one non-semantic accent)](0017-calm-eye-comfort-view-theme.md)
 - [0018 — Responsive / mobile pass (Android-targeted)](0018-responsive-mobile-pass.md)
+- [0019 — View review refinements (toggle / citation pills / wording / view names)](0019-view-review-refinements.md)
+- [0020 — Multi-patient digest rendering (stacked, per-patient scoped, quarantine surfaced)](0020-multi-patient-digest-rendering.md)
+- [0021 — Promote shared view primitives to `view_html.py`; report_html multi-patient parity](0021-view-html-extraction-report-multi.md)

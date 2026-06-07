@@ -20,7 +20,7 @@ demo:          ## Run every surfacing-rule demo
 	python recurrence.py --demo-cooccurrence
 
 compile:       ## Byte-compile every project file (syntax gate; THE canonical file list)
-	python -m compileall -q recurrence.py extract.py report_html.py digest_html.py tests data scripts
+	python -m compileall -q recurrence.py extract.py view_html.py report_html.py digest_html.py tests data scripts
 
 lint:          ## compile + ruff (if installed). CI delegates here so the file list lives once.
 	$(MAKE) compile

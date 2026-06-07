@@ -17,168 +17,49 @@ single NON-semantic accent (the same for every lens — no per-lens or severity 
 light-first with an optional dark toggle, document order only — it surfaces and cites,
 it does NOT rank, score, flag, judge, or interpret. See ADR 0014 (view) + ADR 0017 (theme).
 
-  Demo:  python report_html.py --demo [outfile.html]
+The shared theme + neutral-span helpers live in view_html.py (the dependency floor,
+ADR 0021); this module keeps only the inspection layout and renders both a single-note
+report and a multi-patient batch (stacked, per-patient-scoped — mirrors the digest).
+
+  Demo:        python report_html.py --demo [outfile.html]
+  Multi-batch: python report_html.py --demo-multi [outfile.html]
 """
 
 from __future__ import annotations
 
 import argparse
 import datetime
-import html
 import sys
 
-from extract import extract_records
+from extract import MultiExtractResult, extract_records, extract_records_multi
 from recurrence import RecordReport, run_report
 
-VERSION = "0.1.0"
-
-# --- Shared calm theme (ADR 0017) -------------------------------------------
-# One source of truth for colour, reused by digest_html so the two views can
-# never drift apart. Tokens are CSS custom properties; each view's own CSS
-# (layout) references them via var(). Light-first + an optional dark toggle.
-# Colour is NON-semantic: a single accent marks interactivity/selection, the
-# SAME for every lens — it never encodes severity, type, or judgment (the
-# librarian rule, held in the view). Contrast is WCAG-checked in
-# tests/test_view_theme.py, which imports THEME directly.
-THEME = {
-    "light": {
-        "bg": "#FAF6FB", "surface": "#FFFDFF", "text": "#291E2E",
-        "muted": "#675A6E", "border": "#E6DDEA", "mark-rest": "#F1E8F4",
-        "accent": "#7A3A86", "accent-weak": "#F0E1F4", "accent-line": "#8A4F96",
-    },
-    "dark": {
-        "bg": "#221026", "surface": "#2C1730", "text": "#ECE4EF",
-        "muted": "#B4A3B8", "border": "#3E2A44", "mark-rest": "#34203A",
-        "accent": "#D7A0DE", "accent-weak": "#3C2244", "accent-line": "#B074BA",
-    },
-}
-
-
-def _root_block(selector: str, tokens: dict[str, str], scheme: str) -> str:
-    """One CSS rule mapping the theme tokens to custom properties (var())."""
-    decls = "".join(f"--{k}: {v}; " for k, v in tokens.items())
-    return f"{selector} {{ color-scheme: {scheme}; {decls}}}\n"
-
-
-# Tokens (light + dark) plus the components both views share: base typography,
-# the cited note + neutral marks, the lens label, header/footer, the dark toggle.
-# Layout (the two-column split, cards vs. list) stays in each view's own _CSS.
-_THEME_CSS = (
-    _root_block(":root", THEME["light"], "light")
-    + _root_block(':root[data-theme="dark"]', THEME["dark"], "dark")
-    + """\
-* { box-sizing: border-box; }
-body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-       margin: 0; color: var(--text); background: var(--bg); line-height: 1.5; }
-header { position: relative; padding: 22px 28px; padding-inline-end: 96px;
-         border-block-end: 1px solid var(--border); background: var(--surface); }
-header h1 { font-size: 22px; margin: 0; font-weight: 600; letter-spacing: -.01em; }
-.meta { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
-.stance { margin: 8px 0 0; color: var(--muted); font-size: 13px; max-width: 80ch; }
-h2 { font-size: 12px; text-transform: uppercase; letter-spacing: .05em;
-     color: var(--muted); margin: 0 0 14px; font-weight: 600; }
-.note { white-space: pre-wrap; font-family: ui-monospace, Menlo, Consolas, monospace;
-        font-size: 13px; background: var(--surface); border: 1px solid var(--border);
-        border-radius: 8px; padding: 14px; color: var(--text); }
-mark.cite { background: var(--mark-rest); border-radius: 3px; padding: 0 2px; color: inherit; }
-mark.cite-date { background: transparent; border-block-end: 1px dotted var(--accent-line); }
-mark.cite.active { background: var(--accent-weak); outline: 2px solid var(--accent-line); outline-offset: 1px; }
-.lens { color: var(--accent); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; }
-.finding { cursor: pointer; }
-.empty { color: var(--muted); font-size: 13px; }
-footer { padding: 14px 28px; border-block-start: 1px solid var(--border);
-         color: var(--muted); font-size: 12px; background: var(--surface); }
-.theme-toggle { position: absolute; inset-block-start: 14px; inset-inline-end: 16px; z-index: 10;
-                background: var(--surface); color: var(--text); border: 1px solid var(--border);
-                border-radius: 999px; padding: 6px 14px; font-size: 13px; cursor: pointer; }
-.theme-toggle:hover { border-color: var(--accent-line); }
-"""
+# Shared, pure view primitives — one source of truth for the calm theme, span
+# collection, neutral <mark> rendering, HTML-escaping, the click-to-highlight
+# scripts, and the multi-patient chrome (jump-index, quarantine, per-patient
+# scoped JS), so the inspection view and the digest can never drift apart.
+# THEME is re-exported here for back-compat (tests/test_view_theme.py imports it
+# from report_html).
+from view_html import (
+    THEME,
+    _JS,
+    _MULTI_CHROME_CSS,
+    _MULTI_JS,
+    _THEME_CSS,
+    _THEME_JS,
+    _THEME_MEDIA_CSS,
+    _anchor_id,
+    _collect_spans,
+    _esc,
+    _localized_note,
+    _render_note,
+    _render_patient_index,
+    _render_quarantine,
 )
 
-# Sets the initial theme from the OS preference (no flash), then wires the toggle.
-_THEME_JS = """\
-(function () {
-  var root = document.documentElement;
-  var mq = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
-  root.setAttribute('data-theme', mq && mq.matches ? 'dark' : 'light');
-  document.addEventListener('DOMContentLoaded', function () {
-    var btn = document.querySelector('.theme-toggle');
-    if (!btn) { return; }
-    function label() { btn.textContent = root.getAttribute('data-theme') === 'dark' ? 'Light' : 'Dark'; }
-    label();
-    btn.addEventListener('click', function () {
-      root.setAttribute('data-theme', root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
-      label();
-    });
-  });
-})();
-"""
+__all__ = ["THEME", "render_html", "render_html_multi", "build_demo_html"]
 
-# Android-targeted responsive layer (ADR 0018), appended LAST in each view's <style>
-# so it overrides the shared base + the view's own layout. Primary width 360 px (the
-# most common Android viewport, incl. Galaxy S25 = 360x780 CSS); below 640 px (every
-# Android phone portrait) the two columns stack and spacing/tap targets adapt; foldable
-# unfolded (~768) + tablets keep the two-column layout. Pure CSS — no JS change, no deps.
-# Logical properties keep `top` out of the document (banned-words rule).
-_THEME_MEDIA_CSS = """\
-@media (max-width: 640px) {
-  main { flex-direction: column; }
-  main > section { flex: 0 0 auto; border-inline-end: none; padding: 14px 16px; }
-  main > section:not(:last-child) { border-block-end: 1px solid var(--border); }
-  header { padding: 16px 16px; padding-inline-end: 84px; }
-  .note { overflow-x: auto; }
-  .card, li.finding { padding: 14px 14px; }
-  .theme-toggle { inset-block-start: 12px; inset-inline-end: 12px;
-                  padding: 10px 16px; min-block-size: 44px; }
-}
-"""
-
-
-def _esc(s: str) -> str:
-    """HTML-escape for both text and attribute contexts (quotes included)."""
-    return html.escape(str(s), quote=True)
-
-
-def _collect_spans(records: list[dict]) -> list[tuple[int, int, str, str]]:
-    """All highlightable spans across records' entries as ``(start, end, label, kind)``
-    sorted by start. kind 'item' = a cited gazetteer hit (``source_span``); kind 'date'
-    = a cited relative/partial/frequency phrase (``date_span``, ADR 0013). Spans are
-    disjoint by construction (item spans never overlap; a date phrase precedes its
-    line's content)."""
-    spans: list[tuple[int, int, str, str]] = []
-    for record in records:
-        for entry in record.get("entries", []):
-            source_span = entry.get("source_span")
-            if source_span is not None:
-                spans.append(
-                    (source_span[0], source_span[1], entry.get("item", ""), "item")
-                )
-            date_span = entry.get("date_span")
-            if date_span is not None:
-                spans.append(
-                    (date_span[0], date_span[1], entry.get("date_phrase", ""), "date")
-                )
-    spans.sort(key=lambda s: (s[0], s[1]))
-    return spans
-
-
-def _render_note(note: str, spans: list[tuple[int, int, str, str]]) -> str:
-    """The note as HTML with each span wrapped in a neutral ``<mark>``. Text is
-    HTML-escaped; spans are disjoint and sorted; any unexpected overlap is skipped
-    (never raises). ``data-item`` lets a finding light up its cited concept spans."""
-    out: list[str] = []
-    cursor = 0
-    for start, end, label, kind in spans:
-        if start < cursor or start > len(note):
-            continue
-        out.append(_esc(note[cursor:start]))
-        out.append(
-            f'<mark class="cite cite-{kind}" data-item="{_esc(label)}" '
-            f'title="{kind}: {_esc(label)}">{_esc(note[start:end])}</mark>'
-        )
-        cursor = end
-    out.append(_esc(note[cursor:]))
-    return "".join(out)
+VERSION = "0.2.0"
 
 
 def _hit_items(hit: object) -> list[str]:
@@ -192,25 +73,37 @@ def _hit_items(hit: object) -> list[str]:
     return items
 
 
+def _render_findings_list(report: RecordReport | None) -> str:
+    """One record's surfaced patterns as a ``<ul>`` of findings (no record header —
+    the caller supplies the surrounding heading). Each row keeps its lens
+    (provenance) and the engine's own neutral line, plus the cited item(s) as a data
+    attribute so a click can highlight the source. A record that surfaced nothing
+    renders the neutral note; it never asserts 'clean'."""
+    findings = report.findings if report is not None else []
+    if not findings:
+        return '<p class="empty">No patterns surfaced. (The record is not asserted clean.)</p>'
+    rows = ['<ul class="findings">']
+    for finding in findings:
+        items = "|".join(_hit_items(finding.hit))
+        rows.append(
+            f'<li class="finding" data-items="{_esc(items)}">'
+            f'<span class="lens">{_esc(finding.expert)}</span>'
+            f'<span class="line">{_esc(finding.line)}</span></li>'
+        )
+    rows.append("</ul>")
+    return "\n".join(rows)
+
+
 def _render_findings(reports: list[RecordReport]) -> str:
-    """The surfaced patterns, grouped by record in registry order. Each row keeps its
-    lens (provenance) and the engine's own neutral line, plus the cited item(s) as a
-    data attribute so a click can highlight the source. No ordering by importance —
-    there is none to assert."""
+    """The surfaced patterns, grouped by record in registry order, each under its
+    record header. No ordering by importance — there is none to assert."""
     if not reports:
         return '<p class="empty">No patterns surfaced. (The record is not asserted clean.)</p>'
     blocks: list[str] = []
     for report in reports:
-        rows = [f"<h3>Record {_esc(report.record_id)}</h3>", '<ul class="findings">']
-        for finding in report.findings:
-            items = "|".join(_hit_items(finding.hit))
-            rows.append(
-                f'<li class="finding" data-items="{_esc(items)}">'
-                f'<span class="lens">{_esc(finding.expert)}</span>'
-                f'<span class="line">{_esc(finding.line)}</span></li>'
-            )
-        rows.append("</ul>")
-        blocks.append("\n".join(rows))
+        blocks.append(
+            f"<h3>Record {_esc(report.record_id)}</h3>\n{_render_findings_list(report)}"
+        )
     return "\n".join(blocks)
 
 
@@ -230,33 +123,6 @@ li.finding { padding: 7px 9px; border: 1px solid var(--border); border-radius: 6
 li.finding:hover { border-color: var(--accent-line); }
 li.finding.sel { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-weak); }
 .lens { display: inline-block; min-width: 9ch; font-size: 11px; margin-inline-end: 8px; }
-"""
-
-_JS = """\
-(function () {
-  var findings = document.querySelectorAll('.finding');
-  var marks = document.querySelectorAll('mark.cite');
-  function clearMarks() { marks.forEach(function (m) { m.classList.remove('active'); }); }
-  findings.forEach(function (el) {
-    el.addEventListener('click', function (e) {
-      if (e.target.closest('details')) { return; }
-      var items = (el.getAttribute('data-items') || '').split('|').filter(Boolean);
-      var turningOn = !el.classList.contains('sel');
-      findings.forEach(function (o) { o.classList.remove('sel'); });
-      clearMarks();
-      if (!turningOn) { return; }
-      el.classList.add('sel');
-      var first = null;
-      marks.forEach(function (m) {
-        if (items.indexOf(m.getAttribute('data-item')) >= 0) {
-          m.classList.add('active');
-          if (!first) { first = m; }
-        }
-      });
-      if (first) { first.scrollIntoView({ block: 'center', behavior: 'smooth' }); }
-    });
-  });
-})();
 """
 
 
@@ -318,6 +184,98 @@ Verify each surfaced line against its highlighted source.</p>
 """
 
 
+# ---------------------------------------------------------------------------
+# Multi-patient rendering (ADR 0021): the inspection view, brought to parity with
+# the digest (ADR 0020). A batch note split by extract_records_multi yields several
+# ACCEPTED patient records (each with a provenance.segment_span) plus QUARANTINED
+# segments. One stacked block per accepted patient, IN SEGMENT ORDER (never
+# reordered — the librarian rule), each with its OWN cited segment so a click can
+# only highlight within that patient (structural no cross-patient bleed); the shared
+# _MULTI_JS scopes findings<->marks per .patient block. The patient index + the
+# quarantine section reuse the shared view_html chrome. The per-patient body is the
+# inspection idiom (a findings LIST, not the digest's cards).
+# ---------------------------------------------------------------------------
+
+
+def _render_patient_block(
+    note: str, record: dict, report: RecordReport | None
+) -> str:
+    """One accepted patient: the surfaced findings list beside that patient's OWN
+    cited segment, wrapped in an anchored section the patient index can jump to."""
+    patient_id = record.get("id", "")
+    findings_html = _render_findings_list(report)
+    note_html = _localized_note(note, record)
+    return (
+        f'<section class="patient" id="{_esc(_anchor_id(patient_id))}">'
+        f'<h2 class="patient-id">Patient {_esc(patient_id)}</h2>'
+        '<div class="patient-body">'
+        f'<div class="patient-patterns">{findings_html}</div>'
+        f'<div class="patient-source"><div class="note">{note_html}</div></div>'
+        "</div></section>"
+    )
+
+
+def render_html_multi(
+    note: str,
+    result: MultiExtractResult,
+    reports: list[RecordReport],
+    *,
+    title: str = "Pattern Inspection Report",
+    reference_date: datetime.date | None = None,
+) -> str:
+    """A single self-contained HTML document for a MULTI-patient batch: one stacked,
+    anchored block per accepted patient (findings list + that patient's own cited
+    segment), a jump index, and a neutral quarantine section for refused segments.
+    Patients stay in segment order; nothing is ranked, merged, or interpreted."""
+    by_id = {rep.record_id: rep for rep in reports}
+    index_html = _render_patient_index(result.records)
+    if result.records:
+        blocks = "\n".join(
+            _render_patient_block(note, rec, by_id.get(rec.get("id", "")))
+            for rec in result.records
+        )
+    else:
+        blocks = '<p class="empty">No patient segments were accepted.</p>'
+    quarantine_html = _render_quarantine(result.quarantined)
+    meta_bits = [f"{len(result.records)} patients"]
+    if result.quarantined:
+        meta_bits.append(f"{len(result.quarantined)} quarantined")
+    if reference_date is not None:
+        meta_bits.append(f"Reference date: {reference_date.isoformat()}")
+    meta_bits.append("de-identified")
+    meta = " &middot; ".join(_esc(b) for b in meta_bits)
+    return f"""<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{_esc(title)}</title>
+<style>
+{_THEME_CSS}{_CSS}{_MULTI_CHROME_CSS}{_THEME_MEDIA_CSS}</style>
+<script>
+{_THEME_JS}</script>
+</head>
+<body>
+<header>
+<button class="theme-toggle" type="button">Dark</button>
+<h1>{_esc(title)}</h1>
+<p class="meta">{meta}</p>
+<p class="stance">Surfaced from each record and cited &mdash; never judged, ordered, or recommended.
+Each patient's source stands alone; verify each surfaced line against its highlighted source.</p>
+</header>
+{index_html}
+<main class="patients">
+{blocks}
+</main>
+{quarantine_html}
+<footer>Generated locally by report_html.py {VERSION} &mdash; pure stdlib, no network, synthetic data only.</footer>
+<script>
+{_MULTI_JS}</script>
+</body>
+</html>
+"""
+
+
 def build_demo_html(reference_date: datetime.date) -> str:
     """Render the relative-date sample end to end: prose -> cited records -> the
     combined report -> a single HTML page (shows item AND cited-date spans)."""
@@ -332,6 +290,23 @@ def build_demo_html(reference_date: datetime.date) -> str:
     reports = run_report(records)
     return render_html(
         FREETEXT_RELATIVE_NOTE, records, reports, reference_date=reference_date
+    )
+
+
+def build_demo_multi_html(reference_date: datetime.date) -> str:
+    """Render the synthetic multi-patient batch end to end: a batch note ->
+    fail-closed split -> per-patient reports -> one stacked inspection page with a
+    quarantine section. Uses no per-patient shift (0, like the single demo) so the
+    cited dates stay hand-readable against each segment."""
+    from data.sample_records import FREETEXT_MULTI_DELIMITER, FREETEXT_MULTI_NOTE
+
+    gazetteer = ["poor sleep", "headache"]
+    result = extract_records_multi(
+        FREETEXT_MULTI_NOTE, gazetteer, delimiter=FREETEXT_MULTI_DELIMITER
+    )
+    reports = run_report(result.records)
+    return render_html_multi(
+        FREETEXT_MULTI_NOTE, result, reports, reference_date=reference_date
     )
 
 
@@ -351,6 +326,15 @@ def main() -> int:
         metavar="OUTFILE",
         help="Write the relative-date sample report to OUTFILE (default report_demo.html)",
     )
+    parser.add_argument(
+        "--demo-multi",
+        nargs="?",
+        const="report_multi_demo.html",
+        default=None,
+        metavar="OUTFILE",
+        help="Write the multi-patient batch report (stacked patients + quarantine) "
+        "to OUTFILE (default report_multi_demo.html)",
+    )
     args = parser.parse_args()
     if args.version:
         print(f"Health-Prototype HTML report {VERSION}")
@@ -359,6 +343,12 @@ def main() -> int:
         path = args.demo
         with open(path, "w", encoding="utf-8") as handle:
             handle.write(build_demo_html(datetime.date(2026, 3, 15)))
+        print(f"Wrote {path}")
+        return 0
+    if args.demo_multi is not None:
+        path = args.demo_multi
+        with open(path, "w", encoding="utf-8") as handle:
+            handle.write(build_demo_multi_html(datetime.date(2026, 3, 15)))
         print(f"Wrote {path}")
         return 0
     parser.print_help()
