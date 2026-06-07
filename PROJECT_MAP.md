@@ -28,6 +28,10 @@ canonical files.
 | File | Purpose | Canonical? | Load when |
 |---|---|---|---|
 | `recurrence.py` | The engine: surfacing rules + matching layers + report router/CLI | **yes (engine code)** | Working on the engine |
+| `extract.py` | Free-text FRONT-END: prose → canonical records (gazetteer + dates + matching modes + multi-patient) | **yes (extractor)** | Free-text extraction |
+| `view_html.py` | Shared VIEW FLOOR: theme tokens, highlight/keyboard JS, print CSS, timeline, multi-patient chrome (ADR 0021) | **yes (view floor)** | Working on any view |
+| `report_html.py` | Inspection view: cited spans ↔ findings, click-to-highlight (ADR 0014) | yes (inspection view) | The report view |
+| `digest_html.py` | Clinician Pre-visit Pattern Digest: five lenses as cited cards (ADR 0015) | yes (product view) | The digest view |
 | `data/sample_records.py` | Synthetic records + hand-written answer keys + synonyms | yes (test oracle) | Editing fixtures/oracle |
 | `data/RECORDS.md` | Data dictionary: field rationale, per-record reasons | yes (field meanings) | Need field meanings |
 | `data/__init__.py` | Package marker | — | — |
@@ -38,9 +42,9 @@ canonical files.
 ## Decisions / discipline / narrative
 | File | Purpose | Canonical? | Load when |
 |---|---|---|---|
-| `docs/adr/` (`0001`–`0010` + `README.md`) | Decision log (build + assistant process) | **yes (decisions)** | "Why was X done" |
+| `docs/adr/` (`0001`–`0025` + `README.md`) | Decision log (build + assistant process) | **yes (decisions)** | "Why was X done" |
 | `docs/DOC_DISCIPLINE.md` | Evidence levels + ADR-confirmation + drift control | **yes (evidence levels)** | Tagging claims / audits |
-| `JOURNAL.md` | Session narrative / lessons / limitations | yes (narrative) | Want the why/story |
+| `JOURNAL.md` | Session narrative / lessons (ARCHIVED 2026-06-07 — historical only; diary is chat-only now, ADR 0024) | — (historical archive) | Want the why/story (pre-2026-06-07) |
 | `docs/CLAUDE_OPERATING_MANUAL.md` | Operating manual | — | Deeper process |
 | `docs/AGENT_AUDIT_METHOD.md` | Subagent-audit + code-review playbook | yes (audit method) | Running an audit |
 | `docs/BRANCH_CLEANUP.md` | Branch-cleanup procedure | — | Cleaning branches |

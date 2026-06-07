@@ -17,7 +17,7 @@ Do not start work until he says.
 
 ## Step 2 — load MORE only when the task needs it (don't front-load)
 - Decisions / "why was X done" -> `docs/adr/`
-- Narrative / lessons / limitations -> `JOURNAL.md`
+- Narrative / lessons / limitations -> `JOURNAL.md` (ARCHIVED 2026-06-07 — historical only; the diary is chat-only now, see ADR 0024)
 - Full prior-session detail (handoffs + session log) -> Drive: `health-prototype/archive` (off-repo)
 - How to run subagent audits / code review -> `docs/AGENT_AUDIT_METHOD.md`
 - Tooling / token-frugal patterns -> `docs/TOOLS_CHEAT_SHEET.md`

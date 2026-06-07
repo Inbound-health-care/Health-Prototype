@@ -4,6 +4,9 @@
 **Evidence level:** IMPLEMENTED_UNVERIFIED — CONFIRMED_ASSISTANT_SIDE (`make check` green:
 167 tests / self-test 6+10 / `ruff` clean); promotes to CONFIRMED_USER_SIDE when Scott opens the file.
 **Type:** Architecture / UI / front-end
+**Revised by:** ADR 0017 (2026-06-06) — the **"grayscale-only"** highlight mechanism described
+below is superseded by the calm aubergine theme (one non-semantic accent). The librarian-rule
+intent it served — **no colour-coding by type or severity** — still holds. The view itself stands.
 
 ## Context
 The engine + extractor already produce structured, **cited** output, but `source_span` was exercised

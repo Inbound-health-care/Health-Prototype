@@ -180,3 +180,9 @@ Record R006: "poor sleep" recurred 3 times — … [merged: "can't sleep", "inso
 The engine surfaces, counts, and cites — including *which spellings it merged* —
 and still never interprets what the recurrence means. See
 [`data/RECORDS.md`](data/RECORDS.md) §5 for the full v1 walkthrough.
+
+## License
+
+Licensed under the [Apache License 2.0](LICENSE) — chosen over MIT for its explicit
+patent grant and defensive-termination clause (appropriate for a health-adjacent tool).
+See ADR 0024.

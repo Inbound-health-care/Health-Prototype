@@ -4,6 +4,21 @@ _The front door. Read this first, update it last. One source of "where am I."_
 Last updated: 2026-06-07
 
 ## Current state
+- **Session 2026-06-07 (cont.) — AUDIT FIX-LIST executed on `claude/repo-settings-load-Mpe4x` (ADR 0024–0025); draft PR open, NOT merged.**
+  Worked all 15 items in `docs/AUDIT_2026-06-07.md` (Scott approved the plan + four decision-forks). **Tier 1 (governance):**
+  JOURNAL.md **retired (chat-only)** — frozen with an ARCHIVED banner, the 5 docs that cited it as canonical reworded to
+  "historical archive"; **LICENSE = Apache-2.0** added (patent grant, health-adjacent) + README license note; **ADR 0024**.
+  **Tier 2 (verification ceiling):** new **dev-only live JS/DOM test** `tests/test_view_js.py` (Playwright headless Chromium —
+  click-highlight, keyboard Enter/Space, beforeprint/afterprint, runtime multi-patient no-bleed) + `make jstest`, NOT in CI,
+  skips cleanly without a browser; **Hypothesis properties now GATE CI** (installed in the workflow, run **derandomized** under
+  `CI=true` so failures reproduce) — the prior 1-skip is gone; oracle-independence convention documented; **ADR 0025**.
+  **Tier 3 (doc drift):** architecture.md (18 files / 252 tests, all 3 view modules), PROJECT_MAP (ADRs 0001–0025, +4 modules),
+  ADR 0014/0015 "revised by 0017" pointers, ADR 0016/0019 promoted to CONFIRMED_USER_SIDE (0013 left — STATUS doesn't confirm it),
+  COLD_START counts, STATUS "5 modules". **Tier 4 (nits):** cadence-floor docstring, recurrence.py header → 0.5.0, **`BANNED` hoisted
+  to one `tests/banned_words.py`** (39-word union; all 9 copies now import it), `.gitignore` += `.coverage`/`htmlcov/`/`.hypothesis/`.
+  `make check` green — **252 tests** (5 dev-only skips: Hypothesis + live-JS), self-test 6+10, `ruff` clean; `make proptest` 3/3 green
+  (incl. `CI=true`). **JS test could not be run here** (sandbox blocks the Chromium binary download) — structurally sound + skips clean,
+  CONFIRMED only when Scott runs `make jstest` locally. **Per-module versions unchanged.** Awaiting Scott's review + per-PR merge OK.
 - **Session 2026-06-07 — MERGED PR #35 to `main` — UI build-out (ADR 0021–0023); `main` now 248 tests. CONFIRMED_USER_SIDE.**
   Three sequenced increments on `claude/fervent-brown-JEwJA`, each its own ADR + commit, web-research-led (Scott picked all three):
   (a) **`view_html.py` shared floor + `report_html` multi-patient parity (ADR 0021)** — promoted the theme / span helpers /
@@ -115,18 +130,16 @@ Last updated: 2026-06-07
   https://www.figma.com/design/BcT7yhsMHAZl2AeJD9fAAK
 
 ## Open loops
-- [ ] **Repo-wide audit (2026-06-07) — fix-list in `docs/AUDIT_2026-06-07.md`. START HERE next session.**
-      Read it first; work Tier 1–2 before anything else. Tier 1 (governance): resolve the `JOURNAL.md`
-      retired-vs-canonical contradiction (CLAUDE/handoff say retired+chat-only; 5 docs cite it as
-      canonical) [Scott's call on direction]; add a `LICENSE` [Scott]. Tier 2 (verification ceiling):
-      live JS/DOM behavior is untested (asserted as static strings only); the Hypothesis no-bleed
-      properties don't gate CI (1 skip — only `make proptest`) [Scott]; oracle independence is
-      git-unprovable. Tier 3 (doc drift): `architecture.md` (16/221→17/248, no view modules),
-      `PROJECT_MAP.md` (ADRs 0001–0010→0023, omits 4 modules), ADR 0014/0015 "grayscale-only"
-      superseded by 0017 but unlinked, propagate evidence-levels for 0013/0016/0019. Tier 4: one-line
-      code-doc nits (cadence floor docstring, stale `recurrence.py` v0 header, dedup the ~10× `BANNED`
-      copies, `.gitignore` missing `.coverage`). The ENGINE CODE + COMPLIANCE HEDGING audited CLEAN —
-      do not re-litigate those; the concern is doc drift + the verification ceiling.
+- [~] **Repo-wide audit (2026-06-07) — fix-list `docs/AUDIT_2026-06-07.md` — ALL 15 ITEMS DONE on
+      `claude/repo-settings-load-Mpe4x` (ADR 0024–0025); draft PR open, awaiting Scott's review + merge OK.**
+      Tier 1: JOURNAL retired chat-only (frozen) + 5 docs reworded; LICENSE Apache-2.0 [Scott picked]. Tier 2:
+      dev-only live JS test (`make jstest`, not CI) + Hypothesis gates CI (derandomized) [Scott picked] + oracle
+      convention documented. Tier 3: architecture/PROJECT_MAP/COLD_START counts + module lists reconciled
+      (18/252, ADRs 0001–0025), ADR 0014/0015 revised-by-0017 pointers, ADR 0016/0019 → CONFIRMED_USER_SIDE
+      (0013 left — STATUS doesn't confirm it). Tier 4: cadence-floor docstring, recurrence.py header → 0.5.0,
+      `BANNED` hoisted to `tests/banned_words.py`, `.gitignore` += coverage/hypothesis. The ENGINE CODE +
+      COMPLIANCE HEDGING audited CLEAN — not re-litigated. **Open after merge:** Scott runs `make jstest` with a
+      real browser for the live-JS CONFIRMED_USER_SIDE (sandbox blocked the Chromium download this session).
 - [x] All 4 rules + v1 matching + combined report merged to `main`.
 - [x] `docs/adr/` running log (0001 tool-call, 0002 report arch, 0003 co-occurrence,
       0004 `--report-v1`, 0005 doc/harness reconciliation, 0006 AGENTS.md source-of-truth,
@@ -203,7 +216,7 @@ Last updated: 2026-06-07
       source note, click-to-highlight, all from real `run_report` output; dependency-free, grayscale, banned-words-clean.
       One synthetic patient surfaces all five lenses. On `main` (177 tests).
 - [x] **Review hardening — MERGED (PR #29) (docs/CI/wording only).** CI↔Makefile parity (`make compile` =
-      the one canonical file list; CI delegates to make → byte-compiles all 4 modules + runs BOTH self-tests,
+      the one canonical file list; CI delegates to make → byte-compiles all 5 modules + runs BOTH self-tests,
       so it can't drift again); README pipeline diagram + non-goals ("what this deliberately does not do");
       honest/softened compliance wording (README, docstrings, SECURITY §C.1); new `docs/DEMO_OUTPUT.md`
       (captured stdout). The `--demo-multi` snapshot in DEMO_OUTPUT stays deferred until #28 lands. On `main`.

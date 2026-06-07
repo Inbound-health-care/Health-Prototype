@@ -33,18 +33,34 @@ sync with the code (see ADR 0005)._
   `CADENCE_CHANGE_ANSWER_KEY`, `FREETEXT_EXPECTED_RECORDS`) + `SYNONYMS`. Cadence has a dedicated
   `CADENCE_CHANGE_RECORDS` set (kept out of `SAMPLE_RECORDS` to avoid key ripple).
 - `data/RECORDS.md` — data dictionary (field rationale, per-record reasons).
-- `extract.py` — free-text extraction FRONT-END (slice 1): turns dated prose into the
-  canonical record shape the 5 rules consume unchanged (allowlist gazetteer + explicit-date
-  regex + char-offset `source_span`; de-identified date shift). A front door to the librarian,
-  not part of it — imports `recurrence.py`, never the reverse. See ADR 0008.
-- `tests/` — 16 test files, 221 tests (engine 90 + free-text slices + multi-patient + both HTML views + theme). CI: `.github/workflows/ci.yml` (Py 3.10-3.13).
+- `extract.py` — free-text extraction FRONT-END (slices 1–2 + relative-date anchoring +
+  multi-patient): turns dated prose into the canonical record shape the 5 rules consume
+  unchanged (allowlist gazetteer + explicit-date regex + char-offset `source_span`;
+  de-identified date shift; opt-in matching modes; fail-closed `extract_records_multi`).
+  A front door to the librarian, not part of it — imports `recurrence.py`, never the reverse.
+  See ADR 0008/0012/0013/0016.
+- `view_html.py` — shared VIEW FLOOR (ADR 0021): theme tokens, cited-span highlight helpers,
+  one click+keyboard activation path (ADR 0022), print CSS + `beforeprint` handler, the
+  at-a-glance cited-date timeline (ADR 0023), and the multi-patient chrome. Imported by both
+  views; imports `recurrence.py` only (never the reverse).
+- `report_html.py` — inspection view (ADR 0014): the source note with cited spans beside the
+  `run_report` findings, click-to-highlight; single + multi-patient (ADR 0021).
+- `digest_html.py` — clinician Pre-visit Pattern Digest (ADR 0015): the five lenses as cited
+  cards beside the note; single + multi-patient (ADR 0020). Both views are pure stdlib, no network.
+- `tests/` — 18 test files, 252 tests (5 skipped: the dev-only Hypothesis properties + the
+  dev-only live-JS view test, both gated on optional tools — see ADR 0025). Engine 90 + free-text
+  slices + multi-patient + all three HTML views + theme. CI: `.github/workflows/ci.yml`
+  (Py 3.10-3.13); CI also runs the Hypothesis properties (ADR 0025).
 
 ## Engine hard rules
 - Pure Python STDLIB ONLY at runtime. No network egress. Zero real PHI, ever.
 - Defaults stay EXACT-MATCH (v0). New matching is opt-in, never a default.
 - Validate args — raise `ValueError` on bad input (library code fails loudly).
 - Determinism: stable ordering; ANSWER KEYS ARE WRITTEN BY HAND FIRST, the code
-  is made to match — never patch the key toward the code.
+  is made to match — never patch the key toward the code. (Engine + oracle co-landed in
+  the first commit, so this independence rests on the stated convention + author discipline,
+  not git ordering — see `data/sample_records.py` and ADR 0025; land new oracle entries in
+  their own commit, before the code that makes them pass.)
 
 ## The librarian rule (also in CLAUDE.md — the one rule that governs the engine)
 Librarian, not interpreter. Surface, count, cite provenance. NEVER score, rank,

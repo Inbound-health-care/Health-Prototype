@@ -32,9 +32,9 @@ naming later. Values brutal honesty over hype. Reads everything.
 - **health-prototype**: recurrence engine. v0 exact-match + v1 opt-in matching
   (normalize/synonyms/fuzzy) + **5 rules** (recurrence / gap / frequency /
   co-occurrence / cadence-change) + router/expert registry with `--report` (v0 and `--report-v1`).
-  **221 tests green** (engine + free-text slices 1–2 + multi-patient + both HTML views + theme), `ruff` clean, CI on Py 3.10-3.13.
-  The librarian rule: surface/count/cite, NEVER interpret. PRs through #32 merged to `main`
-  (incl. `extract.py` free-text front-end + multi-patient extractor + both HTML views); branch protection active.
+  **252 tests** (5 dev-only skips: Hypothesis + live-JS) (engine + free-text slices 1–2 + multi-patient + all three HTML views + theme), `ruff` clean, CI on Py 3.10-3.13.
+  The librarian rule: surface/count/cite, NEVER interpret. PRs through #36 merged to `main`
+  (incl. `extract.py` free-text front-end + multi-patient extractor + all three HTML views: view_html floor + report + digest); branch protection active.
 - A **6th** rule is a drop-in: append one `Expert(name, detect_x, format_x)` to
   `EXPERTS` and it joins `--report` automatically.
 - A SECOND project exists (separate): **Sovereign Scribe / PACT** — local clinical
@@ -44,7 +44,7 @@ naming later. Values brutal honesty over hype. Reads everything.
 1. `STATUS.md` — where am I / next step (CANONICAL, newest).
 2. `CLAUDE.md` — operator rules + limits + engine rules + architecture.
 3. `docs/adr/` — decision log (incl. the assistant's own process changes).
-4. `JOURNAL.md` — the WHY / narrative / lessons (incl. limitations found).
+4. `JOURNAL.md` — the WHY / narrative / lessons (ARCHIVED 2026-06-07 — historical only; the diary is chat-only now, ADR 0024).
 5. Drive: `health-prototype/archive` — full prior-session audit + per-session handoffs (off-repo).
 6. `docs/AGENT_AUDIT_METHOD.md` — reusable subagent-audit playbook (use for code
    review too: brief -> run -> review HOW -> tighten brief -> repeat).
@@ -55,8 +55,10 @@ naming later. Values brutal honesty over hype. Reads everything.
       Reference" (local-LLM / health-AI / reference). Resume detail in SESSION_LOG.
 - [ ] Write "Local LLM Settings — Master Reference" (per-device/per-mode) — the
       recipe the April research pointed at but never became a doc.
-- [ ] Next build increment: free-text **slice 2** (opt-in fuzzy/synonym gazetteer via the
-      engine's v1 layer; relative-date anchoring; or multi-patient notes) — Scott's pick.
+- [ ] Engine build increments through the UI phase have ALL shipped (free-text slices 1–2,
+      relative-date anchoring, multi-patient, all three HTML views + theme + responsive +
+      timeline). Current next-step + open loops live in `STATUS.md`; the active fix-list is
+      `docs/AUDIT_2026-06-07.md`. Reconcile against STATUS, not this line.
 
 ## First move for the fresh session
 Confirm you read STATUS.md + CLAUDE.md (one sentence). Hold the operator rules.
