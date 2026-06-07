@@ -1,9 +1,10 @@
 # 0023 — At-a-glance cited-date timeline (ticks-only, single-accent, document order)
 
 **Date:** 2026-06-07
-**Evidence level:** IMPLEMENTED_UNVERIFIED — CONFIRMED_ASSISTANT_SIDE (`make check` green:
-248 tests / self-test 6+10 / `ruff` clean); promotes to CONFIRMED_USER_SIDE when Scott opens a
-demo. The clinical-timeline evidence below is **RESEARCH_ONLY** (web-sourced 2026-06-07).
+**Evidence level:** CONFIRMED_USER_SIDE — Scott verified the four views on his device
+(2026-06-07) and gave the OK to merge. `make check` green: 248 tests / self-test 6+10 / `ruff`
+clean; merged to `main` via PR #35. The clinical-timeline evidence below is **RESEARCH_ONLY**
+(web-sourced 2026-06-07).
 **Type:** UI / front-end
 **Builds on:** ADR 0021 (the shared `view_html.py` floor), 0022 (the shared interaction layer the
 timeline ticks reuse), 0020 (the cognitive-load "single-screen, at-a-glance" read it realizes).
@@ -74,4 +75,5 @@ alternative). **Deferred:** de-duplicating an item that surfaces in several lens
 - `tests/test_view_theme.py` (already looping all four demos) confirms the timeline introduces no
   colour outside the token set and stays responsive.
 - Manual: `python digest_html.py --demo` (one lane per lens, 24 ticks across 7 lanes) and
-  `--demo-multi` (a per-patient axis, each carrying only its own dates). CONFIRMED_USER_SIDE pending.
+  `--demo-multi` (a per-patient axis, each carrying only its own dates). CONFIRMED_USER_SIDE —
+  Scott verified on his device (2026-06-07).

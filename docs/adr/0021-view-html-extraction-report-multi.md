@@ -1,9 +1,9 @@
 # 0021 — Promote shared view primitives to `view_html.py`; report_html multi-patient parity
 
 **Date:** 2026-06-07
-**Evidence level:** IMPLEMENTED_UNVERIFIED — CONFIRMED_ASSISTANT_SIDE (`make check` green:
-235 tests / self-test 6+10 / `ruff` clean); promotes to CONFIRMED_USER_SIDE when Scott opens
-`python report_html.py --demo-multi`.
+**Evidence level:** CONFIRMED_USER_SIDE — Scott verified the four views on his device
+(2026-06-07) and gave the OK to merge. `make check` green: 235 tests / self-test 6+10 /
+`ruff` clean; merged to `main` via PR #35.
 **Type:** Architecture / UI / front-end
 **Realizes:** ADR 0020 §Consequences ("`report_html` stays single-note; a later slice can
 extend it the same way"). Executes the deferred promotion pre-declared in ADR 0015
@@ -79,4 +79,4 @@ ordering deferred as a cosmetic follow-up if Scott wants it.
 - `tests/test_view_theme.py` now also runs both `--demo-multi` outputs through the
   non-semantic-colour / responsive / dark-toggle checks.
 - Manual: `python report_html.py --demo-multi` — two stacked patients (findings list + own cited
-  segment), jump-index, quarantine section. CONFIRMED_USER_SIDE pending (Scott opens the file).
+  segment), jump-index, quarantine section. CONFIRMED_USER_SIDE — Scott verified on his device (2026-06-07).

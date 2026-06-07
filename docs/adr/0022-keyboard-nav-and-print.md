@@ -1,10 +1,9 @@
 # 0022 — Keyboard navigation + print pass (shared interaction layer)
 
 **Date:** 2026-06-07
-**Evidence level:** IMPLEMENTED_UNVERIFIED — CONFIRMED_ASSISTANT_SIDE (`make check` green:
-241 tests / self-test 6+10 / `ruff` clean); promotes to CONFIRMED_USER_SIDE when Scott tabs
-through a view by keyboard and print-previews one. The a11y/print method notes below are
-**RESEARCH_ONLY** (web-sourced 2026-06-07).
+**Evidence level:** CONFIRMED_USER_SIDE — Scott verified the views on his device (2026-06-07)
+and gave the OK to merge. `make check` green: 241 tests / self-test 6+10 / `ruff` clean; merged
+to `main` via PR #35. The a11y/print method notes below are **RESEARCH_ONLY** (web-sourced 2026-06-07).
 **Type:** UI / front-end / accessibility
 **Builds on:** ADR 0021 (the shared `view_html.py` floor — both views inherit this in one place).
 
@@ -77,4 +76,4 @@ visually confirmed).
   opened via `beforeprint`/`afterprint`; print/interaction strings are banned-words-clean.
 - Manual: tab to a card/finding (focus ring), press Enter or Space (highlights its cited source);
   browser print-preview of each `--demo` / `--demo-multi` (single column, chrome gone, dates
-  expanded). CONFIRMED_USER_SIDE pending.
+  expanded). CONFIRMED_USER_SIDE — Scott verified on his device (2026-06-07).
