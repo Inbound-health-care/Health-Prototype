@@ -26,6 +26,7 @@ from recurrence import (  # noqa: E402
     detect_recurrence,
     format_cooccurrence_hit,
 )
+from tests.banned_words import BANNED  # noqa: E402
 
 
 def _record(rid: str) -> dict:
@@ -121,11 +122,7 @@ class TestCooccurrenceBehavior(unittest.TestCase):
 class TestCooccurrenceLibrarianRule(unittest.TestCase):
     """Output cites provenance only — pure counting, never a relationship claim."""
 
-    BANNED = (
-        "worsening", "worsen", "severe", "severity", "suggests", "diagnos",
-        "risk", "concern", "caution", "abnormal", "score", "acute",
-        "associated", "correlated", "linked", "cause", "caused", "relationship",
-    )
+    BANNED = BANNED  # the shared suite-wide union — see tests/banned_words.py
 
     def test_format_is_count_only(self):
         for hit in detect_cooccurrence([_record("R017")]) + detect_cooccurrence(

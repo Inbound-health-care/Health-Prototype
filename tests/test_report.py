@@ -33,6 +33,8 @@ from recurrence import (
     run_report,
 )
 
+from tests.banned_words import BANNED  # the shared suite-wide union
+
 
 def _group_hits_by_record(hits):
     grouped = {}
@@ -138,14 +140,7 @@ class TestReportOrderingAndOmission(unittest.TestCase):
 class TestReportLibrarianRule(unittest.TestCase):
     """Output cites provenance only — no interpretation, no ranking."""
 
-    BANNED = (
-        # interpretive (the existing per-rule banned-word set)
-        "worsening", "worsen", "severe", "severity", "suggests", "diagnos",
-        "risk", "concern", "caution", "abnormal", "score", "relapse", "acute",
-        # ranking / aggregation (stricter, specific to a combined view)
-        "top", "most", "priority", "prioritize", "rank", "ranking",
-        "total", "highest", "lowest", "worst", "best",
-    )
+    BANNED = BANNED  # the shared suite-wide union — see tests/banned_words.py
 
     def test_report_text_has_no_banned_words(self):
         text = format_report(run_report(SAMPLE_RECORDS)).lower()

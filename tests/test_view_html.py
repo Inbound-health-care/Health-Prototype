@@ -42,17 +42,8 @@ def _all_demos() -> dict[str, str]:
         "digest-multi": digest_html.build_demo_multi_html(REF),
     }
 
-# The suite-wide union of interpretive / ranking words the librarian rule forbids.
-# Mirrors tests/test_report_html.py and tests/test_digest_html.py; the shared layer
-# must add none either.
-BANNED = (
-    "worsening", "worsen", "severe", "severity", "suggests", "diagnos", "risk",
-    "concern", "caution", "abnormal", "score", "relapse", "acute", "accelerat",
-    "decelerat", "increasing", "decreasing", "escalat", "declining", "deteriorat",
-    "improving", "trend", "associated", "correlated", "linked", "cause", "caused",
-    "relationship", "top", "most", "priority", "prioritize", "rank", "ranking",
-    "total", "highest", "lowest", "worst", "best",
-)
+# The librarian-rule banned words live once in tests/banned_words.py (shared union).
+from tests.banned_words import BANNED  # noqa: E402
 
 
 class TestSharedModuleIsTheFloor(unittest.TestCase):

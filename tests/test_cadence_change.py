@@ -30,6 +30,7 @@ from recurrence import (  # noqa: E402
     detect_cadence_change,
     format_cadence_change_hit,
 )
+from tests.banned_words import BANNED  # noqa: E402
 
 
 def _reshape(hits) -> dict:
@@ -172,14 +173,7 @@ class TestCadenceChangeBehavior(unittest.TestCase):
 class TestCadenceChangeLibrarianRule(unittest.TestCase):
     """Output states the interval change and where — never what it means."""
 
-    BANNED = (
-        # interpretive / severity (the existing per-rule set)
-        "worsening", "worsen", "severe", "severity", "suggests", "diagnos",
-        "risk", "concern", "caution", "abnormal", "score", "acute",
-        # cadence-specific direction/judgment words
-        "accelerat", "decelerat", "increasing", "decreasing", "escalat",
-        "declining", "deteriorat", "improving", "trend",
-    )
+    BANNED = BANNED  # the shared suite-wide union — see tests/banned_words.py
 
     def test_format_is_neutral_and_cited(self):
         hits = detect_cadence_change([_monthly_then_weekly()])

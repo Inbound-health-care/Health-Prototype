@@ -29,16 +29,8 @@ from extract import extract_records  # noqa: E402
 from recurrence import run_report  # noqa: E402
 from report_html import build_demo_html, build_demo_multi_html, render_html  # noqa: E402
 
-# The suite-wide union of interpretive / ranking words the librarian rule forbids in
-# output. Mirrors tests/test_extract.py; the view layer must add none either.
-BANNED = (
-    "worsening", "worsen", "severe", "severity", "suggests", "diagnos", "risk",
-    "concern", "caution", "abnormal", "score", "relapse", "acute", "accelerat",
-    "decelerat", "increasing", "decreasing", "escalat", "declining", "deteriorat",
-    "improving", "trend", "associated", "correlated", "linked", "cause", "caused",
-    "relationship", "top", "most", "priority", "prioritize", "rank", "ranking",
-    "total", "highest", "lowest", "worst", "best",
-)
+# The librarian-rule banned words live once in tests/banned_words.py (shared union).
+from tests.banned_words import BANNED  # noqa: E402
 
 REF = datetime.date(2026, 3, 15)
 

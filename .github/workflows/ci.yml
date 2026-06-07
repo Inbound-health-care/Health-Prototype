@@ -32,6 +32,14 @@ jobs:
         run: make test
       - name: Self-tests (engine + extractor)
         run: make selftest
+      # Gate the fail-closed extractor's no-bleed / consistent-shift / additivity
+      # invariants on every PR (ADR 0025). Hypothesis is a dev-only tool, installed
+      # here only for this step; the run is derandomized (CI=true) so any failure
+      # reproduces locally. The engine itself stays pure-stdlib at runtime.
+      - name: Property tests (Hypothesis — fail-closed extractor invariants)
+        run: |
+          pip install hypothesis
+          python -m unittest tests.test_extract_multi_properties -v
 
   # Lint gate. The engine itself is stdlib-only; ruff is a dev tool, so this is
   # the one job that installs a dependency (pinned to match local). Lint only —
