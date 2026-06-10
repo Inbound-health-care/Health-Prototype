@@ -1,10 +1,25 @@
 # STATUS — health-prototype
 
 _The front door. Read this first, update it last. One source of "where am I."_
-Last updated: 2026-06-07
+Last updated: 2026-06-10
 
 ## Current state
-- **Session 2026-06-07 (cont.) — Rule-layer metamorphic property tests (ADR 0027) + AI-verification research fold-in — on branch `claude/serene-brahmagupta-S4Tjp`; draft PR, NOT merged.**
+- **Session 2026-06-10 — GitHub audit + STATUS reconcile (this PR); PR #42 (AI-assisted PR template) merged.**
+  Since 2026-06-07: Scott merged **PR #41** (squash `721f216`); a separate pass via an external AI tool (working from
+  an uploaded "AI coding assistant error report") added **`.github/pull_request_template.md`** — an AI-assistance /
+  risk / verification checklist — on `governance/ai-pr-checklist`, **merged as PR #42** (2026-06-10, `main` `e0a4d4f`).
+  CI green on both merges. Audit findings: **zero open PRs**; STATUS/PROJECT_MAP + the engine-facts docs
+  (`architecture.md`, `COLD_START_HANDOFF.md`) stale (252→**253** tests / 18→19 test files / 5→6 skips; the latter two
+  also drifted from main as the known squash-carries-draft-wording pattern, same as #38/#40) → this reconcile; a
+  sync-merge `05411a1` pushed to `claude/serene-brahmagupta-S4Tjp`
+  post-#41 had resurrected pre-merge doc content on the branch tip (no unique work; de-regressed here by restoring
+  `main`'s versions of the 5 affected files). Branch cleanup per Scott's 2026-06-10 call: `governance/ai-pr-checklist`
+  (#42), `claude/fervent-brown-JEwJA` (ADR 0021–0023 content verified on `main`), `coderabbitai/utg/379a87a` (PR #2
+  closed unmerged 2026-05-30; generated tests discarded — Scott's call) deleted; `claude/serene-brahmagupta-S4Tjp`
+  retires after this PR merges. (Deletion attempted from the session: blocked 403 — the push allowlist covers only the
+  session branch — so the deletes are Scott's, in the UI.) STILL OPEN (Scott, UI): add the CI `html` job to
+  branch-protection required checks (#39).
+- **Session 2026-06-07 (cont.) — Rule-layer metamorphic property tests (ADR 0027) + AI-verification research fold-in — MERGED to `main` via PR #41 (Scott, squash `721f216`, 2026-06-07).**
   Audited three Gemini "deep research" docs via `AGENT_AUDIT_METHOD` (5-then-4 parallel subagents). Honest finding: this engine is deterministic/pure-stdlib/no-LLM, so most of the
   corpus is **inapplicable** (LLM-judge bias, agentic eval, quantization diff-testing, contamination, OTel) or merely **corroborates** existing practice; the one transferable technique is
   **metamorphic/property testing**, on a real gap (only the multi-patient EXTRACTOR had Hypothesis props; the 5 rules were oracle-pinned only). Added **4 properties at the RULE layer** — P1
@@ -318,12 +333,13 @@ Both planned engine increments are MERGED to `main`:
   + multi-patient digest rendering (ADR 0020) + the shared `view_html.py` floor + `report_html` multi-patient
   + keyboard/print + the at-a-glance cited-date timeline (**ADR 0021–0023**) + the audit fix-list (governance + verification
   ceiling + doc reconcile, **ADR 0024–0025**) + the CI HTML-validity gate (proof-html) + accessible view refactor (real `<button>` findings
-  + block-link card, **ADR 0026**), **252 tests** (post #1–#39).
+  + block-link card, **ADR 0026**) + rule-layer metamorphic property tests + the AI-verification research
+  fold-in (**ADR 0027**) + the AI-assisted PR checklist template (**#42**), **253 tests** (post #1–#42).
   Per-module versions (no single repo-wide version): `recurrence.py` 0.5.0, `extract.py` 0.4.0,
   `view_html.py` 0.4.0, `report_html.py` 0.5.0, `digest_html.py` 0.5.0.
-  `claude/exciting-fermat-lztQq` is merged via #30 (retire-able).
-  `claude/dazzling-shannon-jPWz2` is merged via #28 (retire-able); `claude/hopeful-albattani-sYkkR` via #25
-  (retire-able); `claude/review-hardening` merged via #29 (retire-able).
+  Old work branches retired (#25/#28/#29/#30). Branch cleanup approved 2026-06-10 (Scott's call; he deletes in the
+  UI — session push can't): `governance/ai-pr-checklist`, `claude/fervent-brown-JEwJA`, `coderabbitai/utg/379a87a`
+  (PR #2, closed unmerged); `claude/serene-brahmagupta-S4Tjp` (merged via #41) once the 2026-06-10 reconcile merges.
   Per-session history + the free-text/legal-grounding design + the 2026 compliance/market audit live
   in Drive `health-prototype/` (`archive` + `freetext-design` + `audit-2026-06-05`).
 - Spec (contract): Drive `BUILD_SPEC_RecurrenceDetection_v0_2026-05-30.md`
