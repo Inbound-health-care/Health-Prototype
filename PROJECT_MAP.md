@@ -59,6 +59,7 @@ canonical files.
 |---|---|---|---|
 | `Makefile` | `test` / `selftest` / `lint` / `check` / `demo` / `html-demos` / `branch-audit` / `clean` | — | Running tasks |
 | `.github/workflows/ci.yml` | CI: compileall + unittest + self-test + Hypothesis + HTML-validity (proof-html) | yes (CI gate) | CI changes |
+| `.github/pull_request_template.md` | AI-assisted PR checklist pre-filled into every PR body (added by #42) | yes (PR process) | Opening a PR |
 | `README.md` | Public-facing project description | yes (public face) | External readers |
 | `SOVEREIGN_SCRIBE_SALVAGE.md` | Salvage of the separate clinical-scribe project | — | That project only |
 | `.gitignore` | Ignore rules | — | — |
