@@ -47,12 +47,14 @@ sync with the code (see ADR 0005)._
   `run_report` findings, click-to-highlight; single + multi-patient (ADR 0021).
 - `digest_html.py` — clinician Pre-visit Pattern Digest (ADR 0015): the five lenses as cited
   cards beside the note; single + multi-patient (ADR 0020). Both views are pure stdlib, no network.
-- `tests/` — 19 test files, 253 tests (6 skipped: the dev-only Hypothesis properties + the
+- `tests/` — 21 test files, 267 tests (6 skipped: the dev-only Hypothesis properties + the
   dev-only live-JS view test, both gated on optional tools — see ADR 0025). Engine 90 + free-text
-  slices + multi-patient + all three HTML views + theme + rule-layer property tests (ADR 0027).
+  slices + multi-patient + all three HTML views + theme + rule-layer property tests (ADR 0027)
+  + sensitive-change scanner and workflow-security tests (ADR 0028).
   CI: `.github/workflows/ci.yml`
-  (Py 3.10-3.13); CI also runs the Hypothesis properties (ADR 0025) and validates the four
-  generated HTML views with proof-html / html-proofer (ADR 0026).
+  (Py 3.10-3.13); CI also runs the Hypothesis properties (ADR 0025), validates the four
+  generated HTML views with proof-html / html-proofer (ADR 0026), scans added lines for
+  sensitive patterns, and reviews dependency changes (ADR 0028).
 
 ## Engine hard rules
 - Pure Python STDLIB ONLY at runtime. No network egress. Zero real PHI, ever.

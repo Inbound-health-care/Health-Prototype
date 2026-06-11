@@ -64,6 +64,19 @@ Least-privilege rules (2026):
 - The engine has **no network egress** by design — do not add one.
 - If real PHI is ever pasted in or surfaced: STOP, do not persist it, tell Scott.
 
+### C.2 Commit-time sensitive-change gate
+
+`tools/scan_sensitive_changes.py` scans added Git diff lines for secrets, private
+keys, payment-card numbers, email addresses, SSNs, phone numbers, and labeled
+MRN/DOB values. It also blocks a small set of credential and real-record path
+shapes. Findings contain only detector ID, path, and line number.
+
+The gate is intentionally narrow. It does not scan names, addresses, URLs, IPs,
+or bare dates, and it is not proof of HIPAA de-identification or publication
+safety. Exact reserved synthetic sentinels are exempt only in `tests/` and
+`data/`; there is no inline bypass marker. Human review and this policy still
+govern every change.
+
 ### C.1 Legal grounding — the allowlist + the librarian rule (see ADR 0009 — NOT legal advice)
 The librarian rule is the design principle and the main risk boundary — it reduces
 interpretive and CDS risk, but it is NOT a compliance determination. Its legal half is

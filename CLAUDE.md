@@ -33,6 +33,9 @@ file just points there and adds the Claude-specific bits below.
   specific PR. Never auto-merge; never merge without the per-PR ask. (Refines the
   older "Scott merges, nothing auto-merges" convention; relates to
   `SECURITY_AND_TOOL_POLICY.md` §B.)
+- **Draft-PR checkpoint:** open agent-authored PRs as drafts. Stop after checks and
+  review evidence are assembled; do not mark ready or merge until Scott reviews
+  the specific PR and gives the corresponding instruction.
 - **Operator knows the harness gates — stop narrating them (set 2026-06-05).** Scott
   is aware of: the per-PR merge ask-gate; the PR webhook subscription (it delivers CI
   *failures* + review comments, NOT CI-success or push/rebase/merge-conflict
