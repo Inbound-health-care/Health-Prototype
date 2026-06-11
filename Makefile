@@ -1,4 +1,4 @@
-.PHONY: test selftest demo compile lint check typecheck fmt-check fmt cov security proptest jstest html-demos tools branch-audit clean
+.PHONY: test selftest demo compile lint check dev-install scan-sensitive hooks typecheck fmt-check fmt cov security proptest jstest html-demos tools branch-audit clean
 
 # Engine is pure stdlib; no runtime dependencies to install.
 # The targets below test/lint/type-check are OPTIONAL dev tooling: each is a
@@ -31,6 +31,15 @@ check:         ## Standard local verification gate: tests + self-test + lint
 	$(MAKE) selftest
 	$(MAKE) lint
 
+dev-install:   ## Install exact dev-tool versions (runtime remains stdlib-only)
+	python -m pip install --requirement requirements-dev.txt
+
+scan-sensitive: ## Scan staged changes for secrets and high-confidence identifiers
+	python tools/scan_sensitive_changes.py --staged
+
+hooks:         ## Use the repository's pre-commit hook (local git config only)
+	git config core.hooksPath .githooks
+
 typecheck:     ## Static type check (mypy if installed) — report-only, won't fail the run
 	-mypy recurrence.py
 
@@ -47,12 +56,13 @@ security:      ## Security/AST lint via uvx (no install)
 	-uvx bandit -q -r recurrence.py
 
 # Property tests are dev-only/additive: the suite SKIPS them when hypothesis is
-# absent, so `make test` stays pure-stdlib green. `make proptest` runs them via uvx.
+# absent, so `make test` stays pure-stdlib green. `make proptest` runs them via uv
+# using the same exact dev-tool manifest as CI.
 # CI ALSO gates them now (ADR 0025, 0027) — it installs hypothesis and runs these
 # modules derandomized: the fail-closed EXTRACTOR invariants and the rule-layer
 # metamorphic properties protect every PR (no longer a bare skip).
 proptest:      ## Property-based tests (Hypothesis via uvx; no install)
-	-uvx --with hypothesis python -m unittest tests.test_extract_multi_properties tests.test_rule_properties -v
+	-uv run --with-requirements requirements-dev.txt python -m unittest tests.test_extract_multi_properties tests.test_rule_properties -v
 
 # Live JS/DOM test (ADR 0025): executes the views' interactive JS in headless
 # Chromium so a runtime bug can't pass as a green static-string assert. Dev-only,

@@ -69,6 +69,8 @@ supplies all judgment. Tests enforce this — keep it that way.
 ## Commands (pure stdlib; nothing to install)
 - `make test` — full unittest suite · `make selftest` — required spec cases
 - `make lint` — byte-compile (+ ruff if present) · `make check` — test + selftest + lint
+- `make scan-sensitive` — scan staged additions for secrets/high-confidence identifiers
+- `make hooks` — opt into the repo's pre-commit sensitive-change gate
 - `make demo` — every surfacing-rule demo
 - `python recurrence.py --self-test | --demo | --demo-v1 | --demo-gap | --demo-frequency | --demo-cooccurrence | --report | --report-v1`
 
@@ -78,6 +80,8 @@ supplies all judgment. Tests enforce this — keep it that way.
   `docs/agent-guides/architecture.md` — the source of truth for engine facts.
 - **Security & tool policy** (untrusted input, tool risk, PHI, source conflicts):
   `SECURITY_AND_TOOL_POLICY.md` — read before any write/delete/install/send.
+- **Public vulnerability reporting:** `SECURITY.md`.
+- **Practical repository lessons:** `docs/LEARNINGS.md` (append-only).
 - **Decisions / why:** `docs/adr/`   ·   **Narrative / lessons:** `JOURNAL.md` (ARCHIVED 2026-06-07 — historical only; diary is chat-only, ADR 0024)
 - **Doc / evidence discipline:** `docs/DOC_DISCIPLINE.md`
 - **Repo file map:** `PROJECT_MAP.md`   ·   **Cold start:** `docs/COLD_START_HANDOFF.md`

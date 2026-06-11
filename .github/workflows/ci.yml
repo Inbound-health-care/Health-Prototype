@@ -1,12 +1,16 @@
 name: CI
 
-# Gate every push and PR on the test suite. Pure stdlib — no install step.
+# Gate every push and PR on the test suite. Runtime remains pure stdlib; CI
+# installs only the exact dev-tool versions in requirements-dev.txt.
 # push runs only on main (post-merge); PR branches are covered by pull_request,
 # so each PR push triggers exactly one run instead of two.
 on:
   push:
     branches: [main]
   pull_request:
+
+permissions:
+  contents: read
 
 # A newer push to the same ref cancels the in-progress run for it.
 concurrency:
@@ -21,11 +25,15 @@ jobs:
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13"]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Install exact dev tools
+        run: python -m pip install --requirement requirements-dev.txt
       - name: Byte-compile every project file (delegates to the Makefile)
         run: make compile
       - name: Run test suite
@@ -35,12 +43,10 @@ jobs:
       # Gate the fail-closed extractor's no-bleed / consistent-shift / additivity
       # invariants AND the rule-layer metamorphic properties (record isolation,
       # reordering & shift invariance) on every PR (ADR 0025, 0027). Hypothesis is
-      # a dev-only tool, installed here only for this step; the run is derandomized
+      # a dev-only tool, installed from the versioned manifest; the run is derandomized
       # (CI=true) so any failure reproduces locally. The engine stays pure-stdlib.
       - name: Property tests (Hypothesis — extractor + rule-layer invariants)
-        run: |
-          pip install hypothesis
-          python -m unittest tests.test_extract_multi_properties tests.test_rule_properties -v
+        run: python -m unittest tests.test_extract_multi_properties tests.test_rule_properties -v
 
   # Lint gate. The engine itself is stdlib-only; ruff is a dev tool, so this is
   # the one job that installs a dependency (pinned to match local). Lint only —
@@ -48,12 +54,14 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: "3.13"
-      - name: Install ruff (pinned)
-        run: pip install ruff==0.15.16
+      - name: Install exact dev tools
+        run: python -m pip install --requirement requirements-dev.txt
       - name: Ruff check
         run: ruff check .
 
@@ -65,14 +73,16 @@ jobs:
   html:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: "3.13"
       - name: Generate the four HTML views into _site/ (delegates to the Makefile)
         run: make html-demos
       - name: Validate generated HTML (proof-html / html-proofer)
-        uses: anishathalye/proof-html@v2
+        uses: anishathalye/proof-html@a76b66427e600c6992e8937a741afffd2264a613 # v2.2.3
         with:
           directory: ./_site
           disable_external: true    # no external links exist; skip the network checker (no flake/egress)

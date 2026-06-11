@@ -14,6 +14,7 @@ canonical files.
 | `STATUS.md` | Current state / next step | **yes (current state)** | Every session start; update last |
 | `docs/COLD_START_HANDOFF.md` | Fresh-session orientation | — | Cold start |
 | `SECURITY_AND_TOOL_POLICY.md` | Untrusted input, tool-risk, PHI, source conflicts | **yes (security/tool policy)** | Before any write/delete/install/send |
+| `SECURITY.md` | Public vulnerability-reporting front door; points to the detailed policy | — (public entrypoint) | Reporting a vulnerability |
 | `LOAD_TRACE_TEMPLATE.md` | Startup audit block | yes (trace format) | Each session start |
 | `PROJECT_MAP.md` | This file | — | Orienting to the tree |
 | `.claude/settings.json` | Registers the SessionStart hook | yes (hook config) | Rarely |
@@ -36,14 +37,17 @@ canonical files.
 | `data/RECORDS.md` | Data dictionary: field rationale, per-record reasons | yes (field meanings) | Need field meanings |
 | `data/__init__.py` | Package marker | — | — |
 | `scripts/branch_audit.py` | Read-only branch-cleanup audit (`make branch-audit`) | — | Branch cleanup |
-| `tests/` | Behavior contract (cooccurrence, frequency, fuzzy, gap, recurrence, report, sample_records) + Hypothesis properties (extractor + rule layer, ADR 0025/0027) | **yes (behavior contract)** | Changing behavior |
+| `tests/` | Behavior contract + Hypothesis properties + sensitive-change/workflow-security tests (ADR 0025/0027/0028) | **yes (behavior contract)** | Changing behavior or gates |
 | `docs/agent-guides/architecture.md` | Engine facts: commands, map, hard rules, counts | **yes (engine facts)** | Coding the engine |
+| `tools/scan_sensitive_changes.py` | Staged/PR diff gate for secrets and high-confidence identifiers; redacted output | yes (scanner behavior) | Commit/CI safety work |
+| `.githooks/pre-commit` | Optional local entrypoint for the sensitive-change scanner | — | Local hook setup |
 
 ## Decisions / discipline / narrative
 | File | Purpose | Canonical? | Load when |
 |---|---|---|---|
-| `docs/adr/` (`0001`–`0027` + `README.md`) | Decision log (build + assistant process) | **yes (decisions)** | "Why was X done" |
+| `docs/adr/` (`0001`–`0028` + `README.md`) | Decision log (build + assistant process) | **yes (decisions)** | "Why was X done" |
 | `docs/DOC_DISCIPLINE.md` | Evidence levels + ADR-confirmation + drift control | **yes (evidence levels)** | Tagging claims / audits |
+| `docs/LEARNINGS.md` | Append-only dated tool, failure-mode, and verification lessons | yes (practical lessons) | A reusable lesson is found |
 | `JOURNAL.md` | Session narrative / lessons (ARCHIVED 2026-06-07 — historical only; diary is chat-only now, ADR 0024) | — (historical archive) | Want the why/story (pre-2026-06-07) |
 | `docs/CLAUDE_OPERATING_MANUAL.md` | Operating manual | — | Deeper process |
 | `docs/AGENT_AUDIT_METHOD.md` | Subagent-audit + code-review playbook | yes (audit method) | Running an audit |
@@ -57,9 +61,13 @@ canonical files.
 ## Build / CI / meta / public
 | File | Purpose | Canonical? | Load when |
 |---|---|---|---|
-| `Makefile` | `test` / `selftest` / `lint` / `check` / `demo` / `html-demos` / `branch-audit` / `clean` | — | Running tasks |
+| `Makefile` | Test, self-test, lint, exact dev install, sensitive scan, demos, HTML generation, audit, cleanup | — | Running tasks |
+| `requirements-dev.txt` | Exact CI/dev versions for Ruff and Hypothesis; no runtime dependencies | yes (dev dependency versions) | CI/dev-tool updates |
 | `.github/workflows/ci.yml` | CI: compileall + unittest + self-test + Hypothesis + HTML-validity (proof-html) | yes (CI gate) | CI changes |
-| `.github/pull_request_template.md` | AI-assisted PR checklist pre-filled into every PR body (added by #42) | yes (PR process) | Opening a PR |
+| `.github/workflows/sensitive-scan.yml` | Read-only PR sensitive-change gate | yes (sensitive gate) | Scanner/workflow changes |
+| `.github/workflows/dependency-review.yml` | Read-only PR dependency-change review | yes (dependency gate) | Dependency/workflow changes |
+| `.github/dependabot.yml` | Weekly GitHub Actions and pip update checks | yes (update cadence) | Dependency automation changes |
+| `.github/pull_request_template.md` | Intent, deviation, AI, health/provenance, verification, and records checklist | yes (PR process) | Opening a PR |
 | `README.md` | Public-facing project description | yes (public face) | External readers |
 | `SOVEREIGN_SCRIBE_SALVAGE.md` | Salvage of the separate clinical-scribe project | — | That project only |
 | `.gitignore` | Ignore rules | — | — |

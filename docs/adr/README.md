@@ -56,3 +56,4 @@ it — history is the point.
 - [0025 — Verification ceiling: live JS test + Hypothesis gates CI + oracle convention](0025-verification-ceiling-closed.md)
 - [0026 — CI HTML-validation gate: proof-html on the generated views](0026-ci-html-validation-gate.md)
 - [0027 — Rule-layer metamorphic property tests (verification ceiling reaches the five rules)](0027-rule-layer-property-tests.md)
+- [0028 — Clinical framework baseline: sensitive-change and supply-chain gates](0028-clinical-framework-baseline.md)
