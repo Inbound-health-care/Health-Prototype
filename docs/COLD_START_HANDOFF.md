@@ -32,9 +32,11 @@ naming later. Values brutal honesty over hype. Reads everything.
 - **health-prototype**: recurrence engine. v0 exact-match + v1 opt-in matching
   (normalize/synonyms/fuzzy) + **5 rules** (recurrence / gap / frequency /
   co-occurrence / cadence-change) + router/expert registry with `--report` (v0 and `--report-v1`).
-  **267 tests** (6 dev-only skips: Hypothesis + live-JS) (engine + free-text slices 1–2 + multi-patient + all three HTML views + theme + rule-layer properties + governance gates), `ruff` clean, CI on Py 3.10-3.13.
-  The librarian rule: surface/count/cite, NEVER interpret. PRs through #42 merged to `main`
-  (incl. `extract.py` free-text front-end + multi-patient extractor + all three HTML views: view_html floor + report + digest); branch protection active.
+  **317 tests** (7 dev-only skips: Hypothesis + live-JS) (engine + free-text slices 1–2 + multi-patient + all three HTML views + theme + rule-layer properties + governance gates + the audit trail, ADR 0030), `ruff` clean, CI on Py 3.10-3.13.
+  The librarian rule: surface/count/cite, NEVER interpret. PRs through #46 merged to `main`
+  (incl. `extract.py` free-text front-end + multi-patient extractor + all three HTML views + the ADR 0028
+  framework baseline + the ADR 0029 rollout plan); branch protection active. Stage 1 (`audit.py`, ADR 0030)
+  rides this branch until its PR merges.
 - A **6th** rule is a drop-in: append one `Expert(name, detect_x, format_x)` to
   `EXPERTS` and it joins `--report` automatically.
 - A SECOND project exists (separate): **Sovereign Scribe / PACT** — local clinical

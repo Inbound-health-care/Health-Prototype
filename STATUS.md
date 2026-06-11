@@ -4,6 +4,27 @@ _The front door. Read this first, update it last. One source of "where am I."_
 Last updated: 2026-06-11
 
 ## Current state
+- **Session 2026-06-11 (cont.) — ADR 0029 STAGE 1 BUILT: governance audit trail + deterministic monitor (`audit.py`, ADR 0030); clinical modules untouched.**
+  Scott approved the plan ("next phase"); ran the new-phase discipline in order: (1) standards research
+  (`docs/RESEARCH_2026-06-11_audit-trail-standards.md` — RFC 6962 chain construction, SHA-256 still the default,
+  RFC 8785 canonical JSON via stdlib with floats rejected, 45 CFR 164.312(b) / ASTM E2147-18 / FHIR AuditEvent as
+  concept references only, OWASP digests+counts-only logging, single-writer JSONL); (2) hand-written oracle FIRST in
+  its own commit (`AUDIT_ANSWER_KEY` tallied by hand from `REPORT_ANSWER_KEY` + the FREETEXT multi oracles); (3) the
+  build: `audit.py` 0.1.0 — append-only SHA-256 hash-chained event log via pass-through wrappers (`audited_extract`
+  / `audited_extract_multi` / `audited_report`; results byte-identical to un-audited calls), digests + per-lens
+  counts ONLY (the suite's own no-identifier test caught raw record ids in the event entity mid-build — extracted
+  ids ARE patient keys — fixed to per-id digests before landing), optional JSONL persistence (fsync, resume-and-
+  continue), `summarize`/`compare` monitor (counts + signed differences, banned-words-clean), honest limits pinned
+  AS TESTS (tail truncation passes `verify`, is caught only by the external `head()` anchor; HMAC rejected — zero-
+  secret repo). Wired: `make compile`/`selftest`/`proptest` + the CI proptest step. Verified: `make check` green —
+  **317 tests** (+50; 7 expected skips), self-tests 6+10+**8**, ruff; `CI=1 make proptest` **12/12** (4 new chain
+  properties); `make scan-sensitive` OK; **five clinical modules byte-identical to `origin/main`** (diff empty).
+  ADR 0030 CONFIRMED_ASSISTANT_SIDE → CONFIRMED_USER_SIDE when Scott runs `python audit.py --demo` on his device.
+  Docs reconciled: ADR index → 0030, ADR 0029 stage pointer, PROJECT_MAP (module + research rows), architecture.md
+  (23 files / 317 tests / audit.py map), COLD_START counts. **Scott merged the PLAN as PR #46 (squash `66569fb`,
+  2026-06-11) while Stage 1 was being built**; the branch was collapsed onto the new `main` (squashed commit dropped,
+  the 2026-06-10 pattern) and Stage 1 rides **stacked draft PR #47**. **NEXT:** Scott reviews PR #47 and makes the
+  per-PR merge call; then Stage 2 (temporal-relation surfacing in `recurrence.py`) per ADR 0029.
 - **Session 2026-06-11 (cont.) — MoE "six experts" doc fact-checked + staged-rollout PLAN (ADR 0029, RESEARCH_ONLY); docs-only, no engine code.**
   Ran the full pass on the pasted Mixture-of-Experts → three-engines document (the item PARKED since 2026-06-07). Three parallel
   subagents web-verified every named system + metric: **real** — SparseDoctor (arXiv 2509.14269), CLINES (medRxiv 2025.12.01),
@@ -16,8 +37,8 @@ Last updated: 2026-06-11
   deterministic, librarian-safe rollout: **(1)** governance audit trail (hash-chained) + deterministic rule-firing/input-stats
   monitor — extends ADR 0028; **(2)** temporal-relation surfacing in `recurrence.py`; **(3)** deterministic (action,date) follow-up
   + NegEx-style assertion context in `extract.py` (UMLS normalization deferred). Indexes reconciled (ADR README, PROJECT_MAP
-  0001–0029 + the research doc). **NEXT:** Scott reviews the plan; on approval, Stage 1 lands behind its own ADR + tests (each stage
-  graduates per the research gate). Draft PR for the docs; testing-kits untouched (read-only).
+  0001–0029 + the research doc). DONE: plan **MERGED via PR #46** (Scott, squash `66569fb`, 2026-06-11); Stage 1 built
+  behind ADR 0030 (entry above). testing-kits untouched (read-only).
 - **Session 2026-06-11 — MERGED PR #44, clinical framework baseline (ADR 0028) → `main` `0f2c895` (squash, 2026-06-11); no clinical-module changes.**
   Branch `codex/clinical-framework-baseline` adds the cross-repo governance layer adapted for this public health
   prototype: public `SECURITY.md`, append-only `docs/LEARNINGS.md`, expanded PR evidence template, exact
@@ -363,15 +384,18 @@ Both planned engine increments are MERGED to `main`:
   + keyboard/print + the at-a-glance cited-date timeline (**ADR 0021–0023**) + the audit fix-list (governance + verification
   ceiling + doc reconcile, **ADR 0024–0025**) + the CI HTML-validity gate (proof-html) + accessible view refactor (real `<button>` findings
   + block-link card, **ADR 0026**) + rule-layer metamorphic property tests + the AI-verification research
-  fold-in (**ADR 0027**) + the AI-assisted PR checklist template (**#42**), **253 tests** (post #1–#42).
+  fold-in (**ADR 0027**) + the AI-assisted PR checklist template (**#42**) + the clinical framework baseline
+  (public SECURITY.md / LEARNINGS / sensitive-change scanner / hardened Actions, **ADR 0028**, #44) + the MoE
+  fact-check + three-stage rollout plan (**ADR 0029**, #46) — **267 tests on `main`** (post #1–#46).
+  **This branch (Stage 1, ADR 0030) adds `audit.py` → 317 tests**; unmerged until its PR lands.
   Per-module versions (no single repo-wide version): `recurrence.py` 0.5.0, `extract.py` 0.4.0,
-  `view_html.py` 0.4.0, `report_html.py` 0.5.0, `digest_html.py` 0.5.0.
+  `view_html.py` 0.4.0, `report_html.py` 0.5.0, `digest_html.py` 0.5.0, `audit.py` 0.1.0 (branch).
   Old work branches retired (#25/#28/#29/#30). Branch cleanup approved 2026-06-10 (Scott's call; he deletes in the
   UI — session push can't): `governance/ai-pr-checklist`, `claude/fervent-brown-JEwJA`, `coderabbitai/utg/379a87a`
   (PR #2, closed unmerged); `claude/serene-brahmagupta-S4Tjp` (merged via #41) once the 2026-06-10 reconcile merges.
   Per-session history + the free-text/legal-grounding design + the 2026 compliance/market audit live
   in Drive `health-prototype/` (`archive` + `freetext-design` + `audit-2026-06-05`).
 - Spec (contract): Drive `BUILD_SPEC_RecurrenceDetection_v0_2026-05-30.md`
-- Quick check: `make check` · `make test` · `python recurrence.py --self-test` · `python extract.py --self-test`
+- Quick check: `make check` · `make test` · `python recurrence.py --self-test` · `python extract.py --self-test` · `python audit.py --self-test`
 - Source of truth: **`AGENTS.md`** (rules + the librarian rule); `CLAUDE.md` = Claude-specific pointer.
   Engine detail (commands / architecture / counts): **`docs/agent-guides/architecture.md`**.

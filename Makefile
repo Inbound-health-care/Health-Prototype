@@ -8,9 +8,10 @@
 test:          ## Run the full unittest suite
 	python -m unittest discover -s tests -t .
 
-selftest:      ## Run the six required engine spec cases + the extractor self-test
+selftest:      ## Run the six required engine spec cases + the extractor + audit self-tests
 	python recurrence.py --self-test
 	python extract.py --self-test
+	python audit.py --self-test
 
 demo:          ## Run every surfacing-rule demo
 	python recurrence.py --demo
@@ -20,7 +21,7 @@ demo:          ## Run every surfacing-rule demo
 	python recurrence.py --demo-cooccurrence
 
 compile:       ## Byte-compile every project file (syntax gate; THE canonical file list)
-	python -m compileall -q recurrence.py extract.py view_html.py report_html.py digest_html.py tests data scripts
+	python -m compileall -q recurrence.py extract.py view_html.py report_html.py digest_html.py audit.py tests data scripts
 
 lint:          ## compile + ruff (if installed). CI delegates here so the file list lives once.
 	$(MAKE) compile
@@ -62,7 +63,7 @@ security:      ## Security/AST lint via uvx (no install)
 # modules derandomized: the fail-closed EXTRACTOR invariants and the rule-layer
 # metamorphic properties protect every PR (no longer a bare skip).
 proptest:      ## Property-based tests (Hypothesis via uvx; no install)
-	-uv run --with-requirements requirements-dev.txt python -m unittest tests.test_extract_multi_properties tests.test_rule_properties -v
+	-uv run --with-requirements requirements-dev.txt python -m unittest tests.test_extract_multi_properties tests.test_rule_properties tests.test_audit_properties -v
 
 # Live JS/DOM test (ADR 0025): executes the views' interactive JS in headless
 # Chromium so a runtime bug can't pass as a green static-string assert. Dev-only,

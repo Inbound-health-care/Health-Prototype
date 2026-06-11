@@ -33,6 +33,7 @@ canonical files.
 | `view_html.py` | Shared VIEW FLOOR: theme tokens, highlight/keyboard JS, print CSS, timeline, multi-patient chrome (ADR 0021) | **yes (view floor)** | Working on any view |
 | `report_html.py` | Inspection view: cited spans ↔ findings, click-to-highlight (ADR 0014) | yes (inspection view) | The report view |
 | `digest_html.py` | Clinician Pre-visit Pattern Digest: five lenses as cited cards (ADR 0015) | yes (product view) | The digest view |
+| `audit.py` | Governance audit trail: hash-chained event log (digests+counts only) + deterministic monitor (ADR 0030) | yes (governance) | Audited runs / trail verification |
 | `data/sample_records.py` | Synthetic records + hand-written answer keys + synonyms | yes (test oracle) | Editing fixtures/oracle |
 | `data/RECORDS.md` | Data dictionary: field rationale, per-record reasons | yes (field meanings) | Need field meanings |
 | `data/__init__.py` | Package marker | — | — |
@@ -45,7 +46,7 @@ canonical files.
 ## Decisions / discipline / narrative
 | File | Purpose | Canonical? | Load when |
 |---|---|---|---|
-| `docs/adr/` (`0001`–`0029` + `README.md`) | Decision log (build + assistant process) | **yes (decisions)** | "Why was X done" |
+| `docs/adr/` (`0001`–`0030` + `README.md`) | Decision log (build + assistant process) | **yes (decisions)** | "Why was X done" |
 | `docs/DOC_DISCIPLINE.md` | Evidence levels + ADR-confirmation + drift control | **yes (evidence levels)** | Tagging claims / audits |
 | `docs/LEARNINGS.md` | Append-only dated tool, failure-mode, and verification lessons | yes (practical lessons) | A reusable lesson is found |
 | `JOURNAL.md` | Session narrative / lessons (ARCHIVED 2026-06-07 — historical only; diary is chat-only now, ADR 0024) | — (historical archive) | Want the why/story (pre-2026-06-07) |
@@ -53,6 +54,7 @@ canonical files.
 | `docs/AGENT_AUDIT_METHOD.md` | Subagent-audit + code-review playbook | yes (audit method) | Running an audit |
 | `docs/RESEARCH_2026-06-07_ai-verification.md` | RESEARCH_ONLY audit of 3 AI deep-research docs: corroborated findings + fabrication ledger (prompted ADR 0027) | — (dated research) | AI-verification research context |
 | `docs/RESEARCH_2026-06-11_moe-clinical-rollout.md` | RESEARCH_ONLY fact-check of the "six experts" MoE doc + fabrication ledger; deterministic subset → ADR 0029 | — (dated research) | MoE rollout / clinical-expert context |
+| `docs/RESEARCH_2026-06-11_audit-trail-standards.md` | RESEARCH_ONLY audit-log standards research (RFC 6962/8785, HIPAA/ASTM/FHIR refs, OWASP) → ADR 0030 | — (dated research) | Audit-trail design context |
 | `docs/BRANCH_CLEANUP.md` | Branch-cleanup procedure | — | Cleaning branches |
 | `docs/TOOLS_CHEAT_SHEET.md` | Token-frugal tool patterns | — | Tooling questions |
 | `docs/PROMPT_AUDIT.md` | Prompt-audit notes | — | Prompt audits |
