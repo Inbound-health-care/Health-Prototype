@@ -39,3 +39,14 @@ Verification: inspect `.github/workflows/` and run the normal PR checks.
 
 Verification: each underlying command must exit zero; do not report `make check`
 as locally run when only its component commands were available.
+
+## 2026-06-11 — Dependency review requires the repository dependency graph
+
+- A valid dependency-review workflow fails immediately when the repository
+  dependency graph is disabled.
+- Enabling repository vulnerability alerts also exposed the dependency-graph
+  SBOM endpoint for this public repository; rerun the failed job after verifying
+  that endpoint.
+
+Verification: `gh api repos/Inbound-health-care/Health-Prototype/dependency-graph/sbom`
+returns the repository SBOM name, then the dependency-review rerun must pass.

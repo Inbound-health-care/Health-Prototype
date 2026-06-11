@@ -1,9 +1,24 @@
 # STATUS — health-prototype
 
 _The front door. Read this first, update it last. One source of "where am I."_
-Last updated: 2026-06-10
+Last updated: 2026-06-11
 
 ## Current state
+- **Session 2026-06-11 — DRAFT PR #44, clinical framework baseline (ADR 0028), no clinical-module changes.**
+  Branch `codex/clinical-framework-baseline` adds the cross-repo governance layer adapted for this public health
+  prototype: public `SECURITY.md`, append-only `docs/LEARNINGS.md`, expanded PR evidence template, exact
+  Ruff/Hypothesis manifest, immutable Action SHAs, read-only workflow permissions, weekly Dependabot, dependency
+  review, and a stdlib staged/PR sensitive-change scanner with redacted findings. Exact synthetic sentinels are
+  limited to `tests/` and `data/`; the gate explicitly does not claim HIPAA de-identification. Verification on the
+  branch: **267 tests / 6 expected skips without site packages**, both self-tests (6+10), Ruff, all 8 Hypothesis
+  properties, scanner self-test + staged scan, and four generated HTML demos; PR checks green (test 3.10–3.13,
+  lint, HTML, sensitive scan, dependency review). The first dependency-review run correctly exposed that the repo
+  dependency graph was disabled; vulnerability alerts/dependency graph were enabled and the rerun passed. Repository
+  settings now verified: secret scanning **enabled**, push protection **enabled**, CodeQL default setup **configured**
+  for `actions` + `python`, default query suite; initial CodeQL setup run passed. SHA comparison confirms
+  `recurrence.py`, `extract.py`, `view_html.py`, `report_html.py`, and `digest_html.py` are unchanged from `main`.
+  **NEXT:** implement the read-only evidence audit as stacked draft PR #2 of this rollout; PR #44 remains draft for
+  Scott's review and per-PR merge decision.
 - **Session 2026-06-10 — GitHub audit + STATUS reconcile (this PR); PR #42 (AI-assisted PR template) merged.**
   Since 2026-06-07: Scott merged **PR #41** (squash `721f216`); a separate pass via an external AI tool (working from
   an uploaded "AI coding assistant error report") added **`.github/pull_request_template.md`** — an AI-assistance /

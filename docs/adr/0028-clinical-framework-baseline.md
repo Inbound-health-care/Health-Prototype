@@ -1,6 +1,6 @@
 # 0028 — Clinical framework baseline: sensitive-change and supply-chain gates
 
-**Status:** IMPLEMENTED_UNVERIFIED
+**Status:** CONFIRMED_ASSISTANT_SIDE
 
 ## Context
 
@@ -64,6 +64,12 @@ for Python and GitHub Actions.
   `persist-credentials: false`, and absence of `pull_request_target`
 - compare SHA-256 hashes of `recurrence.py`, `extract.py`, `view_html.py`,
   `report_html.py`, and `digest_html.py` with `main`
+
+Confirmed on draft PR #44 (2026-06-11): the Python 3.10–3.13 test matrix,
+Ruff, generated-HTML validation, sensitive-change scan, and dependency review
+passed. The initial CodeQL setup run passed for Python and GitHub Actions;
+secret scanning and push protection report enabled. The five clinical module
+hashes match `main`.
 
 ## Research basis
 
