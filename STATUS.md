@@ -4,6 +4,18 @@ _The front door. Read this first, update it last. One source of "where am I."_
 Last updated: 2026-06-11
 
 ## Current state
+- **Session 2026-06-11 (cont.) — DRAFT PR #45, read-only clinical evidence audit (ADR 0029), stacked on #44.**
+  Branch `codex/clinical-evidence-audit` adds a stdlib advisory auditor with 11 stable evidence check IDs, a
+  `pull_request`-only/`contents: read` workflow, job summary, and 30-day metadata-only artifact. The artifact retains
+  only schema/PR/commit/time metadata, check ID+severity+status, and changed-path category counts — no PR body,
+  source/record text, paths, comments, or sensitive values. History is not automated: reviewed artifacts append via
+  `scripts/audit_history.py import`; `retro` refuses before 5 unique entries and prints proposals only. Verification:
+  **280 tests / 6 expected skips without site packages; 286 with Hypothesis**, Ruff, all 8 property tests, workflow
+  security, staged sensitive scan, and no clinical-module changes from #44. PR #45 checks all green (test 3.10–3.13,
+  lint, HTML, sensitive scan, dependency review, evidence audit). Downloaded PR #45 artifact validated: all 11 checks
+  pass; categories = documentation 7 / governance 4 / tests 2 / workflow 1. **First reviewed history PR is due after
+  5 completed audit runs or 2026-07-11, whichever occurs first.** Both rollout PRs remain draft; review/merge order is
+  #44 then #45, each under Scott's per-PR decision.
 - **Session 2026-06-11 — DRAFT PR #44, clinical framework baseline (ADR 0028), no clinical-module changes.**
   Branch `codex/clinical-framework-baseline` adds the cross-repo governance layer adapted for this public health
   prototype: public `SECURITY.md`, append-only `docs/LEARNINGS.md`, expanded PR evidence template, exact
@@ -17,8 +29,7 @@ Last updated: 2026-06-11
   settings now verified: secret scanning **enabled**, push protection **enabled**, CodeQL default setup **configured**
   for `actions` + `python`, default query suite; initial CodeQL setup run passed. SHA comparison confirms
   `recurrence.py`, `extract.py`, `view_html.py`, `report_html.py`, and `digest_html.py` are unchanged from `main`.
-  **NEXT:** implement the read-only evidence audit as stacked draft PR #2 of this rollout; PR #44 remains draft for
-  Scott's review and per-PR merge decision.
+  Follow-up is implemented as stacked draft PR #45; PR #44 remains draft for Scott's review and per-PR merge decision.
 - **Session 2026-06-10 — GitHub audit + STATUS reconcile (this PR); PR #42 (AI-assisted PR template) merged.**
   Since 2026-06-07: Scott merged **PR #41** (squash `721f216`); a separate pass via an external AI tool (working from
   an uploaded "AI coding assistant error report") added **`.github/pull_request_template.md`** — an AI-assistance /

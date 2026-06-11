@@ -1,6 +1,6 @@
 # 0029 — Read-only clinical evidence audit with reviewed history
 
-**Status:** IMPLEMENTED_UNVERIFIED
+**Status:** CONFIRMED_ASSISTANT_SIDE
 
 ## Context
 
@@ -61,3 +61,8 @@ five audit runs or 30 days, whichever occurs first.
 
 The direct-CLI test creates a temporary Git repository and confirms that the
 auditor preserves tracked content while writing only the requested artifact.
+
+Confirmed on stacked draft PR #45 (2026-06-11): all GitHub checks passed,
+including the evidence-audit job. The downloaded artifact matched the exact v1
+schema; all 11 stable checks passed and the only change detail retained was four
+category counts. The five clinical modules match the PR #44 base.
