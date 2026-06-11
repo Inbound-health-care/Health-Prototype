@@ -50,3 +50,14 @@ as locally run when only its component commands were available.
 
 Verification: `gh api repos/Inbound-health-care/Health-Prototype/dependency-graph/sbom`
 returns the repository SBOM name, then the dependency-review rerun must pass.
+
+## 2026-06-11 — Audit history should preserve metadata, not review prose
+
+- A useful retrospective needs stable check IDs, commit IDs, timestamps, and
+  category counts; it does not need PR-body or source text.
+- Reject unknown artifact fields at import so a later workflow change cannot
+  silently widen the retained data boundary.
+- Keep imports in reviewed PRs and require five unique entries before proposing
+  check changes.
+
+Verification: `python -m unittest tests.test_evidence_audit tests.test_audit_history -v`.

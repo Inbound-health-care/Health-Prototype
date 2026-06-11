@@ -37,17 +37,21 @@ canonical files.
 | `data/RECORDS.md` | Data dictionary: field rationale, per-record reasons | yes (field meanings) | Need field meanings |
 | `data/__init__.py` | Package marker | — | — |
 | `scripts/branch_audit.py` | Read-only branch-cleanup audit (`make branch-audit`) | — | Branch cleanup |
-| `tests/` | Behavior contract + Hypothesis properties + sensitive-change/workflow-security tests (ADR 0025/0027/0028) | **yes (behavior contract)** | Changing behavior or gates |
+| `tests/` | Behavior contract + Hypothesis properties + governance, workflow, evidence-audit, and history tests (ADR 0025/0027–0029) | **yes (behavior contract)** | Changing behavior or gates |
 | `docs/agent-guides/architecture.md` | Engine facts: commands, map, hard rules, counts | **yes (engine facts)** | Coding the engine |
 | `tools/scan_sensitive_changes.py` | Staged/PR diff gate for secrets and high-confidence identifiers; redacted output | yes (scanner behavior) | Commit/CI safety work |
 | `.githooks/pre-commit` | Optional local entrypoint for the sensitive-change scanner | — | Local hook setup |
+| `scripts/audit_evidence.py` | Advisory PR evidence checks + metadata-only artifact | yes (audit behavior/schema) | PR evidence tooling |
+| `scripts/audit_history.py` | Reviewed NDJSON import, SHA dedupe, five-entry proposal-only retrospective | yes (audit history behavior) | History PRs/retrospectives |
 
 ## Decisions / discipline / narrative
 | File | Purpose | Canonical? | Load when |
 |---|---|---|---|
-| `docs/adr/` (`0001`–`0028` + `README.md`) | Decision log (build + assistant process) | **yes (decisions)** | "Why was X done" |
+| `docs/adr/` (`0001`–`0029` + `README.md`) | Decision log (build + assistant process) | **yes (decisions)** | "Why was X done" |
 | `docs/DOC_DISCIPLINE.md` | Evidence levels + ADR-confirmation + drift control | **yes (evidence levels)** | Tagging claims / audits |
 | `docs/LEARNINGS.md` | Append-only dated tool, failure-mode, and verification lessons | yes (practical lessons) | A reusable lesson is found |
+| `docs/EVIDENCE_AUDIT.md` | Stable evidence checks, artifact boundary, reviewed-history procedure | yes (audit operations) | Audit review/history work |
+| `docs/evidence-audit-history.ndjson` | Append-only reviewed metadata artifacts; initially empty | yes (audit history) | History import/retrospective |
 | `JOURNAL.md` | Session narrative / lessons (ARCHIVED 2026-06-07 — historical only; diary is chat-only now, ADR 0024) | — (historical archive) | Want the why/story (pre-2026-06-07) |
 | `docs/CLAUDE_OPERATING_MANUAL.md` | Operating manual | — | Deeper process |
 | `docs/AGENT_AUDIT_METHOD.md` | Subagent-audit + code-review playbook | yes (audit method) | Running an audit |
@@ -66,6 +70,7 @@ canonical files.
 | `.github/workflows/ci.yml` | CI: compileall + unittest + self-test + Hypothesis + HTML-validity (proof-html) | yes (CI gate) | CI changes |
 | `.github/workflows/sensitive-scan.yml` | Read-only PR sensitive-change gate | yes (sensitive gate) | Scanner/workflow changes |
 | `.github/workflows/dependency-review.yml` | Read-only PR dependency-change review | yes (dependency gate) | Dependency/workflow changes |
+| `.github/workflows/evidence-audit.yml` | Read-only advisory PR evidence audit + 30-day metadata artifact | yes (audit workflow) | Evidence-audit changes |
 | `.github/dependabot.yml` | Weekly GitHub Actions and pip update checks | yes (update cadence) | Dependency automation changes |
 | `.github/pull_request_template.md` | Intent, deviation, AI, health/provenance, verification, and records checklist | yes (PR process) | Opening a PR |
 | `README.md` | Public-facing project description | yes (public face) | External readers |

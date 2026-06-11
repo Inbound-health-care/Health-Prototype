@@ -71,6 +71,7 @@ supplies all judgment. Tests enforce this — keep it that way.
 - `make lint` — byte-compile (+ ruff if present) · `make check` — test + selftest + lint
 - `make scan-sensitive` — scan staged additions for secrets/high-confidence identifiers
 - `make hooks` — opt into the repo's pre-commit sensitive-change gate
+- `python scripts/audit_evidence.py ...` — advisory PR evidence audit (see `docs/EVIDENCE_AUDIT.md`)
 - `make demo` — every surfacing-rule demo
 - `python recurrence.py --self-test | --demo | --demo-v1 | --demo-gap | --demo-frequency | --demo-cooccurrence | --report | --report-v1`
 
@@ -82,6 +83,7 @@ supplies all judgment. Tests enforce this — keep it that way.
   `SECURITY_AND_TOOL_POLICY.md` — read before any write/delete/install/send.
 - **Public vulnerability reporting:** `SECURITY.md`.
 - **Practical repository lessons:** `docs/LEARNINGS.md` (append-only).
+- **PR evidence audit:** `docs/EVIDENCE_AUDIT.md` (stable checks, artifacts, reviewed history).
 - **Decisions / why:** `docs/adr/`   ·   **Narrative / lessons:** `JOURNAL.md` (ARCHIVED 2026-06-07 — historical only; diary is chat-only, ADR 0024)
 - **Doc / evidence discipline:** `docs/DOC_DISCIPLINE.md`
 - **Repo file map:** `PROJECT_MAP.md`   ·   **Cold start:** `docs/COLD_START_HANDOFF.md`
