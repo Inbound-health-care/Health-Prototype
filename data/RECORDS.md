@@ -182,7 +182,9 @@ reproduces it exactly: `test_sample_records.py` → `ANSWER_KEY` (recurrence v0)
 `test_fuzzy.py` → `ANSWER_KEY_V1` (and no regression of the v0 key);
 `test_gap.py` → `GAP_ANSWER_KEY`; `test_frequency.py` → `FREQUENCY_ANSWER_KEY`;
 `test_cooccurrence.py` → `CO_OCCURRENCE_ANSWER_KEY`; `test_report.py` →
-`REPORT_ANSWER_KEY` and `REPORT_ANSWER_KEY_V1`. Read the tables in §3, §5, and §7,
+`REPORT_ANSWER_KEY` and `REPORT_ANSWER_KEY_V1`; `test_audit.py` →
+`AUDIT_ANSWER_KEY` (audited demo counts, tallied by hand from the report and
+multi-extract keys — ADR 0030). Read the tables in §3, §5, and §7,
 eyeball the `--demo*`/`--report*` outputs, and the unit tests guarantee they
 can't silently disagree.
 

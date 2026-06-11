@@ -210,3 +210,22 @@ Record EXAMPLE-001:
 Record EXAMPLE-002:
   [recurrence] "poor sleep" recurred 2 times — 2053-05-24, 2053-06-30
 ```
+
+## `python audit.py --demo`
+
+Deterministic (fixed demo clock): the audited multi-extract + report over the
+sample data, the chain verdict, the externally publishable head, and the
+monitor's counts. Digests + counts only — no clinical text (ADR 0030).
+
+```
+audit trail demo (synthetic records; digests and counts only)
+  seq 1  2026-06-11T00:00:00Z  extract_multi  records 2, entries 5
+  seq 2  2026-06-11T00:00:01Z  report  records 16
+chain: intact (2 entries)
+head: af179c03461be69b69c847bd41c968729d37ba4539b07491e21568a41988fafc
+
+audit summary
+  events: 2 (extract_multi 1, report 1)
+  findings by lens: cadence_change 1, cooccurrence 4, frequency 1, gap 1, recurrence 22
+  quarantined by reason: ambiguous_key 1, duplicate_key 2, missing_key 2
+```
