@@ -4,7 +4,7 @@ What changed?
 
 Why is this the smallest useful change?
 
-## Deviations
+## Deviations from plan
 
 List any deviation from the approved plan, ADRs, or repository rules. Write
 `None` when there is no deviation.
