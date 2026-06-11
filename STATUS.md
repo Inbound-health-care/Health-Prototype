@@ -15,7 +15,9 @@ Last updated: 2026-06-11
   lint, HTML, sensitive scan, dependency review, evidence audit). Downloaded PR #45 artifact validated: all 11 checks
   pass; categories = documentation 7 / governance 5 / tests 2 / workflow 1. **First reviewed history PR is due after
   5 completed audit runs or 2026-07-11, whichever occurs first.** Both rollout PRs remain draft; review/merge order is
-  #44 then #45, each under Scott's per-PR decision.
+  #44 then #45, each under Scott's per-PR decision. `main` branch protection now requires the existing lint/test
+  matrix plus `sensitive-scan`, `dependency-review`, `Analyze (actions)`, `Analyze (python)`, and `CodeQL`; the
+  `evidence-audit` check remains advisory.
 - **Session 2026-06-11 — DRAFT PR #44, clinical framework baseline (ADR 0028), no clinical-module changes.**
   Branch `codex/clinical-framework-baseline` adds the cross-repo governance layer adapted for this public health
   prototype: public `SECURITY.md`, append-only `docs/LEARNINGS.md`, expanded PR evidence template, exact
