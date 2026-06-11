@@ -45,13 +45,14 @@ canonical files.
 ## Decisions / discipline / narrative
 | File | Purpose | Canonical? | Load when |
 |---|---|---|---|
-| `docs/adr/` (`0001`–`0028` + `README.md`) | Decision log (build + assistant process) | **yes (decisions)** | "Why was X done" |
+| `docs/adr/` (`0001`–`0029` + `README.md`) | Decision log (build + assistant process) | **yes (decisions)** | "Why was X done" |
 | `docs/DOC_DISCIPLINE.md` | Evidence levels + ADR-confirmation + drift control | **yes (evidence levels)** | Tagging claims / audits |
 | `docs/LEARNINGS.md` | Append-only dated tool, failure-mode, and verification lessons | yes (practical lessons) | A reusable lesson is found |
 | `JOURNAL.md` | Session narrative / lessons (ARCHIVED 2026-06-07 — historical only; diary is chat-only now, ADR 0024) | — (historical archive) | Want the why/story (pre-2026-06-07) |
 | `docs/CLAUDE_OPERATING_MANUAL.md` | Operating manual | — | Deeper process |
 | `docs/AGENT_AUDIT_METHOD.md` | Subagent-audit + code-review playbook | yes (audit method) | Running an audit |
 | `docs/RESEARCH_2026-06-07_ai-verification.md` | RESEARCH_ONLY audit of 3 AI deep-research docs: corroborated findings + fabrication ledger (prompted ADR 0027) | — (dated research) | AI-verification research context |
+| `docs/RESEARCH_2026-06-11_moe-clinical-rollout.md` | RESEARCH_ONLY fact-check of the "six experts" MoE doc + fabrication ledger; deterministic subset → ADR 0029 | — (dated research) | MoE rollout / clinical-expert context |
 | `docs/BRANCH_CLEANUP.md` | Branch-cleanup procedure | — | Cleaning branches |
 | `docs/TOOLS_CHEAT_SHEET.md` | Token-frugal tool patterns | — | Tooling questions |
 | `docs/PROMPT_AUDIT.md` | Prompt-audit notes | — | Prompt audits |

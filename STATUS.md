@@ -4,7 +4,21 @@ _The front door. Read this first, update it last. One source of "where am I."_
 Last updated: 2026-06-11
 
 ## Current state
-- **Session 2026-06-11 — DRAFT PR #44, clinical framework baseline (ADR 0028), no clinical-module changes.**
+- **Session 2026-06-11 (cont.) — MoE "six experts" doc fact-checked + staged-rollout PLAN (ADR 0029, RESEARCH_ONLY); docs-only, no engine code.**
+  Ran the full pass on the pasted Mixture-of-Experts → three-engines document (the item PARKED since 2026-06-07). Three parallel
+  subagents web-verified every named system + metric: **real** — SparseDoctor (arXiv 2509.14269), CLINES (medRxiv 2025.12.01),
+  the drift-monitor paper (Future Internet 18(3):156, 21 users / 40.6% MAE check out); **corrected** — MedLingo (project page, no
+  paper → cite Med-MoE), "sparse MoE outperforms dense on clinical tasks" (conflates active-compute with param count, unsourced),
+  "AMA *requires* audits" (guidance, not a mandate → *recommends*); **fabricated** — the "TRIAGE" framework and the follow-up
+  extractor's 0.997/0.986 Pair F1 + 0.00-day MAE. Recorded in `docs/RESEARCH_2026-06-11_moe-clinical-rollout.md` (RESEARCH_ONLY +
+  fabrication ledger). **Operator decisions:** hold librarian + local-only + zero-PHI; relax no-deps to optional/graceful-skip only;
+  Stage 3 stays deterministic (no ML model); risk-scoring expert (1B/TRIAGE) **cut**. **ADR 0029** records the three-stage
+  deterministic, librarian-safe rollout: **(1)** governance audit trail (hash-chained) + deterministic rule-firing/input-stats
+  monitor — extends ADR 0028; **(2)** temporal-relation surfacing in `recurrence.py`; **(3)** deterministic (action,date) follow-up
+  + NegEx-style assertion context in `extract.py` (UMLS normalization deferred). Indexes reconciled (ADR README, PROJECT_MAP
+  0001–0029 + the research doc). **NEXT:** Scott reviews the plan; on approval, Stage 1 lands behind its own ADR + tests (each stage
+  graduates per the research gate). Draft PR for the docs; testing-kits untouched (read-only).
+- **Session 2026-06-11 — MERGED PR #44, clinical framework baseline (ADR 0028) → `main` `0f2c895` (squash, 2026-06-11); no clinical-module changes.**
   Branch `codex/clinical-framework-baseline` adds the cross-repo governance layer adapted for this public health
   prototype: public `SECURITY.md`, append-only `docs/LEARNINGS.md`, expanded PR evidence template, exact
   Ruff/Hypothesis manifest, immutable Action SHAs, read-only workflow permissions, weekly Dependabot, dependency
@@ -17,8 +31,8 @@ Last updated: 2026-06-11
   settings now verified: secret scanning **enabled**, push protection **enabled**, CodeQL default setup **configured**
   for `actions` + `python`, default query suite; initial CodeQL setup run passed. SHA comparison confirms
   `recurrence.py`, `extract.py`, `view_html.py`, `report_html.py`, and `digest_html.py` are unchanged from `main`.
-  **NEXT:** implement the read-only evidence audit as stacked draft PR #2 of this rollout; PR #44 remains draft for
-  Scott's review and per-PR merge decision.
+  PR #44 has since MERGED to `main` (`0f2c895`, squash, 2026-06-11). (Superseded as the live next step by the
+  2026-06-11 (cont.) entry above.)
 - **Session 2026-06-10 — GitHub audit + STATUS reconcile (this PR); PR #42 (AI-assisted PR template) merged.**
   Since 2026-06-07: Scott merged **PR #41** (squash `721f216`); a separate pass via an external AI tool (working from
   an uploaded "AI coding assistant error report") added **`.github/pull_request_template.md`** — an AI-assistance /
