@@ -47,14 +47,22 @@ sync with the code (see ADR 0005)._
   `run_report` findings, click-to-highlight; single + multi-patient (ADR 0021).
 - `digest_html.py` — clinician Pre-visit Pattern Digest (ADR 0015): the five lenses as cited
   cards beside the note; single + multi-patient (ADR 0020). Both views are pure stdlib, no network.
-- `tests/` — 21 test files, 267 tests (6 skipped: the dev-only Hypothesis properties + the
+- `audit.py` — governance audit trail (ADR 0030, Stage 1 of the ADR 0029 rollout): append-only
+  SHA-256 hash-chained event log of audited runs (`audited_extract` / `audited_extract_multi` /
+  `audited_report` — pass-through wrappers; results untouched) carrying DIGESTS + per-lens COUNTS
+  only (never values; record ids stored as per-id digests), plus a deterministic monitor
+  (`summarize` / `compare` — numbers, no judgment). Optional JSONL persistence (single-writer);
+  tail truncation / whole-file rewrite are detectable only against an externally recorded
+  `head()` — the documented limit. Imports `recurrence` + `extract`, never the reverse.
+- `tests/` — 23 test files, 317 tests (7 skipped: the dev-only Hypothesis properties + the
   dev-only live-JS view test, both gated on optional tools — see ADR 0025). Engine 90 + free-text
   slices + multi-patient + all three HTML views + theme + rule-layer property tests (ADR 0027)
-  + sensitive-change scanner and workflow-security tests (ADR 0028).
+  + sensitive-change scanner and workflow-security tests (ADR 0028) + the audit trail's
+  behavior contract and chain properties (ADR 0030).
   CI: `.github/workflows/ci.yml`
-  (Py 3.10-3.13); CI also runs the Hypothesis properties (ADR 0025), validates the four
-  generated HTML views with proof-html / html-proofer (ADR 0026), scans added lines for
-  sensitive patterns, and reviews dependency changes (ADR 0028).
+  (Py 3.10-3.13); CI also runs the Hypothesis properties (ADR 0025; extractor + rule-layer +
+  audit-chain), validates the four generated HTML views with proof-html / html-proofer
+  (ADR 0026), scans added lines for sensitive patterns, and reviews dependency changes (ADR 0028).
 
 ## Engine hard rules
 - Pure Python STDLIB ONLY at runtime. No network egress. Zero real PHI, ever.

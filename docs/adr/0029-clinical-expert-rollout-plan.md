@@ -1,6 +1,7 @@
 # 0029 — Clinical expert rollout: a three-stage, deterministic, librarian-safe plan
 
-**Status:** RESEARCH_ONLY
+**Status:** RESEARCH_ONLY — Stage 1 landed via **ADR 0030** (governance audit
+trail + deterministic monitor); Stages 2–3 remain planned.
 
 This ADR is a **plan**, not an implementation. It records the decision to pursue a staged rollout
 and the boundary every stage must respect. Each stage graduates only via its own ADR + tests

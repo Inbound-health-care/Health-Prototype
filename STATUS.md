@@ -4,6 +4,25 @@ _The front door. Read this first, update it last. One source of "where am I."_
 Last updated: 2026-06-11
 
 ## Current state
+- **Session 2026-06-11 (cont.) — ADR 0029 STAGE 1 BUILT: governance audit trail + deterministic monitor (`audit.py`, ADR 0030); clinical modules untouched.**
+  Scott approved the plan ("next phase"); ran the new-phase discipline in order: (1) standards research
+  (`docs/RESEARCH_2026-06-11_audit-trail-standards.md` — RFC 6962 chain construction, SHA-256 still the default,
+  RFC 8785 canonical JSON via stdlib with floats rejected, 45 CFR 164.312(b) / ASTM E2147-18 / FHIR AuditEvent as
+  concept references only, OWASP digests+counts-only logging, single-writer JSONL); (2) hand-written oracle FIRST in
+  its own commit (`AUDIT_ANSWER_KEY` tallied by hand from `REPORT_ANSWER_KEY` + the FREETEXT multi oracles); (3) the
+  build: `audit.py` 0.1.0 — append-only SHA-256 hash-chained event log via pass-through wrappers (`audited_extract`
+  / `audited_extract_multi` / `audited_report`; results byte-identical to un-audited calls), digests + per-lens
+  counts ONLY (the suite's own no-identifier test caught raw record ids in the event entity mid-build — extracted
+  ids ARE patient keys — fixed to per-id digests before landing), optional JSONL persistence (fsync, resume-and-
+  continue), `summarize`/`compare` monitor (counts + signed differences, banned-words-clean), honest limits pinned
+  AS TESTS (tail truncation passes `verify`, is caught only by the external `head()` anchor; HMAC rejected — zero-
+  secret repo). Wired: `make compile`/`selftest`/`proptest` + the CI proptest step. Verified: `make check` green —
+  **317 tests** (+50; 7 expected skips), self-tests 6+10+**8**, ruff; `CI=1 make proptest` **12/12** (4 new chain
+  properties); `make scan-sensitive` OK; **five clinical modules byte-identical to `origin/main`** (diff empty).
+  ADR 0030 CONFIRMED_ASSISTANT_SIDE → CONFIRMED_USER_SIDE when Scott runs `python audit.py --demo` on his device.
+  Docs reconciled: ADR index → 0030, ADR 0029 stage pointer, PROJECT_MAP (module + research rows), architecture.md
+  (23 files / 317 tests / audit.py map), COLD_START counts. **NEXT:** Scott reviews PR #46 (plan + Stage 1) and
+  makes the per-PR merge call; then Stage 2 (temporal-relation surfacing in `recurrence.py`) per ADR 0029.
 - **Session 2026-06-11 (cont.) — MoE "six experts" doc fact-checked + staged-rollout PLAN (ADR 0029, RESEARCH_ONLY); docs-only, no engine code.**
   Ran the full pass on the pasted Mixture-of-Experts → three-engines document (the item PARKED since 2026-06-07). Three parallel
   subagents web-verified every named system + metric: **real** — SparseDoctor (arXiv 2509.14269), CLINES (medRxiv 2025.12.01),

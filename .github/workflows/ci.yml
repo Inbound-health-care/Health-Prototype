@@ -45,8 +45,8 @@ jobs:
       # reordering & shift invariance) on every PR (ADR 0025, 0027). Hypothesis is
       # a dev-only tool, installed from the versioned manifest; the run is derandomized
       # (CI=true) so any failure reproduces locally. The engine stays pure-stdlib.
-      - name: Property tests (Hypothesis — extractor + rule-layer invariants)
-        run: python -m unittest tests.test_extract_multi_properties tests.test_rule_properties -v
+      - name: Property tests (Hypothesis — extractor + rule-layer + audit-chain invariants)
+        run: python -m unittest tests.test_extract_multi_properties tests.test_rule_properties tests.test_audit_properties -v
 
   # Lint gate. The engine itself is stdlib-only; ruff is a dev tool, so this is
   # the one job that installs a dependency (pinned to match local). Lint only —
