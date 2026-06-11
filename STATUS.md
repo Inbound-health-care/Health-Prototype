@@ -4,6 +4,18 @@ _The front door. Read this first, update it last. One source of "where am I."_
 Last updated: 2026-06-11
 
 ## Current state
+- **Session 2026-06-11 (cont.) — ADR 0029 STAGE 2 DESIGN FIXED + standards research (docs-only); build deferred to a fresh session.**
+  Web-researched deterministic temporal-relation surfacing (`docs/RESEARCH_2026-06-11_temporal-relations.md`, RESEARCH_ONLY):
+  point algebra (Allen's 13 collapse to 3 for day-dated POINT events) + one metric bound; THYME/i2b2 standardize on
+  BEFORE/AFTER/OVERLAP (CONTAINS is narrative-time, dropped); the source doc's "rare-disease diagnosis / care coordination"
+  claim corrected to evidential weak-signal surfacing, NOT causal; the post-hoc fallacy is the named librarian risk.
+  **Operator decision:** the timeline lands as an **opt-in lens** (new `build_timeline`/`format_timeline` + `--demo-timeline`
+  + a separate `--report-timeline`/opt-in registry) so the default `--report` stays clean — an adjacent-sequence lens fires on
+  nearly every record, unlike the 5 pattern rules. Design fixed in the **ADR 0029 Stage-2 addendum**: vocab BEFORE/AFTER/SAME_DAY/
+  WITHIN_WINDOW(days), adjacent-pair only, non-interpretive `(date, doc-order, item)` same-day tie-break, undated surfaced
+  separately, banned-words gate + sequence-not-causation caveat, engine rules + oracles byte-unchanged. **Build deferred to a
+  fresh session** (Scott's ~600k re-lock heuristic): oracle-first, then code + tests + a Hypothesis property. Docs-only this
+  session; PROJECT_MAP research row added. testing-kits untouched (read-only).
 - **Session 2026-06-11 (cont.) — ADR 0029 STAGE 1 MERGED: governance audit trail + deterministic monitor (`audit.py`, ADR 0030) → `main` `9e61c2e` (squash PR #47, 2026-06-11); clinical modules untouched.**
   Scott approved the plan ("next phase"); ran the new-phase discipline in order: (1) standards research
   (`docs/RESEARCH_2026-06-11_audit-trail-standards.md` — RFC 6962 chain construction, SHA-256 still the default,
