@@ -1,5 +1,10 @@
 # CLAUDE.md — health-prototype (Claude Code notes)
 
+> **Read this even if you are not Claude.** This file is auto-loaded by Claude Code, but
+> the rules here are not Claude-specific. The canonical, tool-agnostic contract for every
+> AI agent (and human) in this repo is **[`AGENTS.md`](AGENTS.md)** — read it first,
+> whoever you are. Below are only Claude-Code-specific notes.
+
 **Read `AGENTS.md` first — it is the source of truth for this repo** (operator
 rules, working limits, the librarian rule, commands, load order). It applies to
 you. This file holds ONLY Claude-Code-specific notes that don't belong in the
