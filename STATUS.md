@@ -13,7 +13,7 @@ Last updated: 2026-06-11
   **280 tests / 6 expected skips without site packages; 286 with Hypothesis**, Ruff, all 8 property tests, workflow
   security, staged sensitive scan, and no clinical-module changes from #44. PR #45 checks all green (test 3.10–3.13,
   lint, HTML, sensitive scan, dependency review, evidence audit). Downloaded PR #45 artifact validated: all 11 checks
-  pass; categories = documentation 7 / governance 4 / tests 2 / workflow 1. **First reviewed history PR is due after
+  pass; categories = documentation 7 / governance 5 / tests 2 / workflow 1. **First reviewed history PR is due after
   5 completed audit runs or 2026-07-11, whichever occurs first.** Both rollout PRs remain draft; review/merge order is
   #44 then #45, each under Scott's per-PR decision.
 - **Session 2026-06-11 — DRAFT PR #44, clinical framework baseline (ADR 0028), no clinical-module changes.**
