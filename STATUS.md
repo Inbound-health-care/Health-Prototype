@@ -4,7 +4,7 @@ _The front door. Read this first, update it last. One source of "where am I."_
 Last updated: 2026-06-11
 
 ## Current state
-- **Session 2026-06-11 (cont.) — ADR 0029 STAGE 1 BUILT: governance audit trail + deterministic monitor (`audit.py`, ADR 0030); clinical modules untouched.**
+- **Session 2026-06-11 (cont.) — ADR 0029 STAGE 1 MERGED: governance audit trail + deterministic monitor (`audit.py`, ADR 0030) → `main` `9e61c2e` (squash PR #47, 2026-06-11); clinical modules untouched.**
   Scott approved the plan ("next phase"); ran the new-phase discipline in order: (1) standards research
   (`docs/RESEARCH_2026-06-11_audit-trail-standards.md` — RFC 6962 chain construction, SHA-256 still the default,
   RFC 8785 canonical JSON via stdlib with floats rejected, 45 CFR 164.312(b) / ASTM E2147-18 / FHIR AuditEvent as
@@ -21,10 +21,9 @@ Last updated: 2026-06-11
   properties); `make scan-sensitive` OK; **five clinical modules byte-identical to `origin/main`** (diff empty).
   ADR 0030 CONFIRMED_ASSISTANT_SIDE → CONFIRMED_USER_SIDE when Scott runs `python audit.py --demo` on his device.
   Docs reconciled: ADR index → 0030, ADR 0029 stage pointer, PROJECT_MAP (module + research rows), architecture.md
-  (23 files / 317 tests / audit.py map), COLD_START counts. **Scott merged the PLAN as PR #46 (squash `66569fb`,
-  2026-06-11) while Stage 1 was being built**; the branch was collapsed onto the new `main` (squashed commit dropped,
-  the 2026-06-10 pattern) and Stage 1 rides **stacked draft PR #47**. **NEXT:** Scott reviews PR #47 and makes the
-  per-PR merge call; then Stage 2 (temporal-relation surfacing in `recurrence.py`) per ADR 0029.
+  (23 files / 317 tests / audit.py map), COLD_START counts. **MERGED via PR #47** (Scott, squash `9e61c2e`,
+  2026-06-11); the plan had merged separately as PR #46 (squash `66569fb`). **NEXT:** Stage 2 — deterministic
+  temporal-relation surfacing (before/after/same-day/within-window) in `recurrence.py` per ADR 0029.
 - **Session 2026-06-11 (cont.) — MoE "six experts" doc fact-checked + staged-rollout PLAN (ADR 0029, RESEARCH_ONLY); docs-only, no engine code.**
   Ran the full pass on the pasted Mixture-of-Experts → three-engines document (the item PARKED since 2026-06-07). Three parallel
   subagents web-verified every named system + metric: **real** — SparseDoctor (arXiv 2509.14269), CLINES (medRxiv 2025.12.01),
@@ -386,10 +385,10 @@ Both planned engine increments are MERGED to `main`:
   + block-link card, **ADR 0026**) + rule-layer metamorphic property tests + the AI-verification research
   fold-in (**ADR 0027**) + the AI-assisted PR checklist template (**#42**) + the clinical framework baseline
   (public SECURITY.md / LEARNINGS / sensitive-change scanner / hardened Actions, **ADR 0028**, #44) + the MoE
-  fact-check + three-stage rollout plan (**ADR 0029**, #46) — **267 tests on `main`** (post #1–#46).
-  **This branch (Stage 1, ADR 0030) adds `audit.py` → 317 tests**; unmerged until its PR lands.
+  fact-check + three-stage rollout plan (**ADR 0029**, #46) + the governance audit trail + deterministic monitor
+  (`audit.py`, **ADR 0029 Stage 1 / ADR 0030**, #47) — **317 tests on `main`** (post #1–#47; 7 dev-only skips).
   Per-module versions (no single repo-wide version): `recurrence.py` 0.5.0, `extract.py` 0.4.0,
-  `view_html.py` 0.4.0, `report_html.py` 0.5.0, `digest_html.py` 0.5.0, `audit.py` 0.1.0 (branch).
+  `view_html.py` 0.4.0, `report_html.py` 0.5.0, `digest_html.py` 0.5.0, `audit.py` 0.1.0.
   Old work branches retired (#25/#28/#29/#30). Branch cleanup approved 2026-06-10 (Scott's call; he deletes in the
   UI — session push can't): `governance/ai-pr-checklist`, `claude/fervent-brown-JEwJA`, `coderabbitai/utg/379a87a`
   (PR #2, closed unmerged); `claude/serene-brahmagupta-S4Tjp` (merged via #41) once the 2026-06-10 reconcile merges.
