@@ -883,3 +883,37 @@ FREETEXT_EXPECTED_MULTI_QUARANTINE: list = [
     (5, "duplicate_key"),
     (6, "duplicate_key"),
 ]
+
+
+# ---------------------------------------------------------------------------
+# Audit-trail oracle (ADR 0029 Stage 1 / ADR 0030). Hand-written FIRST, in its
+# own commit, before audit.py existed; the audited demo run must reproduce it
+# exactly (tests/test_audit.py enforces the agreement). The trail logs digests
+# and per-lens COUNTS, never values (OWASP logging guidance), so the oracle
+# pins counts:
+#   - "extract_multi" — audited extract_records_multi over FREETEXT_MULTI_NOTE
+#     (FREETEXT_MULTI_DELIMITER, FREETEXT_MULTI_SHIFTS): 2 accepted records
+#     with 2 + 3 = 5 entries (FREETEXT_EXPECTED_MULTI_RECORDS); 5 refused
+#     segments (FREETEXT_EXPECTED_MULTI_QUARANTINE: missing_key x2,
+#     ambiguous_key x1, duplicate_key x2).
+#   - "report" — audited run_report over SAMPLE_RECORDS (v0 exact): 16 records
+#     surface findings; per-lens line counts tallied BY HAND from
+#     REPORT_ANSWER_KEY (recurrence 22, gap 1, frequency 1, cooccurrence 4,
+#     cadence_change 1).
+AUDIT_ANSWER_KEY: dict = {
+    "extract_multi": {
+        "records": 2,
+        "entries": 5,
+        "quarantined": {"ambiguous_key": 1, "duplicate_key": 2, "missing_key": 2},
+    },
+    "report": {
+        "records": 16,
+        "findings": {
+            "recurrence": 22,
+            "gap": 1,
+            "frequency": 1,
+            "cooccurrence": 4,
+            "cadence_change": 1,
+        },
+    },
+}
