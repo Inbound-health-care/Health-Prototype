@@ -23,8 +23,8 @@ Last updated: 2026-06-11
   Docs reconciled: ADR index → 0030, ADR 0029 stage pointer, PROJECT_MAP (module + research rows), architecture.md
   (23 files / 317 tests / audit.py map), COLD_START counts. **Scott merged the PLAN as PR #46 (squash `66569fb`,
   2026-06-11) while Stage 1 was being built**; the branch was collapsed onto the new `main` (squashed commit dropped,
-  the 2026-06-10 pattern) and Stage 1 rides its own stacked draft PR. **NEXT:** Scott reviews the Stage-1 PR and makes
-  the per-PR merge call; then Stage 2 (temporal-relation surfacing in `recurrence.py`) per ADR 0029.
+  the 2026-06-10 pattern) and Stage 1 rides **stacked draft PR #47**. **NEXT:** Scott reviews PR #47 and makes the
+  per-PR merge call; then Stage 2 (temporal-relation surfacing in `recurrence.py`) per ADR 0029.
 - **Session 2026-06-11 (cont.) — MoE "six experts" doc fact-checked + staged-rollout PLAN (ADR 0029, RESEARCH_ONLY); docs-only, no engine code.**
   Ran the full pass on the pasted Mixture-of-Experts → three-engines document (the item PARKED since 2026-06-07). Three parallel
   subagents web-verified every named system + metric: **real** — SparseDoctor (arXiv 2509.14269), CLINES (medRxiv 2025.12.01),
