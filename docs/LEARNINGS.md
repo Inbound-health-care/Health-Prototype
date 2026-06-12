@@ -50,3 +50,14 @@ as locally run when only its component commands were available.
 
 Verification: `gh api repos/Inbound-health-care/Health-Prototype/dependency-graph/sbom`
 returns the repository SBOM name, then the dependency-review rerun must pass.
+
+## 2026-06-11 — Shared agent-rules core added; STATUS.md stays canonical for state
+
+- AGENTS.md now carries the cross-repo shared core (working agreement, agent
+  safety, source-of-truth order, environment/subagents) between the librarian
+  rule and Commands. The source-of-truth order governs code-truth conflicts; a
+  repo-specific line keeps STATUS.md canonical for "where am I / what's next."
+- SECURITY_AND_TOOL_POLICY.md remains the fuller safety policy and governs on
+  detail; the core is the cross-repo baseline.
+- Verified on this branch: make check green, make test 326 OK (4 pre-existing
+  skips), sensitive-change scan clean.
