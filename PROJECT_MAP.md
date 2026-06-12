@@ -55,6 +55,7 @@ canonical files.
 | `docs/RESEARCH_2026-06-07_ai-verification.md` | RESEARCH_ONLY audit of 3 AI deep-research docs: corroborated findings + fabrication ledger (prompted ADR 0027) | — (dated research) | AI-verification research context |
 | `docs/RESEARCH_2026-06-11_moe-clinical-rollout.md` | RESEARCH_ONLY fact-check of the "six experts" MoE doc + fabrication ledger; deterministic subset → ADR 0029 | — (dated research) | MoE rollout / clinical-expert context |
 | `docs/RESEARCH_2026-06-11_audit-trail-standards.md` | RESEARCH_ONLY audit-log standards research (RFC 6962/8785, HIPAA/ASTM/FHIR refs, OWASP) → ADR 0030 | — (dated research) | Audit-trail design context |
+| `docs/RESEARCH_2026-06-11_temporal-relations.md` | RESEARCH_ONLY temporal-relation standards (point algebra, THYME/i2b2, sequence≠causality) → ADR 0029 Stage-2 addendum | — (dated research) | Stage-2 timeline design context |
 | `docs/BRANCH_CLEANUP.md` | Branch-cleanup procedure | — | Cleaning branches |
 | `docs/TOOLS_CHEAT_SHEET.md` | Token-frugal tool patterns | — | Tooling questions |
 | `docs/PROMPT_AUDIT.md` | Prompt-audit notes | — | Prompt audits |
