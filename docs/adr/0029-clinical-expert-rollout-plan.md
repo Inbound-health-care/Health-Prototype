@@ -1,7 +1,8 @@
 # 0029 — Clinical expert rollout: a three-stage, deterministic, librarian-safe plan
 
 **Status:** RESEARCH_ONLY — Stage 1 landed via **ADR 0030** (governance audit
-trail + deterministic monitor); Stages 2–3 remain planned.
+trail + deterministic monitor); Stage 2 design fixed (addendum below, build
+deferred to a fresh session); Stage 3 remains planned.
 
 This ADR is a **plan**, not an implementation. It records the decision to pursue a staged rollout
 and the boundary every stage must respect. Each stage graduates only via its own ADR + tests
@@ -50,6 +51,35 @@ graduates it):
    extraction via date arithmetic (extends ADR 0013 relative-date anchoring) + NegEx-style
    negation/assertion context as an optional graceful-skip lexicon. The doc's 2A symbolic half and
    2B assertion slice. UMLS normalization is **deferred** (license + interpretation).
+
+## Stage 2 design addendum (2026-06-11; build deferred to a fresh session)
+
+Decided after the Stage-2 standards research (`docs/RESEARCH_2026-06-11_temporal-relations.md`,
+RESEARCH_ONLY). Records the shape so the build starts clean; still no code in this ADR.
+
+- **Relation vocabulary:** `BEFORE` / `AFTER` / `SAME_DAY` / `WITHIN_WINDOW(days)` over day-dated
+  POINT events. This is point algebra (Allen's 13 collapse to 3 for instantaneous events) plus one
+  metric bound; the THYME/i2b2 `CONTAINS` relation is dropped (it is for narrative interval time, not
+  explicit dates).
+- **Adjacent-pair only**, sorted by `(date, document-order, item)` — a documented, NON-interpretive
+  same-day tie-break (NOT clinical event-type precedence, which would be interpretation). Transitive
+  closure is refused (O(n^2), floods output); "all events before X" is a post-hoc filter, not
+  pre-computed.
+- **Undated entries** are surfaced separately as "undated," never placed on the ordered axis (mirrors
+  ADR 0013's "cited but undated" stance).
+- **Opt-in lens (Scott's call, 2026-06-11):** a new `build_timeline` / `format_timeline` API in
+  `recurrence.py` + a `--demo-timeline`, plus a SEPARATE opt-in registry or `--report-timeline` so the
+  default `--report` stays clean. Rationale: an adjacent-sequence lens fires on nearly every record
+  with 2+ dated entries, unlike the 5 pattern rules that flag only when a pattern is present; adding it
+  to the default `EXPERTS` registry would flood the combined report and break "the report surfaces only
+  what is present."
+- **Librarian-safe:** dates + interval-days + relation token + citations only; the banned-words gate
+  (`tests/banned_words.py`) is enforced on timeline output; a fixed "sequence, not causation" caveat
+  goes in any Stage-2 view. Sequence is surfaced, never causality (the post-hoc fallacy is the named
+  risk). Engine pattern rules and their oracles stay byte-unchanged; the timeline is additive.
+- **Confirmation (per-stage gate):** oracle written first (hand timeline over the sample records),
+  `make check` green, additive tests + a Hypothesis property (ordering invariance under shuffle; shift
+  invariance of interval-days), `git diff` showing the 5 rules + their answer keys unchanged.
 
 ## Consequences
 
