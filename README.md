@@ -186,3 +186,19 @@ and still never interprets what the recurrence means. See
 Licensed under the [Apache License 2.0](LICENSE) — chosen over MIT for its explicit
 patent grant and defensive-termination clause (appropriate for a health-adjacent tool).
 See ADR 0024.
+
+## Repo map (the six-slot model)
+
+The same skeleton repeats across the connected repos — **rules → memory →
+decisions → agent-tooling → verification → product**. This repo is the strictest
+point on that spectrum (strict by deliberate design, not lax-law default):
+
+- **Rules** — `AGENTS.md` (contract; the librarian rule) · `CLAUDE.md` (pointer) · `SECURITY.md` + `SECURITY_AND_TOOL_POLICY.md` (canonical security).
+- **Front door / load order** — `LOAD.md` → `AGENTS.md` → `STATUS.md` (canonical current state) → `docs/COLD_START_HANDOFF.md`.
+- **Memory** — `docs/LEARNINGS.md` (gotchas) · `STATUS.md` (where we are); the diary is chat-only (ADR 0024).
+- **Decisions** — `docs/adr/` (the "why" trail) + `docs/DOC_DISCIPLINE.md` (evidence levels + the research gate).
+- **Agent tooling** — `.claude/` (commands: handoff / drift-check / new-phase / audit-prompt · hooks incl. the chat-only-diary Stop guard · the `repo-onboard` skill).
+- **Verification** — `make check` (tests + self-test + lint) · `tools/scan_sensitive_changes.py` (`make scan-sensitive`) · `.github/workflows/` · hash-chained audit trail.
+- **Product** — the engine (`recurrence.py`, `extract.py`, `audit.py`, `*_html.py`): surfaces and cites, never interprets.
+
+Plain-language **and** technical walk-through: [`docs/WALKTHROUGH.md`](docs/WALKTHROUGH.md).
