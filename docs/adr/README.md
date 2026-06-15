@@ -59,3 +59,4 @@ it — history is the point.
 - [0028 — Clinical framework baseline: sensitive-change and supply-chain gates](0028-clinical-framework-baseline.md)
 - [0029 — Clinical expert rollout: a three-stage, deterministic, librarian-safe plan (RESEARCH_ONLY)](0029-clinical-expert-rollout-plan.md)
 - [0030 — Governance audit trail: hash-chained event log + deterministic monitor (Stage 1)](0030-governance-audit-trail.md)
+- [0031 — Repository control audit: required controls become checkable](0031-repository-control-audit.md)
