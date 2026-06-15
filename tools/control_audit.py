@@ -229,11 +229,16 @@ def main() -> int:
 
     for instruction in policy.get("instruction_sources", []):
         path = ROOT / instruction
-        if not path.is_file() or len(path.read_text(encoding="utf-8").strip()) < 80:
-            failures.append(f"instruction-source {instruction}: missing or not substantive")
+        if not path.is_file():
+            failures.append(f"instruction-source {instruction}: missing")
+            continue
+        if len(path.read_text(encoding="utf-8").strip()) < 80:
+            failures.append(f"instruction-source {instruction}: not substantive")
 
     workflows = workflow_files()
-    names = {name for path in workflows if (name := audit_workflow(path, policy, failures))}
+    names = {
+        name for path in workflows if (name := audit_workflow(path, policy, failures))
+    }
     for required_name in policy.get("required_workflows", []):
         if required_name not in names:
             failures.append(f"required-workflow {required_name}: stable workflow name not found")
