@@ -172,10 +172,16 @@ def audit_workflow(path: Path, policy: dict, failures: list[str]) -> str | None:
     if rules.get("require_top_level_concurrency") and not top_level_concurrency_group_ok(
         text
     ):
-        failures.append(f"workflow-concurrency {rel}: missing scoped concurrency/cancel-in-progress")
-    if rules.get("prohibit_pull_request_target") and has_active_text(text, "pull_request_target"):
+        failures.append(
+            f"workflow-concurrency {rel}: missing scoped concurrency/cancel-in-progress"
+        )
+    if rules.get("prohibit_pull_request_target") and has_active_text(
+        text, "pull_request_target"
+    ):
         failures.append(f"pull-request-target {rel}: pull_request_target is prohibited")
-    if rules.get("prohibit_fork_checkout") and has_active_text(text, "ref: ${{ github.head_ref }}"):
+    if rules.get("prohibit_fork_checkout") and has_active_text(
+        text, "ref: ${{ github.head_ref }}"
+    ):
         failures.append(f"fork-checkout {rel}: fork-head checkout is prohibited")
     if rules.get("prohibit_fork_scan_skip") and has_active_text(
         text, "head.repo.full_name == github.repository"
@@ -184,7 +190,9 @@ def audit_workflow(path: Path, policy: dict, failures: list[str]) -> str | None:
 
     if rules.get("require_job_timeouts"):
         for job, block in job_blocks(text).items():
-            if not re.search(r"^    timeout-minutes:\s*\d+\s*$", block, flags=re.MULTILINE):
+            if not re.search(
+                r"^    timeout-minutes:\s*\d+\s*$", block, flags=re.MULTILINE
+            ):
                 failures.append(f"job-timeout {rel}: job {job} missing timeout-minutes")
 
     for index, raw_line in enumerate(lines):
@@ -201,7 +209,9 @@ def audit_workflow(path: Path, policy: dict, failures: list[str]) -> str | None:
             if uses.startswith("actions/checkout@") and checkout_persists_credentials(
                 lines, index
             ):
-                failures.append(f"checkout-credentials {rel}: checkout must set persist-credentials: false")
+                failures.append(
+                    f"checkout-credentials {rel}: checkout must set persist-credentials: false"
+                )
 
     if not name:
         failures.append(f"workflow-name {rel}: missing workflow name")
