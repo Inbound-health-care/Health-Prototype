@@ -1,4 +1,4 @@
-.PHONY: test selftest demo compile lint check dev-install scan-sensitive hooks typecheck fmt-check fmt cov security proptest jstest html-demos tools branch-audit clean
+.PHONY: test selftest demo compile lint check dev-install scan-sensitive hooks typecheck fmt-check fmt cov security proptest jstest html-demos tools branch-audit control-audit clean
 
 # Engine is pure stdlib; no runtime dependencies to install.
 # The targets below test/lint/type-check are OPTIONAL dev tooling: each is a
@@ -21,16 +21,20 @@ demo:          ## Run every surfacing-rule demo
 	python recurrence.py --demo-cooccurrence
 
 compile:       ## Byte-compile every project file (syntax gate; THE canonical file list)
-	python -m compileall -q recurrence.py extract.py view_html.py report_html.py digest_html.py audit.py tests data scripts
+	python -m compileall -q recurrence.py extract.py view_html.py report_html.py digest_html.py audit.py tests data scripts tools
 
 lint:          ## compile + ruff (if installed). CI delegates here so the file list lives once.
 	$(MAKE) compile
 	-ruff check .
 
-check:         ## Standard local verification gate: tests + self-test + lint
+control-audit: ## Verify required control files/workflows and workflow hardening rules
+	python tools/control_audit.py
+
+check:         ## Standard local verification gate: tests + self-test + lint + repo controls
 	$(MAKE) test
 	$(MAKE) selftest
 	$(MAKE) lint
+	$(MAKE) control-audit
 
 dev-install:   ## Install exact dev-tool versions (runtime remains stdlib-only)
 	python -m pip install --requirement requirements-dev.txt
