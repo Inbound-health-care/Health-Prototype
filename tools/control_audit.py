@@ -204,7 +204,9 @@ def audit_workflow(path: Path, policy: dict, failures: list[str]) -> str | None:
             continue
         uses = uses_match.group("uses").strip().strip('"\'')
         if rules.get("require_full_sha_actions") and not action_ref_is_pinned(uses):
-            failures.append(f"action-pin {rel}: {uses} is not pinned to a full commit SHA")
+            failures.append(
+                f"action-pin {rel}: {uses} is not pinned to a full commit SHA"
+            )
         if rules.get("require_checkout_persist_credentials_false"):
             if uses.startswith("actions/checkout@") and checkout_persists_credentials(
                 lines, index
@@ -241,7 +243,9 @@ def main() -> int:
     }
     for required_name in policy.get("required_workflows", []):
         if required_name not in names:
-            failures.append(f"required-workflow {required_name}: stable workflow name not found")
+            failures.append(
+                f"required-workflow {required_name}: stable workflow name not found"
+            )
 
     if failures:
         for failure in failures:
@@ -250,7 +254,8 @@ def main() -> int:
         return 1
 
     scanner_mode = policy.get("scanner_mode", "unknown")
-    print(f"control-audit: PASS ({len(workflows)} workflows, scanner={scanner_mode})")
+    message = f"control-audit: PASS ({len(workflows)} workflows, scanner={scanner_mode})"
+    print(message)
     return 0
 
 
