@@ -73,7 +73,10 @@ def workflow_name(text: str) -> str | None:
 
 def has_top_level_key(text: str, key: str) -> bool:
     needle = f"{key}:"
-    return any(line == needle or line.startswith(f"{needle} ") for line in active_lines(text))
+    return any(
+        line == needle or line.startswith(f"{needle} ")
+        for line in active_lines(text)
+    )
 
 
 def top_level_concurrency_group_ok(text: str) -> bool:
@@ -162,9 +165,13 @@ def audit_workflow(path: Path, policy: dict, failures: list[str]) -> str | None:
     name = workflow_name(text)
 
     rules = policy.get("workflow_rules", {})
-    if rules.get("require_top_level_permissions") and not has_top_level_key(text, "permissions"):
+    if rules.get("require_top_level_permissions") and not has_top_level_key(
+        text, "permissions"
+    ):
         failures.append(f"workflow-permissions {rel}: missing top-level permissions")
-    if rules.get("require_top_level_concurrency") and not top_level_concurrency_group_ok(text):
+    if rules.get("require_top_level_concurrency") and not top_level_concurrency_group_ok(
+        text
+    ):
         failures.append(f"workflow-concurrency {rel}: missing scoped concurrency/cancel-in-progress")
     if rules.get("prohibit_pull_request_target") and has_active_text(text, "pull_request_target"):
         failures.append(f"pull-request-target {rel}: pull_request_target is prohibited")
@@ -190,8 +197,10 @@ def audit_workflow(path: Path, policy: dict, failures: list[str]) -> str | None:
         uses = uses_match.group("uses").strip().strip('"\'')
         if rules.get("require_full_sha_actions") and not action_ref_is_pinned(uses):
             failures.append(f"action-pin {rel}: {uses} is not pinned to a full commit SHA")
-        if rules.get("require_checkout_persist_credentials_false") and uses.startswith("actions/checkout@"):
-            if checkout_persists_credentials(lines, index):
+        if rules.get("require_checkout_persist_credentials_false"):
+            if uses.startswith("actions/checkout@") and checkout_persists_credentials(
+                lines, index
+            ):
                 failures.append(f"checkout-credentials {rel}: checkout must set persist-credentials: false")
 
     if not name:
@@ -225,7 +234,8 @@ def main() -> int:
         print(f"control-audit: {len(failures)} failure(s)", file=sys.stderr)
         return 1
 
-    print(f"control-audit: PASS ({len(workflows)} workflows, scanner={policy.get('scanner_mode', 'unknown')})")
+    scanner_mode = policy.get("scanner_mode", "unknown")
+    print(f"control-audit: PASS ({len(workflows)} workflows, scanner={scanner_mode})")
     return 0
 
 
