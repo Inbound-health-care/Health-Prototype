@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "repository_kind": "healthcare-local-stdlib-prototype",
+  "visibility": "public",
+  "scanner_mode": "block",
+  "instruction_sources": [
+    "LOAD.md",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "SECURITY_AND_TOOL_POLICY.md"
+  ],
+  "required_files": [
+    "LOAD.md",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "STATUS.md",
+    "SECURITY.md",
+    "SECURITY_AND_TOOL_POLICY.md",
+    "Makefile",
+    "requirements-dev.txt",
+    ".github/control-policy.json",
+    ".github/pull_request_template.md",
+    ".github/dependabot.yml",
+    ".github/workflows/ci.yml",
+    ".github/workflows/dependency-review.yml",
+    ".github/workflows/sensitive-scan.yml",
+    ".github/workflows/repository-controls.yml",
+    "tools/scan_sensitive_changes.py",
+    "tools/control_audit.py"
+  ],
+  "required_workflows": [
+    "CI",
+    "Dependency review",
+    "Sensitive change scan",
+    "Repository controls"
+  ],
+  "workflow_rules": {
+    "require_top_level_permissions": true,
+    "require_top_level_concurrency": true,
+    "require_job_timeouts": true,
+    "require_full_sha_actions": true,
+    "require_checkout_persist_credentials_false": true,
+    "prohibit_pull_request_target": true,
+    "prohibit_fork_checkout": true,
+    "prohibit_fork_scan_skip": true
+  },
+  "exceptions": []
+}

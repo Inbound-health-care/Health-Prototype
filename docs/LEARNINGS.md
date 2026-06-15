@@ -61,3 +61,16 @@ returns the repository SBOM name, then the dependency-review rerun must pass.
   detail; the core is the cross-repo baseline.
 - Verified on this branch: make check green, make test 326 OK (4 pre-existing
   skips), sensitive-change scan clean.
+
+## 2026-06-15 — Repository controls need their own ratchet
+
+- The health repo already had strong rule documents and workflow hygiene, but
+  required files and workflow-hardening assumptions were distributed across docs.
+- A committed control policy plus stdlib audit makes the layer checkable: if a
+  control file disappears, a workflow loses permissions/concurrency/timeouts, or
+  an action stops being SHA-pinned, the repository-control gate should fail.
+- Keep the audit structural and repo-local. It does not prove HIPAA compliance,
+  branch-protection settings, or publication safety.
+
+Verification: `python tools/control_audit.py`, `make control-audit`, `make check`,
+and the `Repository controls` PR workflow.
