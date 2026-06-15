@@ -147,8 +147,9 @@ def checkout_persists_credentials(lines: list[str], index: int) -> bool:
         indent = len(line) - len(stripped)
         if indent <= start_indent and stripped.startswith("- "):
             break
-        if indent <= 2 and not stripped.startswith(("with:", "env:", "name:", "run:")):
-            break
+        if indent <= 2:
+            if not stripped.startswith(("with:", "env:", "name:", "run:")):
+                break
         if stripped == "persist-credentials: false":
             return False
     return True
@@ -212,7 +213,8 @@ def audit_workflow(path: Path, policy: dict, failures: list[str]) -> str | None:
                 lines, index
             ):
                 failures.append(
-                    f"checkout-credentials {rel}: checkout must set persist-credentials: false"
+                    f"checkout-credentials {rel}: checkout must set "
+                    "persist-credentials: false"
                 )
 
     if not name:
@@ -254,7 +256,10 @@ def main() -> int:
         return 1
 
     scanner_mode = policy.get("scanner_mode", "unknown")
-    message = f"control-audit: PASS ({len(workflows)} workflows, scanner={scanner_mode})"
+    message = (
+        f"control-audit: PASS ({len(workflows)} workflows, "
+        f"scanner={scanner_mode})"
+    )
     print(message)
     return 0
 
