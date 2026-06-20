@@ -29,7 +29,8 @@
     "tools/control_audit.py",
     "tools/agent_card_validate.py",
     ".well-known/agent-card.json",
-    "tools/mcp/tools.json"
+    "tools/mcp/tools.json",
+    "docs/CI_AND_LIVE_STATE.md"
   ],
   "required_workflows": [
     "CI",
