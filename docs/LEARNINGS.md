@@ -92,3 +92,13 @@ and the `Repository controls` PR workflow.
   surface). A live endpoint + machine-to-machine auth is phase B, deferred.
 
 Verification: `make agent-card`, `python -m unittest tests.test_agent_card`, `make check`.
+
+## 2026-06-20 — CI-state literacy; live state beats a static inventory
+
+New governance doc: `docs/CI_AND_LIVE_STATE.md` — the CI-status taxonomy and the
+live-state check to run before claiming a PR is green, mergeable, or blocked.
+Lesson that earned it here: a static inventory of this repo's required checks read
+as "broken" (CodeQL/dependency-review phantom-absent), but the live state of a real
+PR showed every required check posting and passing. Always diff required-contexts
+against what actually reported on the head SHA before claiming a block — and note
+that CodeQL "default setup" posts `Analyze (...)`/`CodeQL` with no workflow file.
