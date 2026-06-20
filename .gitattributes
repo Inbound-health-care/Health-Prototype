@@ -1,0 +1,10 @@
+# Normalize every text file to LF in the repository and on checkout. Ends the
+# mixed CRLF/LF blob drift that creeps in from Windows autocrlf checkouts — drift
+# that makes file-guard and linters report false changes in CI. `text=auto`
+# leaves binary files alone. Matches the org-standard .gitattributes used across
+# Lost-secuirty repos (e.g. testing-kits).
+* text=auto eol=lf
+
+# Explicit (also covered by the rule above): shell scripts and git hooks stay LF.
+*.sh text eol=lf
+.githooks/* text eol=lf
