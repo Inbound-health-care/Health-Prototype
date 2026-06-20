@@ -1,9 +1,34 @@
 # STATUS — health-prototype
 
 _The front door. Read this first, update it last. One source of "where am I."_
-Last updated: 2026-06-11
+Last updated: 2026-06-20
+
+## Agent-interop (A2A / MCP) — phase A (static)
+
+agent_interop_phase: A
+
+- **Phase A (current):** a static, machine-readable surface only — an A2A Agent Card
+  (`.well-known/agent-card.json`) and an MCP tool-def (`tools/mcp/tools.json`) describing the
+  EXISTING deterministic `detect_recurrence()` capability (skill `detect-recurrence`). No server,
+  no live endpoint, no authentication. Librarian-framed: surfaces + cites only, no clinical claim.
+  See `docs/adr/0032-agent-interop-static-surface.md` and `docs/agent-interop.md`.
+- **Phase B (not started):** a live callable endpoint + machine-to-machine auth. Deferred.
+
+The card advertises **no live, callable endpoint**; `tools/agent_card_validate.py` enforces that
+honesty against the `agent_interop_phase` value above (`make agent-card`).
 
 ## Current state
+- **Session 2026-06-20 — agent-interop static surface (ADR 0032) — built + locally verified.**
+  A2A Agent Card (`.well-known/agent-card.json`) + MCP tool-def (`tools/mcp/tools.json`) for the
+  deterministic `detect_recurrence` skill (`detect-recurrence`), a stdlib honesty validator
+  (`tools/agent_card_validate.py` / `make agent-card`) + 6 teeth (`tests/test_agent_card.py`). Phase A:
+  no live endpoint, no auth, no clinical claim (librarian framing carried into the card/tool-def/ADR).
+  Wired into `make check` + a named CI step; the validator + card + tool-defs registered in
+  control-policy `required_files`; an `agent_interop_phase: A` marker added above. Docs reconciled:
+  ADR-0032 + index, PROJECT_MAP, architecture (24 files / 323 tests), LEARNINGS, `docs/agent-interop.md`.
+  Local: `make agent-card` OK, `make test` 338 OK (incl. teeth), selftest 8/8, ruff clean, compile OK,
+  control-audit PASS, sensitive scan OK. Clinical modules untouched. Part of the cross-repo rollout
+  (Demo-math + Codex). **NEXT:** Stage 2 temporal-relation surfacing (ADR 0029) stays the engine next step.
 - **Session 2026-06-11 (cont.) — ADR 0029 STAGE 2 DESIGN FIXED + standards research (docs-only); build deferred to a fresh session.**
   Web-researched deterministic temporal-relation surfacing (`docs/RESEARCH_2026-06-11_temporal-relations.md`, RESEARCH_ONLY):
   point algebra (Allen's 13 collapse to 3 for day-dated POINT events) + one metric bound; THYME/i2b2 standardize on
