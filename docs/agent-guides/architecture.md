@@ -54,11 +54,12 @@ sync with the code (see ADR 0005)._
   (`summarize` / `compare` — numbers, no judgment). Optional JSONL persistence (single-writer);
   tail truncation / whole-file rewrite are detectable only against an externally recorded
   `head()` — the documented limit. Imports `recurrence` + `extract`, never the reverse.
-- `tests/` — 23 test files, 317 tests (7 skipped: the dev-only Hypothesis properties + the
+- `tests/` — 24 test files, 323 tests (7 skipped: the dev-only Hypothesis properties + the
   dev-only live-JS view test, both gated on optional tools — see ADR 0025). Engine 90 + free-text
   slices + multi-patient + all three HTML views + theme + rule-layer property tests (ADR 0027)
   + sensitive-change scanner and workflow-security tests (ADR 0028) + the audit trail's
-  behavior contract and chain properties (ADR 0030).
+  behavior contract and chain properties (ADR 0030) + the agent-card honesty teeth (ADR 0032).
+  (Counts are point-in-time; `make check` is the source of truth.)
   CI: `.github/workflows/ci.yml`
   (Py 3.10-3.13); CI also runs the Hypothesis properties (ADR 0025; extractor + rule-layer +
   audit-chain), validates the four generated HTML views with proof-html / html-proofer

@@ -1,0 +1,31 @@
+{
+  "name": "health-prototype-recurrence",
+  "description": "Static A2A discovery card for the deterministic recurrence-surfacing capability of the Health-Prototype 'librarian' engine. NO LIVE A2A ENDPOINT YET: this is a phase-A discovery card; the `url` points to the project repository, not a live JSON-RPC A2A endpoint (none exists in phase A). The skill below describes a deterministic, no-LLM function runnable from this repo's source (recurrence.py). This is a research/training prototype on synthetic data; it surfaces and cites only — it does NOT diagnose, triage, score, rank, or recommend, and it is not a clinical or medical-decision tool. See STATUS.md, SECURITY.md, and docs/adr/0032-agent-interop-static-surface.md.",
+  "version": "0.1.0",
+  "url": "https://github.com/Lost-secuirty/Health-Prototype",
+  "documentationUrl": "https://github.com/Lost-secuirty/Health-Prototype/blob/main/STATUS.md",
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false
+  },
+  "defaultInputModes": ["application/json"],
+  "defaultOutputModes": ["application/json"],
+  "securitySchemes": {},
+  "skills": [
+    {
+      "id": "detect-recurrence",
+      "name": "Detect recurrence (exact, librarian)",
+      "description": "Surface items that recur across a record's dated entries and cite their provenance: the record id, the count, the exact dates, and the original variants that were merged. Deterministic and defensive (malformed entries are skipped, not raised); exact-match by default, with opt-in normalize / declared-synonyms / fuzzy layers that are all still cited in `variants`. Surfaces and cites ONLY — no severity, no score, no interpretation, no diagnosis, no recommendation. Implemented by detect_recurrence() in recurrence.py; input records are {id, entries:[{date, item, source_span}]}.",
+      "tags": ["recurrence", "provenance", "deterministic", "librarian", "no-llm", "synthetic-data"],
+      "inputModes": ["application/json"],
+      "outputModes": ["application/json"]
+    }
+  ],
+  "x-lifecycle": {
+    "status": "growing",
+    "frozen": false,
+    "interopPhase": "A",
+    "liveEndpoint": false,
+    "note": "Growing until explicitly frozen (see STATUS.md). Phase A is a static discovery card only: no live A2A/MCP endpoint and no authentication. A live endpoint plus machine-to-machine auth is deferred (phase B). This card advertises an existing deterministic function on synthetic data; it makes no clinical or medical-safety claim."
+  }
+}

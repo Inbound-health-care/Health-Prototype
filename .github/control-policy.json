@@ -26,7 +26,10 @@
     ".github/workflows/sensitive-scan.yml",
     ".github/workflows/repository-controls.yml",
     "tools/scan_sensitive_changes.py",
-    "tools/control_audit.py"
+    "tools/control_audit.py",
+    "tools/agent_card_validate.py",
+    ".well-known/agent-card.json",
+    "tools/mcp/tools.json"
   ],
   "required_workflows": [
     "CI",

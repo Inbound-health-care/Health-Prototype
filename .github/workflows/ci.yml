@@ -41,6 +41,12 @@ jobs:
         run: make test
       - name: Self-tests (engine + extractor)
         run: make selftest
+      # Validate the static agent-interop surface (A2A card + MCP tool-defs) and
+      # enforce the no-overclaim honesty rule against STATUS.md (ADR 0032). The
+      # teeth live in tests/test_agent_card.py (run by `make test`); this is the
+      # explicit named gate over the real committed files.
+      - name: Agent-card honesty gate
+        run: make agent-card
       # Gate the fail-closed extractor's no-bleed / consistent-shift / additivity
       # invariants AND the rule-layer metamorphic properties (record isolation,
       # reordering & shift invariance) on every PR (ADR 0025, 0027). Hypothesis is

@@ -74,3 +74,21 @@ returns the repository SBOM name, then the dependency-review rerun must pass.
 
 Verification: `python tools/control_audit.py`, `make control-audit`, `make check`,
 and the `Repository controls` PR workflow.
+
+## 2026-06-20 — Describing a capability must not over-claim it (agent-interop)
+
+- Publishing a machine-readable description of `detect_recurrence` (an A2A card +
+  MCP tool-def) is low-risk only because the description is **enforced**, not just
+  written: `tools/agent_card_validate.py` fails the build if the card claims a
+  live endpoint/streaming while `STATUS.md` says `agent_interop_phase: A`, and the
+  teeth in `tests/test_agent_card.py` prove the gate bites on six overclaiming
+  variants — so it can't go vacuously green.
+- The health-domain trap is wording: an "agent skill" can read as a clinical
+  capability. The fix is to carry the librarian boundary into the card/tool-def/
+  ADR verbatim — surfaces + cites only, synthetic data, no diagnosis/score/
+  recommendation — and to make `liveEndpoint: false` a machine-readable fact, not
+  a prose promise.
+- Phase A is static-only by design (no server → no auth → no new runtime attack
+  surface). A live endpoint + machine-to-machine auth is phase B, deferred.
+
+Verification: `make agent-card`, `python -m unittest tests.test_agent_card`, `make check`.

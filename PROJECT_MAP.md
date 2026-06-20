@@ -75,6 +75,7 @@ canonical files.
 | `.github/workflows/repository-controls.yml` | Read-only PR/main repository-control audit | yes (control gate) | Control-policy/workflow changes |
 | `.github/dependabot.yml` | Weekly GitHub Actions and pip update checks | yes (update cadence) | Dependency automation changes |
 | `.github/pull_request_template.md` | Intent, deviation, AI, health/provenance, verification, and records checklist | yes (PR process) | Opening a PR |
+| `.well-known/agent-card.json` + `tools/mcp/tools.json` + `tools/agent_card_validate.py` | Static A2A card + MCP tool-def for `detect_recurrence` + the no-overclaim honesty gate (`make agent-card`); see `docs/agent-interop.md`, ADR-0032 | yes (agent-interop surface) | Agent-interop / card changes |
 | `README.md` | Public-facing project description | yes (public face) | External readers |
 | `SOVEREIGN_SCRIBE_SALVAGE.md` | Salvage of the separate clinical-scribe project | — | That project only |
 | `.gitignore` | Ignore rules | — | — |

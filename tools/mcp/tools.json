@@ -1,0 +1,100 @@
+{
+  "$comment": "Static MCP tool definitions for this repo's deterministic recurrence-surfacing capability. Phase A: there is NO live MCP server (see docs/adr/0032-agent-interop-static-surface.md). The tool maps 1:1 to detect_recurrence() in recurrence.py; the schemas mirror that function's real signature and return shape. Research/training prototype on synthetic data; surfaces and cites only — no clinical claim.",
+  "mcpVersion": "2025-06-18",
+  "tools": [
+    {
+      "name": "detect_recurrence",
+      "title": "Detect recurrence (exact, librarian)",
+      "description": "Surface items that recur (>= min_count times) across a record's dated entries and cite provenance: record id, count, exact dates, and merged variants. Deterministic and defensive; exact-match by default with opt-in normalize/synonyms/fuzzy layers (each merge still cited in variants). Surfaces and cites only — no interpretation, severity, score, diagnosis, or recommendation. Wraps detect_recurrence() in recurrence.py.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "records": {
+            "type": "array",
+            "description": "Records to scan. Each record is {id, entries:[{date, item, source_span}]}; date is an ISO-8601 string (or empty), item is the surfaced label.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "string" },
+                "entries": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "date": { "type": "string", "description": "ISO-8601 date, or empty for undated." },
+                      "item": { "type": "string" },
+                      "source_span": {
+                        "type": "array",
+                        "description": "Optional [start, end] char offsets into the source text (provenance).",
+                        "items": { "type": "integer" }
+                      }
+                    },
+                    "required": ["item"]
+                  }
+                }
+              },
+              "required": ["id", "entries"]
+            }
+          },
+          "field": {
+            "type": "string",
+            "default": "item",
+            "description": "Entry field to group on."
+          },
+          "min_count": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 2,
+            "description": "Minimum occurrences for an item to be surfaced as a recurrence."
+          },
+          "normalize": {
+            "type": "boolean",
+            "default": false,
+            "description": "Opt-in: trim/collapse whitespace and case-fold before comparing."
+          },
+          "synonyms": {
+            "type": "object",
+            "description": "Opt-in caller-supplied {variant: canonical} map; never inferred by the engine."
+          },
+          "fuzzy_cutoff": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0,
+            "description": "Opt-in difflib similarity cutoff (0..1) to merge near-duplicate lookalikes; off when omitted. Every merge is still cited in variants."
+          }
+        },
+        "required": ["records"],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "description": "The function returns a list of recurrence hits; exposed here as the `hits` array. Each hit carries provenance only.",
+        "properties": {
+          "hits": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "record_id": { "type": "string" },
+                "item": { "type": "string", "description": "The label shown for the merged group." },
+                "count": { "type": "integer" },
+                "dates": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "description": "Sorted occurrence dates (an undated occurrence is \"\" and sorts first)."
+                },
+                "variants": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "description": "The distinct original surface strings merged into this hit — the audit trail (length 1 for an exact v0 hit)."
+                }
+              },
+              "required": ["record_id", "item", "count", "dates", "variants"]
+            }
+          }
+        },
+        "required": ["hits"]
+      }
+    }
+  ]
+}

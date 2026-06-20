@@ -1,4 +1,4 @@
-.PHONY: test selftest demo compile lint check dev-install scan-sensitive hooks typecheck fmt-check fmt cov security proptest jstest html-demos tools branch-audit control-audit clean
+.PHONY: test selftest demo compile lint check dev-install scan-sensitive hooks typecheck fmt-check fmt cov security proptest jstest html-demos tools branch-audit control-audit agent-card clean
 
 # Engine is pure stdlib; no runtime dependencies to install.
 # The targets below test/lint/type-check are OPTIONAL dev tooling: each is a
@@ -30,11 +30,15 @@ lint:          ## compile + ruff (if installed). CI delegates here so the file l
 control-audit: ## Verify required control files/workflows and workflow hardening rules
 	python tools/control_audit.py
 
+agent-card:    ## Validate the static A2A card + MCP tool-defs (no-overclaim honesty gate, ADR-0032)
+	python tools/agent_card_validate.py
+
 check:         ## Standard local verification gate: tests + self-test + lint + repo controls
 	$(MAKE) test
 	$(MAKE) selftest
 	$(MAKE) lint
 	$(MAKE) control-audit
+	$(MAKE) agent-card
 
 dev-install:   ## Install exact dev-tool versions (runtime remains stdlib-only)
 	python -m pip install --requirement requirements-dev.txt
