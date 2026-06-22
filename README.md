@@ -1,26 +1,35 @@
 # Health-Prototype
 
-**Recurrence Detection Engine — Prototype v0.** The smallest function that
-attacks the root surfacing gap: systems *store* everything but *surface* almost
-nothing useful at the moment of need.
+A local, deterministic healthcare-record surfacing prototype.
+
+This repository explores one narrow workflow: given synthetic, dated health-style
+records, surface repeated or related mentions and cite exactly where each mention
+came from. The project is designed as a **librarian, not an interpreter**: it can
+surface, count, group, and cite provenance; it must not score, rank, diagnose,
+triage, recommend, or explain what a pattern means.
+
+## Public boundary
+
+This is a research / learning prototype, not a clinical product and not a
+medical device. It is not clinically validated, not counsel-verified for HIPAA or
+FDA status, and not safe to use with real patient records.
+
+Operational boundaries:
+
+- **Synthetic data only.** Do not add PHI, real patient records, secrets, tokens,
+  private clinical details, screenshots of real records, or unsanitized exports.
+- **Local-only runtime.** Runtime code is Python standard-library only and is
+  designed for no network egress.
+- **Deterministic behavior.** The engine applies explicit rules and returns cited
+  findings; it does not use an LLM or model judgment at runtime.
+- **Human judgment remains outside the engine.** A surfaced item is evidence to
+  review, not a conclusion.
 
 ## What it does
 
-Given a set of records, `detect_recurrence` surfaces every case where the same
-item appears across multiple dated entries, and cites exactly where each
-occurrence came from.
-
-It is a **librarian, not an interpreter**. It surfaces, counts, and cites
-provenance — it never scores, ranks, or diagnoses, and it never says what a
-pattern *means*. That separation is the design principle and the main risk
-boundary: it reduces interpretive and clinical-decision-support risk, but it is
-not a compliance determination.
-
-Domain-agnostic by design: a record can be a patient, a pharmacy profile, or a
-session log — the engine does not care. Pure stdlib, local-only, placeholder
-data only (zero real PHI).
-
-## Pipeline
+The prototype can take either canonical records or free-text notes that are
+converted into canonical records, then run deterministic surfacing rules over
+those records.
 
 ```text
 Free-text note
@@ -32,33 +41,34 @@ extract.py            deterministic allowlist extraction + char-offset provenanc
 canonical records     {id, entries: [{date, item, source_span}]}
     │
     ▼
-recurrence.py         five surfacing rules, each per-record
+recurrence.py         five surfacing rules, each per record
     │
     ▼
-surfaced findings     recurrence · gap · frequency (burst) · co-occurrence · cadence change
+surfaced findings     recurrence · gap · frequency · co-occurrence · cadence change
     │
     ▼
 text or HTML report   recurrence.py --report · report_html.py · digest_html.py
 ```
 
-Every step is deterministic and cites its source; no step interprets.
+Every step is deterministic and cites its source. No step interprets clinical
+meaning.
 
 ## What this system deliberately does not do
 
-The value is in the refusal to interpret. It does **not**:
+It does not:
 
 - diagnose, triage, or assign severity
 - infer causation — co-occurrence means "appeared together," never "caused"
-- interpret negation or context
-- decide whether a finding matters, or rank patients
+- decide whether a finding matters
+- rank records or patients
 - produce clinical recommendations
-- assign a confidence or probability score
+- assign a confidence, probability, priority, or risk score
+- claim HIPAA de-identification or FDA non-device status
 
-A finding is either surfaced by a deterministic rule or absent under that rule —
-there is no model judgment in between, and nothing is generated. Example: the note
-*"Denies chest pain"* still surfaces `chest pain` if that term is in the gazetteer
-(strict-literal, Stance A). The system cites the exact source span; a human decides
-whether the mention is clinically relevant. That is the design, not a bug.
+A finding is either surfaced by a deterministic rule or absent under that rule.
+Example: the note *"Denies chest pain"* still surfaces `chest pain` if that term
+is in the gazetteer. The system cites the exact source span; a human decides
+whether the mention is clinically relevant.
 
 ## Record shape
 
@@ -66,14 +76,14 @@ whether the mention is clinically relevant. That is the design, not a bug.
 record = {
     "id": "R001",
     "entries": [
-        {"date": "2026-01-10", "item": "poor sleep"},   # ISO 8601 date
+        {"date": "2026-01-10", "item": "poor sleep"},
         {"date": "2026-02-02", "item": "poor sleep"},
         {"date": "2026-02-20", "item": "appetite change"},
     ],
 }
 ```
 
-## The function
+## The base function
 
 ```python
 def detect_recurrence(records: list, field: str = "item", min_count: int = 2) -> list[RecurrenceHit]:
@@ -81,8 +91,7 @@ def detect_recurrence(records: list, field: str = "item", min_count: int = 2) ->
     count, and the dates it appeared on. Surfaces only — no interpretation."""
 ```
 
-Each hit reports the **record ID**, the **recurring item**, the **count**, and
-the **exact dates** it appeared on (provenance). Rendered output line:
+Each hit reports the record ID, item, count, and dates. Rendered output line:
 
 ```text
 Record R001: "poor sleep" recurred 2 times — 2026-01-10, 2026-02-02
@@ -91,54 +100,45 @@ Record R001: "poor sleep" recurred 2 times — 2026-01-10, 2026-02-02
 ## Running it
 
 ```bash
-python recurrence.py --self-test                  # run the six required spec cases
+python recurrence.py --self-test                  # required recurrence spec cases
 python recurrence.py --demo                        # recurrence, v0 exact match
-python recurrence.py --demo-v1                      # recurrence, v1 opt-in matching
+python recurrence.py --demo-v1                      # recurrence, opt-in matching layers
 python recurrence.py --demo-gap                     # gap / re-emergence rule
 python recurrence.py --demo-frequency               # frequency / burst rule
-python recurrence.py --demo-cooccurrence            # co-occurrence (same date)
-python recurrence.py --demo-cooccurrence-window     # co-occurrence within a 7-day window (opt-in)
-python recurrence.py --demo-cadence-change          # cadence change (an item's interval shifted)
-python recurrence.py --report                        # combined per-record report (all rules)
-make check                                           # full local verification (tests + self-test + lint)
-python -m unittest discover -s tests -t .          # full test suite (from repo root)
+python recurrence.py --demo-cooccurrence            # co-occurrence, same date
+python recurrence.py --demo-cooccurrence-window     # co-occurrence within a 7-day window, opt-in
+python recurrence.py --demo-cadence-change          # cadence change
+python recurrence.py --report                        # combined per-record report
+make check                                           # tests + self-test + lint + repo controls
+python -m unittest discover -s tests -t .          # full unittest suite
 ```
 
-Exact captured output of the main commands lives in
-[`docs/DEMO_OUTPUT.md`](docs/DEMO_OUTPUT.md) — read it to see the value without
-running anything.
-
-The placeholder record set lives in `data/sample_records.py` (records +
-hand-written `ANSWER_KEY`, side by side). Each record exists for one documented
-reason and the answer key is written first; `--demo` and the test suite confirm
-the engine surfaces exactly those patterns. The full design rationale, field
-dictionary (grounded in 2026 USCDI/FHIR/SDOH standards), per-record reasons, and
-the v0 limitations each record demonstrates are in
-[`data/RECORDS.md`](data/RECORDS.md).
+Captured command output lives in [`docs/DEMO_OUTPUT.md`](docs/DEMO_OUTPUT.md).
+The synthetic record set and hand-written answer keys live in
+[`data/sample_records.py`](data/sample_records.py); field rationale and per-record
+fixture reasons live in [`data/RECORDS.md`](data/RECORDS.md).
 
 ## Surfacing rules
 
-The engine surfaces patterns through independent rules that all read the same
-grouped occurrences (so they share the matching behavior below). Each surfaces,
-counts, and cites — none interprets.
+The engine surfaces patterns through independent rules that read the same grouped
+occurrences. Each rule surfaces, counts, and cites; none interprets.
 
-| Rule | Function | Question it answers |
+| Rule | Function | What it surfaces |
 |---|---|---|
-| Recurrence | `detect_recurrence` | Has the same item come up repeatedly (≥ `min_count`)? |
-| Gap / re-emergence | `detect_gap` | Did an item return after a long absence (> `gap_days`)? |
-| Frequency / burst | `detect_frequency` | Did an item cluster (`min_count`+ within `window_days`)? |
-| Co-occurrence | `detect_cooccurrence` | Did two items show up together — same date, or within an opt-in `window_days` — on ≥ `min_count` dates? |
-| Cadence change | `detect_cadence_change` | Did an item's spacing between events shift (median interval before/after a change point by ≥ `ratio`)? |
+| Recurrence | `detect_recurrence` | Same item appears at least `min_count` times. |
+| Gap / re-emergence | `detect_gap` | Item returns after more than `gap_days` absent. |
+| Frequency / burst | `detect_frequency` | Item appears `min_count`+ times within `window_days`. |
+| Co-occurrence | `detect_cooccurrence` | Two items appear together on the same date, or within an opt-in window. |
+| Cadence change | `detect_cadence_change` | An item's spacing between events changes by at least `ratio`. |
 
-One record can surface under several rules — see [`data/RECORDS.md`](data/RECORDS.md)
-§7 for the gap/frequency walkthrough and their hand-written answer keys.
+One record can surface under several rules. Records that surface nothing are
+omitted from combined reports; they are not labeled normal, safe, low-priority,
+or resolved.
 
-### Combined report — all rules, one per-record view
+### Combined report
 
 `run_report` (CLI `--report`) runs all five rules over one record set and groups
 every finding under its record, each line tagged with the lens that surfaced it.
-Records that surface nothing are omitted — it lists what is present, and it never
-ranks, scores, totals, or prioritizes records.
 
 ```text
 Record R015:
@@ -150,55 +150,51 @@ Record R016:
   [frequency] "chest pain" appeared 3 times within 19 days — 2026-02-01, 2026-02-10, 2026-02-20
 ```
 
-## Matching: exact by default, fuzzy when asked
+## Matching
 
-**The default is exact match** — same meaning in different words is *not*
-combined, so v0 stays simple and provable.
-
-**v1 adds three opt-in matching layers** to `detect_recurrence` (defaults keep
-exact v0 behavior, so nothing regresses):
+The default is exact match. Same meaning in different words is not combined
+unless an explicit matching layer is requested.
 
 ```python
 detect_recurrence(records, normalize=True, synonyms={"insomnia": "poor sleep"}, fuzzy_cutoff=0.85)
 ```
 
-- `normalize=True` — case-fold + trim + collapse whitespace.
-- `synonyms={variant: canonical}` — merge declared synonyms. The mapping is data
-  **you** supply; the engine never infers meaning. This is the only way to unite
-  truly dissimilar synonyms like "insomnia" = "can't sleep".
-- `fuzzy_cutoff=0.0–1.0` — also merge lookalikes/typos via stdlib `difflib`. This
-  is the one layer where the engine groups without a declared rule, so it is off
-  by default.
+- `normalize=True` — case-fold, trim, and collapse whitespace.
+- `synonyms={variant: canonical}` — merge only caller-declared synonyms.
+- `fuzzy_cutoff=0.0–1.0` — merge lookalikes/typos through stdlib `difflib`; off by
+  default because it groups without a declared synonym rule.
 
-**The librarian rule holds.** Whenever entries with different spellings are combined,
-the hit cites every original via `variants`, and the output shows them:
+When different spellings are combined, the output cites the original variants:
 
 ```text
 Record R006: "poor sleep" recurred 3 times — … [merged: "can't sleep", "insomnia", "poor sleep"]
 ```
 
-The engine surfaces, counts, and cites — including *which spellings it merged* —
-and still never interprets what the recurrence means. See
-[`data/RECORDS.md`](data/RECORDS.md) §5 for the full v1 walkthrough.
+## Governance and verification
+
+The repository carries a public-healthcare boundary, but it does not claim
+clinical readiness or regulatory compliance.
+
+- `AGENTS.md` defines the librarian rule and operator workflow.
+- `SECURITY.md` and `SECURITY_AND_TOOL_POLICY.md` define the no-PHI / no-secrets /
+  local-only boundary.
+- `.github/control-policy.json` and `tools/control_audit.py` make required control
+  files and workflow hardening checkable.
+- `docs/adr/` records decisions and their confirmation method.
+- `docs/LEARNINGS.md` records reusable operational lessons.
 
 ## License
 
-Licensed under the [Apache License 2.0](LICENSE) — chosen over MIT for its explicit
-patent grant and defensive-termination clause (appropriate for a health-adjacent tool).
-See ADR 0024.
+Licensed under the [Apache License 2.0](LICENSE). See ADR 0024.
 
-## Repo map (the six-slot model)
+## Repo map
 
-The same skeleton repeats across the connected repos — **rules → memory →
-decisions → agent-tooling → verification → product**. This repo is the strictest
-point on that spectrum (strict by deliberate design, not lax-law default):
+- **Rules** — `AGENTS.md`, `CLAUDE.md`, `SECURITY.md`, `SECURITY_AND_TOOL_POLICY.md`.
+- **Front door / state** — `LOAD.md`, `STATUS.md`, `PROJECT_MAP.md`.
+- **Decisions** — `docs/adr/`, `docs/DOC_DISCIPLINE.md`.
+- **Verification** — `make check`, `tools/scan_sensitive_changes.py`,
+  `tools/control_audit.py`, `.github/workflows/`.
+- **Product prototype** — `recurrence.py`, `extract.py`, `audit.py`,
+  `view_html.py`, `report_html.py`, `digest_html.py`.
 
-- **Rules** — `AGENTS.md` (contract; the librarian rule) · `CLAUDE.md` (pointer) · `SECURITY.md` + `SECURITY_AND_TOOL_POLICY.md` (canonical security).
-- **Front door / load order** — `LOAD.md` → `AGENTS.md` → `STATUS.md` (canonical current state) → `docs/COLD_START_HANDOFF.md`.
-- **Memory** — `docs/LEARNINGS.md` (gotchas) · `STATUS.md` (where we are); the diary is chat-only (ADR 0024).
-- **Decisions** — `docs/adr/` (the "why" trail) + `docs/DOC_DISCIPLINE.md` (evidence levels + the research gate).
-- **Agent tooling** — `.claude/` (commands: handoff / drift-check / new-phase / audit-prompt · hooks incl. the chat-only-diary Stop guard · the `repo-onboard` skill).
-- **Verification** — `make check` (tests + self-test + lint) · `tools/scan_sensitive_changes.py` (`make scan-sensitive`) · `.github/workflows/` · hash-chained audit trail.
-- **Product** — the engine (`recurrence.py`, `extract.py`, `audit.py`, `*_html.py`): surfaces and cites, never interprets.
-
-Plain-language **and** technical walk-through: [`docs/WALKTHROUGH.md`](docs/WALKTHROUGH.md).
+Plain-language and technical walk-through: [`docs/WALKTHROUGH.md`](docs/WALKTHROUGH.md).
